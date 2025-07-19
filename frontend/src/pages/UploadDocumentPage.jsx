@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react"
 import { motion } from "framer-motion"
 import { ArrowLeft, Upload, FileText, Check, X, AlertCircle } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { useAuthStore } from "../store/authStore"
+import UploadVerify from "../components/UploadVerify"
 
 const UploadDocumentPage = () => {
   const navigate = useNavigate()
@@ -16,12 +18,18 @@ const UploadDocumentPage = () => {
   const [uploadStatus, setUploadStatus] = useState("idle")
   const [uploadMessage, setUploadMessage] = useState("")
   const fileInputRef = useRef(null)
+  const { user } = useAuthStore()
 
   // Debug log to confirm page rendering
   useEffect(() => {
-      window.scrollTo({ top: 0, behavior: "smooth" })
+    window.scrollTo({ top: 0, behavior: "smooth" })
     console.log("Rendering UploadPage")
   }, [])
+
+  // Check for admin status after all hooks are called
+  if (user?.isAdmin !== 'admin') {
+    return <UploadVerify />
+  }
 
   const semesters = [
     { value: "1", label: "1st Semester" },
@@ -105,53 +113,53 @@ const UploadDocumentPage = () => {
       handleFileSelect(files[0])
     }
   }
-const handleUpload = async () => {
-  if (!selectedFile || !fileName || !selectedSemester || !selectedCourse) {
-    setUploadStatus("error");
-    setUploadMessage("Please fill in all fields and select a file");
-    return;
-  }
 
-  setIsUploading(true);
-  setUploadStatus("idle");
-
-  try {
-    const formData = new FormData();
-    formData.append("file", selectedFile);
-    formData.append("name", fileName);
-    formData.append("semester", selectedSemester);
-    formData.append("course", selectedCourse);
-
-    const res = await fetch("http://localhost:5000/api/files/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    const json = await res.json();
-
-    if (!res.ok || !json.success) {
-      throw new Error(json.message || "Upload failed");
+  const handleUpload = async () => {
+    if (!selectedFile || !fileName || !selectedSemester || !selectedCourse) {
+      setUploadStatus("error")
+      setUploadMessage("Please fill in all fields and select a file")
+      return
     }
 
-    console.log("Uploaded:", json.data);
-    setUploadStatus("success");
-    setUploadMessage("File uploaded successfully!");
-  } catch (err) {
-    setUploadStatus("error");
-    setUploadMessage(err.message || "Upload failed. Please try again.");
-  } finally {
-    setIsUploading(false);
-    setTimeout(() => {
-      removeFile();
-      setFileName("");
-      setSelectedSemester("");
-      setSelectedCourse("");
-      setUploadStatus("idle");
-      setUploadMessage("");
-    }, 2000);
-  }
-};
+    setIsUploading(true)
+    setUploadStatus("idle")
 
+    try {
+      const formData = new FormData()
+      formData.append("file", selectedFile)
+      formData.append("name", fileName)
+      formData.append("semester", selectedSemester)
+      formData.append("course", selectedCourse)
+
+      const res = await fetch("http://localhost:5000/api/files/upload", {
+        method: "POST",
+        body: formData,
+      })
+
+      const json = await res.json()
+
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || "Upload failed")
+      }
+
+      console.log("Uploaded:", json.data)
+      setUploadStatus("success")
+      setUploadMessage("File uploaded successfully!")
+    } catch (err) {
+      setUploadStatus("error")
+      setUploadMessage(err.message || "Upload failed. Please try again.")
+    } finally {
+      setIsUploading(false)
+      setTimeout(() => {
+        removeFile()
+        setFileName("")
+        setSelectedSemester("")
+        setSelectedCourse("")
+        setUploadStatus("idle")
+        setUploadMessage("")
+      }, 2000)
+    }
+  }
 
   const removeFile = () => {
     setSelectedFile(null)
@@ -161,7 +169,7 @@ const handleUpload = async () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center p-0 pb-8 pt-16">
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center p-0 pb-8 pt-20">
       {/* Hero Section */}
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12 text-center">
         <motion.div
