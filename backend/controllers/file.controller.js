@@ -6,12 +6,12 @@ import axios from 'axios';
 
 export const uploadFile = async (req, res) => {
   try {
-    const { name, course, semester, subject, types, year } = req.body;
+    const { name, course, semester, subject, types, year, category } = req.body;
     const file = req.file;
 
     if (!file) return res.status(400).json({ success: false, message: 'No file uploaded' });
 
-    if (!name || !course || !semester || !subject || !types || !year) {
+    if (!name || !course || !semester || !subject || !types || !year || !category) {
       fs.unlinkSync(file.path);
       return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
@@ -32,16 +32,10 @@ export const uploadFile = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid year format' });
     }
 
-    let parsedTypes;
-    try {
-      parsedTypes = JSON.parse(types);
-      if (!Array.isArray(parsedTypes) || !parsedTypes.every(type => ['image', 'document'].includes(type))) {
-        fs.unlinkSync(file.path);
-        return res.status(400).json({ success: false, message: 'Invalid file types' });
-      }
-    } catch (err) {
+   const validTypes = ['image', 'document'];
+    if (typeof types !== 'string' || !validTypes.includes(types.toLowerCase())) {
       fs.unlinkSync(file.path);
-      return res.status(400).json({ success: false, message: 'Invalid types format' });
+      return res.status(400).json({ success: false, message: 'Invalid file type. Must be "image" or "document"' });
     }
 
     // Determine resource_type for Cloudinary
@@ -59,7 +53,7 @@ export const uploadFile = async (req, res) => {
     // Save file metadata to MongoDB
     const newFile = new File({
       name,
-      type: parsedTypes[0],
+      type: types.toLowerCase(),
       course,
       subject,
       semester,
@@ -67,6 +61,7 @@ export const uploadFile = async (req, res) => {
       isFree: 'free',
       fileUrl: result.secure_url,
       contentType: file.mimetype,
+      category,
     });
 
     await newFile.save();
@@ -81,10 +76,11 @@ export const uploadFile = async (req, res) => {
         semester,
         subject,
         year,
-        types: parsedTypes,
+        types: types.toLowerCase(),
         url: result.secure_url,
         public_id: result.public_id,
         asset_id: result.asset_id,
+        category
       },
     });
   } catch (err) {
@@ -110,7 +106,7 @@ export const fetchFilesCourseAndSemester = async (req, res) => {
     }
 
     const files = await File.find({ course, semester: semesterNum })
-      .select('name type course subject semester year fileUrl')
+      .select('name type course subject semester year fileUrl category contentType')
       .lean();
 
     if (!files.length) {

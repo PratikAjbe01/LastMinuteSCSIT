@@ -4,6 +4,7 @@ import { useAuthStore } from "../store/authStore";
 import Input from "../components/Input";
 import { ArrowLeft, Loader, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 
 const ForgotPasswordPage = () => {
 	const [email, setEmail] = useState("");
@@ -21,6 +22,10 @@ const ForgotPasswordPage = () => {
 		<div
 		className={`min-h-screen flex items-center justify-center py-10 bg-gradient-to-br from-gray-900 via-blue-900 to-black-900`}
 	>
+		<Helmet>
+			<title>Forgot Password - LastMinute SCSIT</title>
+			<meta name="description" content="Reset your password for the School of Computer Science and Information Technology, Indore." />
+		</Helmet>
 		<motion.div
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}

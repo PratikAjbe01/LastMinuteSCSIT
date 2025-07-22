@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuthStore } from "../store/authStore";
 import toast from "react-hot-toast";
+import { Helmet } from "react-helmet-async";
 
 const EmailVerificationPage = () => {
 	const [code, setCode] = useState(["", "", "", "", "", ""]);
@@ -66,6 +67,10 @@ const EmailVerificationPage = () => {
 			<div
 		className={`min-h-screen flex items-center justify-center py-10 bg-gradient-to-br from-gray-900 via-blue-900 to-black-900`}
 	>
+		<Helmet>
+			<title>Email Verification - LastMinute SCSIT</title>
+			<meta name="description" content="Verify your email address to complete the registration process at LastMinute SCSIT." />
+		</Helmet>
 		<div className='max-w-md w-full bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden'>
 			<motion.div
 				initial={{ opacity: 0, y: -50 }}

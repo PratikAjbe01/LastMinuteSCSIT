@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import { BookOpen, FileText, GraduationCap, Code, Laptop } from "lucide-react"
 import { useEffect } from "react"
+import { Helmet } from "react-helmet-async"
 import { useNavigate } from "react-router-dom"
 
 const Courses = () => {
@@ -58,8 +59,12 @@ const Courses = () => {
 
   return (
     <div className="min-h-full w-full h-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center justify-center p-0 pb-8 pt-16">
+     <Helmet>
+        <title>Courses - LastMinute SCSIT</title>
+        <meta name="description" content="Explore the diverse range of courses offered at LastMinute SCSIT." />
+      </Helmet>
       <div className="w-full h-full flex flex-col flex-1">
-        <div className="text-center mb-12 mt-12">
+        <div className="text-center mb-12 mt-12 px-4">
           <motion.h1
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}

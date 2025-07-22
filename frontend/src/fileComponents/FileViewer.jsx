@@ -2,12 +2,24 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { X, ZoomIn, ZoomOut, RotateCw, Download, Eye } from "lucide-react"
+import { X, ZoomIn, ZoomOut, RotateCw, Download, Eye, Share, Share2 } from "lucide-react"
+import Img from "../components/lazyLoadImage/Img"
+import { useParams } from "react-router-dom"
+import { RWebShare } from "react-web-share"
 
 const FileViewer = ({ file, onClose }) => {
   const [zoom, setZoom] = useState(100)
   const [rotation, setRotation] = useState(0)
   const [pdfUrl, setPdfUrl] = useState(null)
+
+  useEffect(() => {
+    const width = window.innerWidth;
+    if (width <= 768) {
+      window.open(file?.url, "_blank");
+    }
+  }, []);
+
+  const { course, semesterId } = useParams();
 
   useEffect(() => {
     const handleContextMenu = (e) => {
@@ -31,16 +43,13 @@ const FileViewer = ({ file, onClose }) => {
 
   useEffect(() => {
     if (file?.type === "document") {
-      fetch(file.url)
-        .then(response => response.blob())
-        .then(blob => {
-          const url = URL.createObjectURL(blob)
-          setPdfUrl(url)
-          return () => URL.revokeObjectURL(url) // Cleanup on unmount
-        })
-        .catch(error => {
-          console.error("Error fetching PDF:", error)
-        })
+      // Try direct URL first for better browser compatibility
+      setPdfUrl(file.url)
+    }
+    return () => {
+      if (pdfUrl && pdfUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(pdfUrl)
+      }
     }
   }, [file?.url, file?.type])
 
@@ -61,6 +70,9 @@ const FileViewer = ({ file, onClose }) => {
     setRotation(0)
   }
 
+  const baseUrl = window.location.origin
+  console.log("Base URL:", baseUrl)
+
   console.log("FileViewer rendered with file:", file)
 
   return (
@@ -70,19 +82,35 @@ const FileViewer = ({ file, onClose }) => {
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-gray-900 z-50 flex flex-col overflow-hidden"
     >
-      <div className="bg-gray-800 bg-opacity-90 backdrop-filter backdrop-blur-xl border-b border-gray-700 p-4 flex justify-between items-center">
-        <div className="flex items-center space-x-4">
+      <div className="bg-gray-800 bg-opacity-90 backdrop-filter backdrop-blur-xl border-b border-gray-700 p-2 sm:p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
           <div className="flex items-center space-x-2">
-            <Eye className="w-5 h-5 text-green-400" />
-            <span className="text-white font-semibold">{file.title}</span>
+            <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" />
+            <span className="text-white font-semibold text-sm sm:text-base truncate">{file.title}</span>
           </div>
-          <div className="text-gray-400 text-sm">
+          <div className="text-gray-400 text-xs sm:text-sm truncate">
             {file.semester} • {file.subject} • {file.year}
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <div className="flex items-center space-x-1 bg-gray-700 rounded-lg p-1">
+        <div className="flex items-center space-x-1 sm:space-x-2 w-full sm:w-auto justify-end">
+          <RWebShare
+            data={{
+              text: `LastMinute SCSIT shared ${file?.title} of ${file.subject} ( ${file.year} )'.`,
+              url: `${baseUrl}/scsit/${course}/semesters/${semesterId}`,
+              title: "LastMinute SCSIT Shared File" + file?.name | file?.title,
+            }}
+          >
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-2 sm:p-3 text-gray-300 hover:text-white hover:bg-gray-600 transition-colors flex items-center space-x-1 bg-gray-700 rounded-lg"
+            >
+              <Share2 className="w-3 h-3 sm:w-4 sm:h-4" />
+            </motion.button>
+          </RWebShare>
+
+          <div className="hidden sm:flex items-center space-x-1 bg-gray-700 rounded-lg p-1">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -106,20 +134,42 @@ const FileViewer = ({ file, onClose }) => {
             </motion.button>
           </div>
 
+          <div className="flex sm:hidden items-center space-x-1">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleZoomOut}
+              className="p-2 bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600 rounded-lg transition-colors"
+              disabled={zoom <= 50}
+            >
+              <ZoomOut className="w-3 h-3" />
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleZoomIn}
+              className="p-2 bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600 rounded-lg transition-colors"
+              disabled={zoom >= 300}
+            >
+              <ZoomIn className="w-3 h-3" />
+            </motion.button>
+          </div>
+
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleRotate}
             className="p-2 bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600 rounded-lg transition-colors"
           >
-            <RotateCw className="w-4 h-4" />
+            <RotateCw className="w-3 h-3 sm:w-4 sm:h-4" />
           </motion.button>
 
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleReset}
-            className="px-3 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg transition-colors text-sm font-medium"
+            className="px-2 py-2 sm:px-3 bg-green-600 text-white hover:bg-green-700 rounded-lg transition-colors text-xs sm:text-sm font-medium"
           >
             Reset
           </motion.button>
@@ -130,48 +180,78 @@ const FileViewer = ({ file, onClose }) => {
             onClick={onClose}
             className="p-2 bg-red-600 text-white hover:bg-red-700 rounded-lg transition-colors"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3 h-3 sm:w-4 sm:h-4" />
           </motion.button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto bg-gray-900 flex items-center justify-center">
+      <div className="flex sm:hidden bg-gray-800 bg-opacity-90 border-b border-gray-700 p-2">
+        <div className="flex items-center justify-center space-x-2 w-full">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleZoomOut}
+            className="p-2 text-gray-300 hover:text-white hover:bg-gray-600 rounded transition-colors bg-gray-700"
+            disabled={zoom <= 50}
+          >
+            <ZoomOut className="w-4 h-4" />
+          </motion.button>
+
+          <span className="text-gray-300 text-sm px-3 py-2 bg-gray-700 rounded min-w-[60px] text-center">{zoom}%</span>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleZoomIn}
+            className="p-2 text-gray-300 hover:text-white hover:bg-gray-600 rounded transition-colors bg-gray-700"
+            disabled={zoom >= 300}
+          >
+            <ZoomIn className="w-4 h-4" />
+          </motion.button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-auto bg-gray-900 flex items-center justify-center p-2 sm:p-4 relative">
         <motion.div
           initial={{ scale: 0.9, opacity: 0, rotate: 0 }}
           animate={{ scale: zoom / 100, opacity: 1, rotate: rotation }}
           transition={{ duration: 0.3 }}
-          className="max-w-[95vw] max-h-[95vh] w-full h-full flex items-center justify-center"
+          className="max-w-full max-h-full w-full h-full flex items-center justify-center mx-auto relative"
           style={{ transformOrigin: "center center" }}
         >
           {file?.type === "document" && pdfUrl ? (
-            <iframe
-              src={pdfUrl}
-              title={file.title}
-              className="w-full h-full border-0 rounded-none shadow-none bg-white"
-              style={{ transformOrigin: "center center" }}
-            />
+            <>
+              <iframe
+                src={`${pdfUrl}`}
+                title={file.title}
+                className="w-full h-full border-0 rounded-none shadow-none bg-white block"
+                style={{ 
+                  transformOrigin: "center center",
+                  minHeight: "50vh",
+                  width: "100%",
+                  height: "100%"
+                }}
+              />
+            </>
           ) : file?.type === "document" ? (
-            <div className="text-white text-center">Loading PDF...</div>
+            <div className="text-white text-center text-sm sm:text-base">Loading PDF...</div>
           ) : (
-            <img
-              src={file.url || "/placeholder.svg"}
-              alt={file.title}
-              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-              draggable={false}
-              onContextMenu={(e) => e.preventDefault()}
-              style={{ userSelect: "none", pointerEvents: "none" }}
+            <Img 
+              src={file.url || "/placeholder.svg"} 
+              alt={file.title} 
+              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl mx-auto" 
             />
           )}
         </motion.div>
       </div>
 
-      <div className="bg-gray-800 bg-opacity-90 backdrop-filter backdrop-blur-xl border-t border-gray-700 p-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="text-gray-400 text-sm">
+      <div className="bg-gray-800 bg-opacity-90 backdrop-filter backdrop-blur-xl border-t border-gray-700 p-2 sm:p-4">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0">
+          <div className="text-gray-400 text-xs sm:text-sm text-center sm:text-left">
             Use zoom and rotate controls to adjust the view. Right-click and downloads are disabled for security.
           </div>
-          <div className="flex items-center space-x-2 text-gray-400 text-sm">
-            <Download className="w-4 h-4" />
+          <div className="flex items-center space-x-2 text-gray-400 text-xs sm:text-sm">
+            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
             <span>Download Disabled</span>
           </div>
         </div>
