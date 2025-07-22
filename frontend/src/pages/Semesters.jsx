@@ -7,6 +7,7 @@ import SemesterPage from "../fileComponents/SemesterPage"
 import FileViewer from "../fileComponents/FileViewer"
 import UploadPage from "../fileComponents/UploadPage"
 import { useNavigate, useParams } from "react-router-dom"
+import { Helmet } from "react-helmet-async"
 
 const SemestersPage = () => {
 const {course} = useParams();
@@ -124,6 +125,10 @@ const navigate = useNavigate();
 
   return (
     <div className="min-h-full w-full h-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center justify-center p-0 pb-8 pt-16">
+      <Helmet>
+        <title>{`${selectedCourse?.toUpperCase() || course?.toUpperCase()} Semesters - SCSIT Indore`}</title>
+        <meta name="description" content={`Explore the diverse range of semesters offered at the School of Computer Science and Information Technology, Indore for ${selectedCourse || course}.`} />
+      </Helmet>
       <div className="w-full h-full flex flex-col flex-1">
         <div className="text-center mb-12 mt-12">
           <motion.h1

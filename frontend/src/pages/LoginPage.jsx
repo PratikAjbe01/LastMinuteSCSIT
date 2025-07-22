@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Lock, Loader, Eye } from "lucide-react";
+import { Mail, Lock, Loader, Eye, ShieldHalf } from "lucide-react";
 import { Link } from "react-router-dom";
 import Input from "../components/Input";
 import { useAuthStore } from "../store/authStore";
+import { Helmet } from "react-helmet-async";
 
 const LoginPage = () => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [isAdmin, setIsAdmin] = useState(false);
-    const [lockPass,SetLockPass]=useState(true);
+	const [lockPass, SetLockPass] = useState(true);
 
 	const { login, isLoading, error } = useAuthStore();
 
@@ -19,15 +20,19 @@ const LoginPage = () => {
 
 
 	};
-	const flag=true;
+	const flag = true;
 
 	return (
 		<div
 			className={`min-h-screen max-h-full flex items-center justify-center relative overflow-hidden py-10 ${flag
-					? "bg-gradient-to-br from-gray-900 via-blue-900 to-black-900"
-					: "bg-gradient-to-br from-gray-900 via-green-900 to-emerald-900"
+				? "bg-gradient-to-br from-gray-900 via-blue-900 to-black-900"
+				: "bg-gradient-to-br from-gray-900 via-green-900 to-emerald-900"
 				}`}
 		>
+			<Helmet>
+				<title>Login - LastMinute SCSIT</title>
+				<meta name="description" content="Login to access your account at the School of Computer Science and Information Technology, Indore." />
+			</Helmet>
 			<motion.div
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
@@ -48,14 +53,25 @@ const LoginPage = () => {
 							onChange={(e) => setEmail(e.target.value)}
 						/>
 
-						<Input
-						icon={(lockPass)?Lock:Eye}
-						type={(lockPass)?'password':'text'}
-						placeholder='Password'
-						onClick={()=>SetLockPass(!lockPass)}
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-					/>
+						<div className='relative mb-6'>
+							<div className='absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none'>
+								<Lock className='size-5 text-green-500' />
+							</div>
+							<input
+								type={(lockPass) ? 'password' : 'text'}
+								placeholder='Password'
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+								className='w-full pl-10 pr-3 py-2 bg-gray-800 bg-opacity-50 rounded-lg border border-gray-700 focus:border-green-500 focus:ring-2 focus:ring-green-500 text-white placeholder-gray-400 transition duration-200'
+							/>
+							<div className='absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer'>
+								{lockPass ? (
+									<Eye className='size-5 text-green-500' onClick={() => SetLockPass(false)} />
+								) : (
+									<ShieldHalf className='size-5 text-green-500' onClick={() => SetLockPass(true)} />
+								)}
+							</div>
+						</div>
 
 						<div className='flex items-center mb-6'>
 							<Link to='/forgot-password' className='text-sm text-green-400 hover:underline'>

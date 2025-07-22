@@ -5,6 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Input from "../components/Input";
 import { Lock } from "lucide-react";
 import toast from "react-hot-toast";
+import { Helmet } from "react-helmet-async";
 
 const ResetPasswordPage = () => {
 	const [password, setPassword] = useState("");
@@ -38,6 +39,10 @@ const ResetPasswordPage = () => {
 		<div
 			className="min-h-screen max-h-full flex items-center justify-center relative overflow-hidden py-10 bg-gradient-to-br from-gray-900 via-blue-900 to-black-900"
 		>
+			<Helmet>
+				<title>Reset Password - LastMinute SCSIT</title>
+				<meta name="description" content="Reset your password for the School of Computer Science and Information Technology, Indore." />
+			</Helmet>
 			<motion.div
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
