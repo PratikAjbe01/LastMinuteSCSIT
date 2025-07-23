@@ -40,7 +40,7 @@ const HomePage = () => {
   ]
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center p-0 pb-4">
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center p-0 pb-4 pt-0 sm:pt-16">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-40 sm:pt-20 pb-12 text-center">
         <motion.div
           initial={{ opacity: 0, y: -20 }}

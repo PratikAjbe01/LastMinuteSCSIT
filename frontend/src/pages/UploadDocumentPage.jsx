@@ -15,8 +15,8 @@ const UploadDocumentPage = () => {
   const [selectedCourse, setSelectedCourse] = useState("")
   const [selectedSemester, setSelectedSemester] = useState("")
   const [selectedSubject, setSelectedSubject] = useState("")
-  const [selectedTypes, setSelectedTypes] = useState([])
-  const [selectedCategory, setSelectedCategory] = useState([])
+  const [selectedTypes, setSelectedTypes] = useState(null)
+  const [selectedCategory, setSelectedCategory] = useState(null)
   const [selectedYear, setSelectedYear] = useState("")
   const [selectedFile, setSelectedFile] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -29,6 +29,14 @@ const UploadDocumentPage = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }, [])
+
+  useEffect(() => {
+    if (selectedCategory === "paper") {
+      setSelectedTypes("image")
+    } else {
+      setSelectedTypes(null)
+    }
+  }, [selectedCategory])
 
   const courses = [
     { value: "BCA", label: "Bachelor of Computer Applications (BCA)" },
@@ -219,7 +227,7 @@ const UploadDocumentPage = () => {
     },
   }
 
-  const availableSemesters = selectedCourse ? semestersByCourse?.[selectedCourse]?.map(sem => ({ value: sem, label: `${sem}st Semester` })) ?? [] : []
+  const availableSemesters = selectedCourse ? semestersByCourse?.[selectedCourse]?.map((sem, idx) => ({ value: sem, label: `${sem}${idx === 0 ? "st" : idx === 1 ? "nd" : idx === 2 ? "rd" : "th"} Semester` })) ?? [] : []
   const availableSubjects = selectedCourse && selectedSemester ? 
     (selectedCourse === "MCA" ? 
       subjectsByCourseAndSemester?.[selectedCourse]?.[selectedSemester]?.subjects?.map(sub => ({ value: sub.name, label: sub.name })) ?? [] 
@@ -246,23 +254,23 @@ const UploadDocumentPage = () => {
   }
 
   const handleFileSelect = (file) => {
-    const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"]
+    let allowedTypes
+    if (selectedCategory === "paper") {
+      allowedTypes = ["image/jpeg", "image/png", "image/jpg"]
+    } else {
+      allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"]
+    }
     if (!allowedTypes.includes(file?.type)) {
       setUploadStatus("error")
-      setUploadMessage("Please select a PDF or image file (JPG, PNG)")
+      setUploadMessage(`Please select ${selectedCategory === "paper" ? "an image file (JPG, PNG)" : "a PDF or image file (JPG, PNG)"}`)
       return
     }
-
     if (file?.size > 10 * 1024 * 1024) {
       setUploadStatus("error")
       setUploadMessage("File size must be less than 10MB")
       return
     }
-
     setSelectedFile(file)
-    if (!fileName) {
-      setFileName(file?.name?.replace(/\.[^/.]+$/, "") ?? "")
-    }
     setUploadStatus("idle")
     setUploadMessage("")
   }
@@ -309,17 +317,21 @@ const UploadDocumentPage = () => {
       !selectedCourse ||
       !selectedSemester ||
       !selectedSubject ||
-      selectedTypes?.length === 0 ||
+      !selectedTypes ||
+      !selectedCategory ||
       !/^\d{4}$/.test(selectedYear)
     ) {
       setUploadStatus("error")
-      setUploadMessage("Please fill in all fields, select a file, choose at least one type, and enter a valid year")
+      setUploadMessage("Please fill in all fields, select a file, choose a type, select a category, and enter a valid year")
       return
     }
-
+    if (selectedCategory === "paper" && !["image/jpeg", "image/png", "image/jpg"].includes(selectedFile.type)) {
+      setUploadStatus("error")
+      setUploadMessage("Only image files are allowed for papers")
+      return
+    }
     setIsUploading(true)
     setUploadStatus("idle")
-
     try {
       const formData = new FormData()
       formData.append("file", selectedFile)
@@ -330,30 +342,25 @@ const UploadDocumentPage = () => {
       formData.append("types", selectedTypes)
       formData.append("year", selectedYear)
       formData.append("category", selectedCategory)
-
       const res = await fetch("http://localhost:5000/api/files/upload", {
         method: "POST",
         body: formData,
       })
-
       const json = await res?.json()
-
       if (!res?.ok || !json?.success) {
         throw new Error(json?.message || "Upload failed")
       }
-
       setSelectedFile(null)
       setFileName("")
       setSelectedCourse("")
       setSelectedSemester("")
       setSelectedSubject("")
-      setSelectedTypes([])
-      setSelectedCategory([])
+      setSelectedTypes(null)
+      setSelectedCategory(null)
       setSelectedYear("")
       if (fileInputRef.current) {
         fileInputRef.current.value = ""
       }
-
       setUploadStatus("success")
       setUploadMessage("File uploaded successfully!")
     } catch (err) {
@@ -421,7 +428,7 @@ const UploadDocumentPage = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center p-0 pb-4 pt-16">
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center p-0 pb-4 pt-20 sm:pt-24">
       <Helmet>
         <title>Upload Document - LastMinute SCSIT</title>
         <meta name="description" content="Upload your examination papers and study materials for BCA" />
@@ -454,7 +461,7 @@ const UploadDocumentPage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
-        className="w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-8"
+        className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
       >
         <div className="bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl border border-gray-700 p-4 sm:p-6 md:p-8">
           <div className="space-y-4 sm:space-y-6">
@@ -529,7 +536,7 @@ const UploadDocumentPage = () => {
 
             <div className="flex flex-col sm:flex-row sm:space-x-4">
               <div className="flex-1 mb-4 sm:mb-0">
-                <label class人不            className="block text-sm sm:text-base font-medium text-gray-300">
+                <label className="block text-sm sm:text-base font-medium text-gray-300">
                   Category
                 </label>
                 <div className="flex flex-wrap gap-2 sm:gap-3 pt-3 sm:pt-5">
@@ -584,76 +591,54 @@ const UploadDocumentPage = () => {
                 />
               </div>
             </div>
-            <div className="flex-1">
-              <label className="block text-sm sm:text-base font-medium text-gray-300">
-                Type
-              </label>
-              <div className="flex flex-wrap gap-2 sm:gap-3 pt-3 sm:pt-5">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedTypes === "image"}
-                    onChange={() => handleTypeChange("image")}
-                    className="hidden peer"
-                  />
-                  <span className="w-5 h-5 sm:w-6 sm:h-6 bg-gray-700 border border-gray-600 rounded-md flex items-center justify-center peer-checked:bg-green-500 peer-checked:border-green-500 transition-colors duration-200">
-                    {selectedTypes === "image" && <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" />}
-                  </span>
-                  <span className="text-gray-300 text-sm sm:text-base">Image</span>
+
+            {selectedCategory !== "paper" && (
+              <div className="flex-1">
+                <label className="block text-sm sm:text-base font-medium text-gray-300">
+                  Type
                 </label>
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedTypes === "document"}
-                    onChange={() => handleTypeChange("document")}
-                    className="hidden peer"
-                  />
-                  <span className="w-5 h-5 sm:w-6 sm:h-6 bg-gray-700 border border-gray-600 rounded-md flex items-center justify-center peer-checked:bg-green-500 peer-checked:border-green-500 transition-colors duration-200">
-                    {selectedTypes === "document" && <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" />}
-                  </span>
-                  <span className="text-gray-300 text-sm sm:text-base">Document</span>
-                </label>
+                <div className="flex flex-wrap gap-2 sm:gap-3 pt-3 sm:pt-5">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedTypes === "image"}
+                      onChange={() => handleTypeChange("image")}
+                      className="hidden peer"
+                    />
+                    <span className="w-5 h-5 sm:w-6 sm:h-6 bg-gray-700 border border-gray-600 rounded-md flex items-center justify-center peer-checked:bg-green-500 peer-checked:border-green-500 transition-colors duration-200">
+                      {selectedTypes === "image" && <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" />}
+                    </span>
+                    <span className="text-gray-300 text-sm sm:text-base">Image</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedTypes === "document"}
+                      onChange={() => handleTypeChange("document")}
+                      className="hidden peer"
+                    />
+                    <span className="w-5 h-5 sm:w-6 sm:h-6 bg-gray-700 border border-gray-600 rounded-md flex items-center justify-center peer-checked:bg-green-500 peer-checked:border-green-500 transition-colors duration-200">
+                      {selectedTypes === "document" && <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" />}
+                    </span>
+                    <span className="text-gray-300 text-sm sm:text-base">Document</span>
+                  </label>
+                </div>
               </div>
-            </div>
+            )}
+
             <div>
               <label className="block text-sm sm:text-base font-medium text-gray-300 mb-2">
                 Upload File
               </label>
-              <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                className={`relative border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-all duration-300 ${isDragging
-                  ? "border-green-400 bg-green-400 bg-opacity-10"
-                  : "border-gray-600 hover:border-green-500"
-                  }`}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={handleFileInputChange}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                {selectedFile ? (
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="flex items-center justify-center space-x-3">
-                      <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-green-400" />
-                      <div className="text-left">
-                        <p className="text-white font-medium text-sm sm:text-base">{selectedFile?.name}</p>
-                        <p className="text-gray-400 text-xs sm:text-sm">
-                          {(selectedFile?.size / 1024 / 1024)?.toFixed(2)} MB
-                        </p>
-                      </div>
-                      <button
-                        onClick={removeFile}
-                        className="p-1 text-red-400 hover:text-red-300 transition-colors"
-                      >
-                        <X className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </button>
-                    </div>
-                  </div>
-                ) : (
+              <div className={`flex flex-col lg:flex-row gap-4 ${selectedFile ? "lg:flex-row" : "lg:flex-col"}`}>
+                <div className={`relative border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-all duration-300 ${isDragging ? "border-green-400 bg-green-400 bg-opacity-10" : "border-gray-600 hover:border-green-500"} ${selectedFile ? "lg:w-1/2" : "lg:w-full"}`}>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={selectedCategory === "paper" ? "image/jpeg,image/png,image/jpg" : ".pdf,image/jpeg,image/png,image/jpg"}
+                    onChange={handleFileInputChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
                   <div className="space-y-3 sm:space-y-4">
                     <Upload className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto" />
                     <div>
@@ -661,8 +646,47 @@ const UploadDocumentPage = () => {
                         Drop your file here or click to browse
                       </p>
                       <p className="text-gray-400 text-xs sm:text-sm mt-1">
-                        Supports PDF, JPG, PNG files up to 10MB
+                        Supports {selectedCategory === "paper" ? "JPG, PNG" : "PDF, JPG, PNG"} files up to 10MB
                       </p>
+                    </div>
+                  </div>
+                </div>
+                {selectedFile && (
+                  <div className="lg:w-1/2">
+                    <div className="space-y-3 sm:space-y-4">
+                      {["image/jpeg", "image/png", "image/jpg"].includes(selectedFile?.type) ? (
+                        <div className="relative">
+                          <img
+                            src={URL.createObjectURL(selectedFile)}
+                            alt={selectedFile?.name}
+                            className="w-full h-auto max-h-96 object-contain rounded-lg"
+                          />
+                          <button
+                            onClick={removeFile}
+                            className="absolute top-2 right-2 p-1 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
+                          >
+                            <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between p-3 bg-gray-700 bg-opacity-50 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-green-400" />
+                            <div className="text-left">
+                              <p className="text-white font-medium text-sm sm:text-base">{selectedFile?.name}</p>
+                              <p className="text-gray-400 text-xs sm:text-sm">
+                                {(selectedFile?.size / 1024 / 1024)?.toFixed(2)} MB
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={removeFile}
+                            className="p-1 text-red-400 hover:text-red-300 transition-colors"
+                          >
+                            <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -702,8 +726,10 @@ const UploadDocumentPage = () => {
                 !selectedCourse ||
                 !selectedSemester ||
                 !selectedSubject ||
-                selectedTypes?.length === 0 ||
-                !/^\d{4}$/.test(selectedYear)
+                !selectedTypes ||
+                !selectedCategory ||
+                !/^\d{4}$/.test(selectedYear) ||
+                (selectedCategory === "paper" && selectedFile && !["image/jpeg", "image/png", "image/jpg"].includes(selectedFile.type))
               }
               className="w-full py-3 sm:py-4 px-4 sm:px-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
             >
@@ -723,18 +749,18 @@ const UploadDocumentPage = () => {
         </div>
       </motion.div>
 
-      <motion.div
+   <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.6 }}
-        className="w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8 mb-12 sm:mb-16"
+        className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8 mb-12 sm:mb-16"
       >
         <div className="bg-gray-800 bg-opacity-30 backdrop-filter backdrop-blur-xl rounded-xl border border-gray-700 p-4 sm:p-6">
           <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Upload Guidelines</h3>
           <ul className="space-y-2 text-gray-300 text-xs sm:text-sm">
             <li className="flex items-start space-x-2">
               <span className="text-green-400 mt-1">•</span>
-              <span>Supported file formats: PDF, JPG, PNG</span>
+              <span>Supported file formats: Only images (JPG, PNG) for papers; PDFs and images (JPG, PNG) for notes and syllabus</span>
             </li>
             <li className="flex items-start space-x-2">
               <span className="text-green-400 mt-1">•</span>
@@ -746,11 +772,23 @@ const UploadDocumentPage = () => {
             </li>
             <li className="flex items-start space-x-2">
               <span className="text-green-400 mt-1">•</span>
-              <span>Ensure the paper is clear and readable before uploading</span>
+              <span>For papers with multiple pages, upload each page separately with the same field values, adding a suffix like "- Page 1", "- Page 2", etc., to the paper name; for single-page papers, upload without a suffix</span>
             </li>
             <li className="flex items-start space-x-2">
               <span className="text-green-400 mt-1">•</span>
-              <span>Select the correct course, semester, subject, and year for proper categorization</span>
+              <span>Ensure the file is clear, readable, and a valid {selectedCategory === "paper" ? "image (JPG, PNG)" : "PDF or image (JPG, PNG)"} before uploading</span>
+            </li>
+            <li className="flex items-start space-x-2">
+              <span className="text-green-400 mt-1">•</span>
+              <span>Select the correct course, semester, subject, type, category, and a valid four-digit year (e.g., 2023) for proper categorization</span>
+            </li>
+            <li className="flex items-start space-x-2">
+              <span className="text-green-400 mt-1">•</span>
+              <span>Only admins can upload files; ensure you are logged in with admin privileges</span>
+            </li>
+            <li className="flex items-start space-x-2">
+              <span className="text-green-400 mt-1">•</span>
+              <span>When a file is selected, preview it on the right (images display as thumbnails, PDFs show as file names with size)</span>
             </li>
           </ul>
         </div>

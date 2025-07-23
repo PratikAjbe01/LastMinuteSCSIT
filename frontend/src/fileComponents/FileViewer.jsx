@@ -216,7 +216,7 @@ const FileViewer = ({ file, onClose }) => {
           initial={{ scale: 0.9, opacity: 0, rotate: 0 }}
           animate={{ scale: zoom / 100, opacity: 1, rotate: rotation }}
           transition={{ duration: 0.3 }}
-          className="max-w-full max-h-full w-full h-full flex items-center justify-center mx-auto relative"
+          className="max-w-full max-h-full w-full h-full flex items-center justify-center mx-auto relative pt-2 sm:pt-4"
           style={{ transformOrigin: "center center" }}
         >
           {file?.type === "document" && pdfUrl ? (
@@ -239,7 +239,7 @@ const FileViewer = ({ file, onClose }) => {
             <Img 
               src={file.url || "/placeholder.svg"} 
               alt={file.title} 
-              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl mx-auto" 
+              className="max-w-[calc(100%-350px)] object-contain rounded-lg shadow-2xl mx-auto" 
             />
           )}
         </motion.div>

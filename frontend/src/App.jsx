@@ -19,6 +19,7 @@ import Courses from "./pages/Courses";
 import SemestersPage from "./pages/Semesters";
 import UploadDocumentPage from "./pages/UploadDocumentPage";
 import DocumentsPage from "./pages/DocumentsPage";
+import Footer from "./components/Footer";
 
 
 // protect routes that require authentication
@@ -173,6 +174,7 @@ function App() {
 				{/* catch all routes */}
 				<Route path='*' element={<Navigate to='/' replace />} />
 			</Routes>
+			<Footer />
 			<Toaster />
 	</>
 	);

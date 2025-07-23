@@ -154,6 +154,8 @@ const DocumentsPage = ({ onFileSelect }) => {
                     const documentUrl = file?.type === "image" ? file?.fileUrl : pdfUrl;
                     acc[subject].push({
                         title: file?.name,
+                        name: file?.name,
+                        course: file?.course,
                         year: file?.year || "Unknown",
                         type: file?.type,
                         url: file?.fileUrl,
@@ -207,6 +209,7 @@ const DocumentsPage = ({ onFileSelect }) => {
 
     const handleFileClick = (file, subject) => {
         setSelectedFile(file);
+        console.log("Selected file: on paper : ", file, subject);
     };
 
     const onBack = () => {
@@ -338,7 +341,7 @@ const DocumentsPage = ({ onFileSelect }) => {
                                 <div className="p-4 sm:p-6">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                         {filteredPapers.length > 0 ? (
-                                            filteredPapers.map((paper, paperIndex) => (
+                                            filteredPapers.map((paper, paperIndex) =>(
                                                 <motion.div
                                                     key={paperIndex}
                                                     whileHover={{ scale: 1.02, y: -2 }}
@@ -355,7 +358,7 @@ const DocumentsPage = ({ onFileSelect }) => {
 
                                                         <div className="flex-1 min-w-0">
                                                             <h3 className="text-white font-semibold text-xs sm:text-sm md:text-base mb-1 truncate">
-                                                                {paper.title}
+                                                                {paper?.name}
                                                             </h3>
 
                                                             <div className="flex items-center space-x-2 text-xs text-gray-400">
