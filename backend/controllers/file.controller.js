@@ -46,6 +46,7 @@ export const uploadFile = async (req, res) => {
     const result = await cloudinary.uploader.upload(file.path, {
       folder: 'Uploads',
       resource_type: resourceType,
+      access_mode: 'public',
     });
 
     fs.unlinkSync(file.path); // Clean up local file
