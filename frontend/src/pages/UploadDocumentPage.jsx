@@ -5,7 +5,6 @@ import { motion } from "framer-motion"
 import { ArrowLeft, Upload, FileText, Check, X, AlertCircle } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { useAuthStore } from "../store/authStore"
-import UploadVerify from "../components/UploadVerify"
 import Select from "react-select"
 import { Helmet } from "react-helmet-async"
 
@@ -42,16 +41,32 @@ const UploadDocumentPage = () => {
     { value: "BCA", label: "Bachelor of Computer Applications (BCA)" },
     { value: "MCA", label: "Master of Computer Applications (MCA)" },
     { value: "BCA_INT", label: "BCA Integrated" },
-    { value: "MTECH", label: "Master of Technology (MTech)" },
+    { value: "MSC_INT_CS", label: "M.Sc. Integrated (Cyber Security)" },
+    { value: "MTECH_CS", label: "M.Tech(CS)" },
+    { value: "MTECH_CS_EXEC", label: "M.Tech(CS) Executive" },
+    { value: "MTECH_NM_IS", label: "M.Tech(NM & IS)" },
+    { value: "MTECH_IA_SE", label: "M.Tech(IA & SE)" },
     { value: "PHD", label: "Doctor of Philosophy (PhD)" },
+    { value: "MSC_CS", label: "Master of Science (CS)" },
+    { value: "MSC_IT", label: "Master of Science (IT)" },
+    { value: "MBA_CM", label: "MBA (Computer Management)" },
+    { value: "PGDCA", label: "PG Diploma in Computer Applications (PGDCA)" },
   ]
 
   const semestersByCourse = {
     "BCA": ["1", "2", "3", "4", "5", "6"],
     "MCA": ["1", "2", "3", "4"],
     "BCA_INT": ["1", "2", "3", "4", "5", "6", "7", "8"],
-    "MTECH": ["1", "2", "3", "4"],
+    "MSC_INT_CS": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
+    "MTECH_CS": ["1", "2", "3", "4"],
+    "MTECH_CS_EXEC": ["1", "2", "3", "4"],
+    "MTECH_NM_IS": ["1", "2", "3", "4"],
+    "MTECH_IA_SE": ["1", "2", "3", "4"],
     "PHD": ["1", "2", "3", "4", "5", "6"],
+    "MSC_CS": ["1", "2", "3", "4"],
+    "MSC_IT": ["1", "2", "3", "4"],
+    "MBA_CM": ["1", "2", "3", "4"],
+    "PGDCA": ["1", "2"],
   }
 
   const staticSemesterData = {
@@ -93,146 +108,100 @@ const UploadDocumentPage = () => {
 
   const subjectsByCourseAndSemester = {
     "BCA": {
-      "1": [
-        "Programming in C",
-        "Mathematics for Computing",
-        "Digital Electronics",
-        "Communication Skills",
-        "Computer Organization",
-      ],
-      "2": [
-        "Data Structures",
-        "Discrete Mathematics",
-        "Web Development",
-        "Object Oriented Programming",
-        "Database Management Systems",
-      ],
-      "3": [
-        "Operating Systems",
-        "Computer Networks",
-        "Java Programming",
-        "Software Engineering",
-        "Computer Graphics",
-      ],
-      "4": [
-        "Advanced Database Systems",
-        "Web Technologies",
-        "Project Work",
-      ],
-      "5": [
-        "Artificial Intelligence",
-        "Cyber Security",
-        "Mobile Application Development",
-      ],
-      "6": [
-        "Cloud Computing",
-        "Big Data Analytics",
-        "Project Work",
-      ],
+      "1": ["Programming in C", "Mathematics for Computing", "Digital Electronics", "Communication Skills", "Computer Organization"],
+      "2": ["Data Structures", "Discrete Mathematics", "Web Development", "Object Oriented Programming", "Database Management Systems"],
+      "3": ["Operating Systems", "Computer Networks", "Java Programming", "Software Engineering", "Computer Graphics"],
+      "4": ["Advanced Database Systems", "Web Technologies", "Project Work"],
+      "5": ["Artificial Intelligence", "Cyber Security", "Mobile Application Development"],
+      "6": ["Cloud Computing", "Big Data Analytics", "Project Work"],
     },
     "MCA": staticSemesterData,
     "BCA_INT": {
-      "1": [
-        "Programming in C",
-        "Mathematics for Computing",
-        "Digital Electronics",
-        "Communication Skills",
-      ],
-      "2": [
-        "Data Structures",
-        "Discrete Mathematics",
-        "Web Development",
-        "Computer Organization",
-      ],
-      "3": [
-        "Operating Systems",
-        "Object Oriented Programming",
-        "Database Management Systems",
-      ],
-      "4": [
-        "Computer Networks",
-        "Java Programming",
-        "Software Engineering",
-      ],
-      "5": [
-        "Computer Graphics",
-        "Web Technologies",
-        "Advanced Database Systems",
-      ],
-      "6": [
-        "Artificial Intelligence",
-        "Cloud Computing",
-        "Project Work",
-      ],
-      "7": [
-        "Big Data Analytics",
-        "Cyber Security",
-        "Mobile Application Development",
-      ],
-      "8": [
-        "Advanced Web Technologies",
-        "Project Work",
-      ],
+      "1": ["Programming in C", "Mathematics for Computing", "Digital Electronics", "Communication Skills"],
+      "2": ["Data Structures", "Discrete Mathematics", "Web Development", "Computer Organization"],
+      "3": ["Operating Systems", "Object Oriented Programming", "Database Management Systems"],
+      "4": ["Computer Networks", "Java Programming", "Software Engineering"],
+      "5": ["Computer Graphics", "Web Technologies", "Advanced Database Systems"],
+      "6": ["Artificial Intelligence", "Cloud Computing", "Project Work"],
+      "7": ["Big Data Analytics", "Cyber Security", "Mobile Application Development"],
+      "8": ["Advanced Web Technologies", "Project Work"],
     },
-    "MTECH": {
-      "1": [
-        "Advanced Algorithms",
-        "Machine Learning",
-        "Cloud Computing",
-        "Data Science",
-      ],
-      "2": [
-        "Distributed Systems",
-        "Cyber Security",
-        "Big Data Analytics",
-        "Internet of Things",
-      ],
-      "3": [
-        "High Performance Computing",
-        "Software Architecture",
-        "Deep Learning",
-      ],
-      "4": [
-        "Project Work",
-      ],
+    "MSC_INT_CS": {
+      "1": ["Fundamentals of IT & Programming", "Digital Logic", "Mathematics-I", "Communication Skills"],
+      "2": ["Data Structures", "Computer Organization", "Mathematics-II", "Intro to Cyber Security"],
+      "3": ["Object-Oriented Programming", "Operating Systems", "Database Management Systems", "Network Fundamentals"],
+      "4": ["Web Technologies", "Software Engineering", "Principles of Information Security", "Python for Security"],
+      "5": ["Computer Networks & Security", "Cryptography Basics", "Ethical Hacking Fundamentals", "Cyber Law & Ethics"],
+      "6": ["Secure Coding Practices", "Web Application Security", "Digital Forensics-I", "Minor Project-I"],
+      "7": ["Network Security & Firewalls", "Malware Analysis", "Intrusion Detection Systems", "Elective-I"],
+      "8": ["Cloud Security", "Mobile & Wireless Security", "Digital Forensics-II", "Elective-II"],
+      "9": ["Advanced Cryptography", "IoT Security", "Cyber Threat Intelligence", "Minor Project-II"],
+      "10": ["Major Project / Internship"],
+    },
+    "MTECH_CS": {
+      "1": ["Advanced Data Structures", "Theory of Computation", "Modern Computer Architecture", "Advanced Algorithms"],
+      "2": ["Machine Learning", "Advanced Database Systems", "Compiler Design", "Research Methodology"],
+      "3": ["Deep Learning", "Cloud Computing", "Minor Project"],
+      "4": ["Dissertation / Major Project"],
+    },
+    "MTECH_CS_EXEC": {
+      "1": ["Software Project Management", "Advanced Operating Systems", "Data Warehousing & Mining", "IT Strategy"],
+      "2": ["Agile Methodologies", "Information Systems Security", "Business Intelligence", "Cloud Services"],
+      "3": ["Big Data Analytics", "DevOps", "Case Studies Project"],
+      "4": ["Dissertation / Major Project"],
+    },
+    "MTECH_NM_IS": {
+      "1": ["Advanced Computer Networks", "Cryptography & Network Security", "Network Programming", "Wireless & Mobile Networks"],
+      "2": ["Information & System Security", "Network Management & Operations", "Ethical Hacking", "Research Methodology"],
+      "3": ["Cloud & Data Center Networking", "Intrusion Detection & Prevention Systems", "Digital Forensics", "Minor Project"],
+      "4": ["Dissertation / Major Project"],
+    },
+    "MTECH_IA_SE": {
+      "1": ["Advanced Software Engineering", "Information Architecture & Design", "Software Metrics & Quality Assurance", "Object-Oriented Analysis & Design"],
+      "2": ["Software Architecture & Patterns", "Component-Based Software Engineering", "User Experience (UX) Design", "Research Methodology"],
+      "3": ["Software Project & Risk Management", "Agile Software Development", "Service-Oriented Architecture", "Minor Project"],
+      "4": ["Dissertation / Major Project"],
     },
     "PHD": {
-      "1": [
-        "Research Methodology",
-        "Advanced Computing",
-        "Statistical Methods",
-      ],
-      "2": [
-        "Machine Learning",
-        "Data Science",
-        "Literature Review",
-      ],
-      "3": [
-        "Artificial Intelligence",
-        "Advanced Algorithms",
-        "Big Data Analytics",
-      ],
-      "4": [
-        "Cyber Security",
-        "Cloud Computing",
-        "Thesis Work",
-      ],
-      "5": [
-        "Advanced Topics in Computing",
-        "Research Seminar",
-      ],
-      "6": [
-        "Thesis Work",
-      ],
+      "1": ["Research Methodology", "Advanced Computing", "Statistical Methods"],
+      "2": ["Machine Learning", "Data Science", "Literature Review"],
+      "3": ["Artificial Intelligence", "Advanced Algorithms", "Big Data Analytics"],
+      "4": ["Cyber Security", "Cloud Computing", "Thesis Work"],
+      "5": ["Advanced Topics in Computing", "Research Seminar"],
+      "6": ["Thesis Work"],
+    },
+    "MSC_CS": {
+      "1": ["Advanced Data Structures", "Theory of Computation", "Advanced Algorithms", "Computer Systems and Networks"],
+      "2": ["Artificial Intelligence", "Compiler Design", "Advanced Database Systems", "Software Project Management"],
+      "3": ["Machine Learning", "Cryptography and Network Security", "Cloud Computing", "Elective I"],
+      "4": ["Major Project"],
+    },
+    "MSC_IT": {
+      "1": ["IT Fundamentals", "Web Technologies", "Object-Oriented Programming", "Network Essentials"],
+      "2": ["Data Warehousing and Mining", "Mobile Computing", "Information Security", "E-Commerce"],
+      "3": ["Big Data Technologies", "Internet of Things (IoT)", "Digital Image Processing", "Elective II"],
+      "4": ["Major Project"],
+    },
+    "MBA_CM": {
+      "1": ["Principles of Management", "Managerial Economics", "IT for Managers", "Accounting for Managers"],
+      "2": ["Marketing Management", "Human Resource Management", "Database Management Systems", "Business Communication"],
+      "3": ["Software Project Management", "E-Business Strategies", "Information Systems Security", "Strategic Management"],
+      "4": ["Internship and Project Report"],
+    },
+    "PGDCA": {
+      "1": ["Computer Fundamentals & PC Software", "Programming in 'C'", "Database Management using FoxPro", "System Analysis and Design"],
+      "2": ["GUI Programming with Visual Basic", "Web Design and Internet", "Object-Oriented Programming with C++", "Project Work"],
     },
   }
 
-  const availableSemesters = selectedCourse ? semestersByCourse?.[selectedCourse]?.map((sem, idx) => ({ value: sem, label: `${sem}${idx === 0 ? "st" : idx === 1 ? "nd" : idx === 2 ? "rd" : "th"} Semester` })) ?? [] : []
-  const availableSubjects = selectedCourse && selectedSemester ? 
-    (selectedCourse === "MCA" ? 
-      subjectsByCourseAndSemester?.[selectedCourse]?.[selectedSemester]?.subjects?.map(sub => ({ value: sub.name, label: sub.name })) ?? [] 
-      : subjectsByCourseAndSemester?.[selectedCourse]?.[selectedSemester]?.map(sub => ({ value: sub, label: sub })) ?? []) 
-    : []
+  const getOrdinalSuffix = (n) => {
+    const s = ["th", "st", "nd", "rd"], v = n % 100
+    return s[(v - 20) % 10] || s[v] || s[0]
+  }
+
+  const availableSemesters = selectedCourse ? semestersByCourse?.[selectedCourse]?.map((sem) => ({ value: sem, label: `${sem}${getOrdinalSuffix(parseInt(sem, 10))} Semester` })) ?? [] : []
+  
+  const availableSubjects = selectedCourse && selectedSemester ? (selectedCourse === "MCA" ? subjectsByCourseAndSemester?.[selectedCourse]?.[selectedSemester]?.subjects?.map(sub => ({ value: sub.name, label: sub.name })) ?? [] : subjectsByCourseAndSemester?.[selectedCourse]?.[selectedSemester]?.map(sub => ({ value: sub, label: sub })) ?? []) : []
 
   const handleDragOver = (e) => {
     e.preventDefault()
@@ -311,16 +280,7 @@ const UploadDocumentPage = () => {
       setUploadMessage("Only admins are authorized to upload documents.")
       return
     }
-    if (
-      !selectedFile ||
-      !fileName ||
-      !selectedCourse ||
-      !selectedSemester ||
-      !selectedSubject ||
-      !selectedTypes ||
-      !selectedCategory ||
-      !/^\d{4}$/.test(selectedYear)
-    ) {
+    if (!selectedFile || !fileName || !selectedCourse || !selectedSemester || !selectedSubject || !selectedTypes || !selectedCategory || !/^\d{4}$/.test(selectedYear)) {
       setUploadStatus("error")
       setUploadMessage("Please fill in all fields, select a file, choose a type, select a category, and enter a valid year")
       return
@@ -342,6 +302,7 @@ const UploadDocumentPage = () => {
       formData.append("types", selectedTypes)
       formData.append("year", selectedYear)
       formData.append("category", selectedCategory)
+      formData.append("uploadedBy", user?._id || user?.id)
       const res = await fetch("http://localhost:5000/api/files/upload", {
         method: "POST",
         body: formData,
@@ -431,7 +392,7 @@ const UploadDocumentPage = () => {
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center p-0 pb-4 pt-20 sm:pt-24">
       <Helmet>
         <title>Upload Document - LastMinute SCSIT</title>
-        <meta name="description" content="Upload your examination papers and study materials for BCA" />
+        <meta name="description" content="Upload your examination papers and study materials for various courses at SCSIT, Indore." />
       </Helmet>
       <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-8 sm:pb-12 text-center">
         <motion.div
@@ -443,7 +404,7 @@ const UploadDocumentPage = () => {
             Upload Examination Papers
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-4 sm:mb-6 leading-relaxed">
-            Contribute to the SCSIT, Indore community by uploading previous year question papers and study materials for MCA and other programs.
+            Contribute to the SCSIT, Indore community by uploading previous year question papers and study materials for various programs.
           </p>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -630,7 +591,12 @@ const UploadDocumentPage = () => {
               <label className="block text-sm sm:text-base font-medium text-gray-300 mb-2">
                 Upload File
               </label>
-              <div className={`flex flex-col lg:flex-row gap-4 ${selectedFile ? "lg:flex-row" : "lg:flex-col"}`}>
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`flex flex-col lg:flex-row gap-4 ${selectedFile ? "lg:flex-row" : "lg:flex-col"}`}
+              >
                 <div className={`relative border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-all duration-300 ${isDragging ? "border-green-400 bg-green-400 bg-opacity-10" : "border-gray-600 hover:border-green-500"} ${selectedFile ? "lg:w-1/2" : "lg:w-full"}`}>
                   <input
                     ref={fileInputRef}
@@ -697,10 +663,7 @@ const UploadDocumentPage = () => {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`flex items-center space-x-2 p-3 sm:p-4 rounded-lg ${uploadStatus === "success"
-                  ? "bg-green-600 bg-opacity-20 border border-green-500"
-                  : "bg-red-600 bg-opacity-20 border border-red-500"
-                  }`}
+                className={`flex items-center space-x-2 p-3 sm:p-4 rounded-lg ${uploadStatus === "success" ? "bg-green-600 bg-opacity-20 border border-green-500" : "bg-red-600 bg-opacity-20 border border-red-500"}`}
               >
                 {uploadStatus === "success" ? (
                   <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
@@ -719,18 +682,7 @@ const UploadDocumentPage = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleUpload}
-              disabled={
-                isUploading ||
-                !selectedFile ||
-                !fileName ||
-                !selectedCourse ||
-                !selectedSemester ||
-                !selectedSubject ||
-                !selectedTypes ||
-                !selectedCategory ||
-                !/^\d{4}$/.test(selectedYear) ||
-                (selectedCategory === "paper" && selectedFile && !["image/jpeg", "image/png", "image/jpg"].includes(selectedFile.type))
-              }
+              disabled={isUploading || !selectedFile || !fileName || !selectedCourse || !selectedSemester || !selectedSubject || !selectedTypes || !selectedCategory || !/^\d{4}$/.test(selectedYear) || (selectedCategory === "paper" && selectedFile && !["image/jpeg", "image/png", "image/jpg"].includes(selectedFile.type))}
               className="w-full py-3 sm:py-4 px-4 sm:px-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
             >
               {isUploading ? (
@@ -749,7 +701,7 @@ const UploadDocumentPage = () => {
         </div>
       </motion.div>
 
-   <motion.div
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.6 }}

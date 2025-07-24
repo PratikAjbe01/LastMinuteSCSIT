@@ -20,6 +20,8 @@ import SemestersPage from "./pages/Semesters";
 import UploadDocumentPage from "./pages/UploadDocumentPage";
 import DocumentsPage from "./pages/DocumentsPage";
 import Footer from "./components/Footer";
+import MyFilesPage from "./pages/UserFiles";
+import AllFilesPage from "./pages/AllfilesPages";
 
 
 // protect routes that require authentication
@@ -150,6 +152,22 @@ function App() {
 					element={
 						<ProtectedRoute>
 						<DocumentsPage />
+						</ProtectedRoute>
+					}
+				/>
+					<Route
+					path='/profile/files'
+					element={
+						<ProtectedRoute>
+						<MyFilesPage />
+						</ProtectedRoute>
+					}
+				/>
+					<Route
+					path='/allfiles'
+					element={
+						<ProtectedRoute>
+						<AllFilesPage />
 						</ProtectedRoute>
 					}
 				/>

@@ -9,3 +9,13 @@ h1, h2, h3, .heading {
   font-family: 'Poppins', sans-serif;
 }
 
+
+.react-select__menu{
+  z-index: 9999 !important;
+}
+.react-select__menu-list{
+  z-index: 9999 !important;
+}
+.react-select__option{
+  z-index: 9999 !important;
+}

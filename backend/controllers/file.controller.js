@@ -6,7 +6,7 @@ import axios from 'axios';
 
 export const uploadFile = async (req, res) => {
   try {
-    const { name, course, semester, subject, types, year, category } = req.body;
+    const { name, course, semester, subject, types, year, category, uploadedBy } = req.body;
     const file = req.file;
 
     if (!file) return res.status(400).json({ success: false, message: 'No file uploaded' });
@@ -63,6 +63,7 @@ export const uploadFile = async (req, res) => {
       fileUrl: result.secure_url,
       contentType: file.mimetype,
       category,
+      uploadedBy: uploadedBy || "anonymous",
     });
 
     await newFile.save();
@@ -118,7 +119,6 @@ export const fetchFilesCourseAndSemester = async (req, res) => {
       });
     }
 
-    // Modify fileUrl only for documents, keep original links for others
     const modifiedFiles = files.map(file => {
       if (file.type === "document") {
         return {
@@ -126,7 +126,7 @@ export const fetchFilesCourseAndSemester = async (req, res) => {
           fileUrl: `http://localhost:5000/api/files/proxy?url=${encodeURIComponent(file.fileUrl)}`
         };
       }
-      return file; // Return original file object for non-document types
+      return file;
     });
 
     res.status(200).json({
@@ -140,7 +140,6 @@ export const fetchFilesCourseAndSemester = async (req, res) => {
   }
 };
 
-// New proxy endpoint to serve PDFs inline
 export const proxyPdf = async (req, res) => {
   try {
     const { url } = req.query;
@@ -158,5 +157,145 @@ export const proxyPdf = async (req, res) => {
   } catch (error) {
     console.error('Proxy error:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch file', error: error.message });
+  }
+};
+
+export const fetchAllFiles = async (req, res) => {
+  try {
+    const files = await File.find().sort({ createdAt: -1 }).lean();
+
+    const modifiedFiles = files.map(file => {
+      if (file.type === "document") {
+        return {
+          ...file,
+          fileUrl: `http://localhost:5000/api/files/proxy?url=${encodeURIComponent(file.fileUrl)}`
+        };
+      }
+      return file;
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Files retrieved successfully',
+      data: modifiedFiles,
+    });
+
+  } catch (err) {
+    console.error('Fetch all files error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch all files', error: err.message });
+  }
+};
+
+export const fetchAdminFiles = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'User not authenticated' });
+    }
+
+    const files = await File.find({ uploadedBy: userId }).sort({ createdAt: -1 }).lean();;
+
+      const modifiedFiles = files.map(file => {
+      if (file.type === "document") {
+        return {
+          ...file,
+          fileUrl: `http://localhost:5000/api/files/proxy?url=${encodeURIComponent(file.fileUrl)}`
+        };
+      }
+      return file;
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Files retrieved successfully',
+      data: modifiedFiles,
+    });
+
+  } catch (err) {
+    console.error('Fetch admin files error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch admin files', error: err.message });
+  }
+};
+
+export const updateFile = async (req, res) => {
+  try {
+    const { id } = req.body;
+    const { name, year } = req.body;
+    const { userId } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ success: false, message: 'Invalid file ID' });
+    }
+
+    if (!name || !year) {
+      return res.status(400).json({ success: false, message: 'Name and year are required' });
+    }
+
+    if (!/^\d{4}$/.test(year)) {
+      return res.status(400).json({ success: false, message: 'Invalid year format' });
+    }
+
+    const file = await File.findById(id);
+
+    if (!file) {
+      return res.status(404).json({ success: false, message: 'File not found' });
+    }
+
+    if (file.uploadedBy.toString() !== userId) {
+      return res.status(403).json({ success: false, message: 'User not authorized to edit this file' });
+    }
+
+    file.name = name;
+    file.year = year;
+
+    await file.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'File updated successfully',
+      data: file,
+    });
+  } catch (err) {
+    console.error('Update file error:', err);
+    res.status(500).json({ success: false, message: 'Failed to update file', error: err.message });
+  }
+};
+
+export const deleteFile = async (req, res) => {
+  try {
+    const { id } = req.body;
+    const { userId } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ success: false, message: 'Invalid file ID' });
+    }
+
+    const file = await File.findById(id);
+
+    if (!file) {
+      return res.status(404).json({ success: false, message: 'File not found' });
+    }
+
+    if (file.uploadedBy.toString() !== userId) {
+      return res.status(403).json({ success: false, message: 'User not authorized to delete this file' });
+    }
+
+    // Delete from Cloudinary
+    if (file.public_id) {
+      await cloudinary.uploader.destroy(file.public_id, {
+        resource_type: file.resource_type
+      });
+    }
+
+    // Delete from MongoDB
+    await File.findByIdAndDelete(id);
+
+    res.status(200).json({
+      success: true,
+      message: 'File deleted successfully',
+    });
+  } catch (err) {
+    console.error('Delete file error:', err);
+    res.status(500).json({ success: false, message: 'Failed to delete file', error: err.message });
   }
 };

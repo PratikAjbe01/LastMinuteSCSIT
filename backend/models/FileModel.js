@@ -45,6 +45,10 @@ const fileSchema = new mongoose.Schema(
             required: true,
             enum: ['notes', 'paper', 'syllabus'],
         },
+        uploadedBy:{
+            type: String,
+            ref: "users",
+        }
     },
     { timestamps: true }
 );
