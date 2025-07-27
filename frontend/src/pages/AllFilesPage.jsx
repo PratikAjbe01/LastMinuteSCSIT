@@ -1,12 +1,14 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useContext } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Helmet } from "react-helmet-async"
 import Select from "react-select"
 import { Loader, AlertCircle, Calendar, Book, Tag, GraduationCap, X, Search, File as FileIcon, Filter, BookDashed } from "lucide-react"
 import FileViewer from "../fileComponents/FileViewer"
 import { API_URL } from "../utils/urls"
+import { useSwipeable } from "react-swipeable"
+import { ValuesContext } from "../context/ValuesContext"
 
 const courses = [
     { value: "BCA", label: "BCA" },
@@ -131,6 +133,10 @@ const AllFilesPage = () => {
         setFilters(prevFilters => ({ ...prevFilters, [name]: selectedOption }));
     };
 
+     useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }, [])
+
     const handleApplyFilters = () => {
         let filesToFilter = [...allFiles];
 
@@ -165,8 +171,30 @@ const AllFilesPage = () => {
         console.log("Selected file: on paper : ", file, subject);
     };
 
+     const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
+    
+      const isExcludedRoute = location.pathname.startsWith("/login") || location.pathname === "/signup";
+      const isMobile = window.innerWidth <= 768;
+      const swipeHandlers = useSwipeable({
+        onSwipedLeft: () => {
+          if (isMobile && !isExcludedRoute) {
+            setIsSidebarOpen(true);
+            console.log("Swiped left - opening sidebar");
+          }
+        },
+        onSwipedRight: () => {
+          if (isMobile && !isExcludedRoute && isSidebarOpen) {
+            setIsSidebarOpen(false);
+            console.log("Swiped right - closing sidebar");
+          }
+        },
+        preventDefaultTouchmoveEvent: false,
+        trackMouse: false,
+        delta: 30,
+      });
+
     return (
-        <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 p-0 pb-8 pt-24">
+        <div {...swipeHandlers} className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 p-0 pb-8 pt-24">
             <Helmet>
                 <title>All Files - SCSIT</title>
                 <meta name="description" content="Browse and filter all available files and study materials." />

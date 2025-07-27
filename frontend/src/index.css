@@ -58,3 +58,7 @@ img {
   scrollbar-width: thin;
   scrollbar-color: rgba(16, 185, 129, 0.8) transparent;
 }
+
+.rdp-root {
+  color: white !important;
+}

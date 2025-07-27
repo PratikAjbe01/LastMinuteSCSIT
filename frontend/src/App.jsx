@@ -1,79 +1,71 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useSwipeable } from "react-swipeable";
+import { Toaster } from "react-hot-toast";
+
 import FloatingShape from "./components/FloatingShape";
+import LoadingSpinner from "./components/LoadingSpinner";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
 
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
-// import DashboardPage from "./pages/DashboardPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import Home from "./pages/Home";
-import LoadingSpinner from "./components/LoadingSpinner";
-
-import { Toaster } from "react-hot-toast";
-import { useAuthStore } from "./store/authStore";
-import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import Header from "./components/Header";
 import Courses from "./pages/Courses";
 import SemestersPage from "./pages/Semesters";
 import UploadDocumentPage from "./pages/UploadDocumentPage";
 import DocumentsPage from "./pages/DocumentsPage";
 import MyFilesPage from "./pages/UserFilesPage";
 import AllFilesPage from "./pages/AllFilesPage";
-import Footer from "./components/Footer";
 import AboutPage from "./pages/About";
 import ShareFilePage from "./pages/ShareFilePage";
+import AttendanceManager from "./pages/AttendanceManagerPage";
+import CalculatorPage from "./pages/ToolsPage";
 
-// protect routes that require authentication
+import { useAuthStore } from "./store/authStore";
+import { ValuesContext } from "./context/ValuesContext";
+import PlannerPage from "./pages/PlannerPage";
+
 const ProtectedRoute = ({ children }) => {
 	const { isAuthenticated, user } = useAuthStore();
-
-	if (!isAuthenticated) {
-		return <Navigate to='/login' replace />;
-	}
-
-	if (!user?.isVerified) {
-		return <Navigate to='/verify-email' replace />;
-	}
-
+	if (!isAuthenticated) return <Navigate to='/login' replace />;
+	if (!user?.isVerified) return <Navigate to='/verify-email' replace />;
 	return children;
 };
 
-// redirect authenticated users to the home page
 const RedirectAuthenticatedUser = ({ children }) => {
 	const { isAuthenticated, user } = useAuthStore();
-
-	if (isAuthenticated && user?.isVerified) {
-		return <Navigate to='/' replace />;
-	}
-
+	if (isAuthenticated && user?.isVerified) return <Navigate to='/' replace />;
 	return children;
 };
 
 function App() {
 	const { isCheckingAuth, checkAuth } = useAuthStore();
 	const location = useLocation();
+	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+	const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
 	useEffect(() => {
 		checkAuth();
 	}, [checkAuth]);
 
-	if (isCheckingAuth) return <LoadingSpinner />;
+	if (isCheckingAuth) {
+        return <LoadingSpinner />;
+    }
 
-	// Define routes that should have floating shapes
 	const floatingRoutes = [
 		"/login",
 		"/signup",
 		"/forgot-password",
 		"/reset-password",
-		"/verify-email"
+		"/verify-email",
 	];
 
-	// Check if current route matches any floating route (including /reset-password/:token)
 	const isFloatingPage = floatingRoutes.some(route => {
 		if (route.includes(":")) {
-			// handle dynamic route
 			const base = route.split(":")[0];
 			return location.pathname.startsWith(base);
 		}
@@ -81,135 +73,146 @@ function App() {
 	}) || location.pathname.startsWith("/reset-password");
 
 	return (
-	<>
-<Header />
-	<div
-			className={`min-h-full flex items-center justify-center relative overflow-hidden ${
-				isFloatingPage
-					? "bg-gradient-to-br from-gray-900 via-blue-900 to-black-900"
-					: "bg-gradient-to-br from-gray-900 via-green-900 to-emerald-900"
-			}`}
-		>
-			{isFloatingPage && (
-				<>
-					<FloatingShape color='bg-blue-500' size='w-64 h-64' top='-5%' left='10%' delay={0} />
-					<FloatingShape color='bg-black-500' size='w-48 h-48' top='70%' left='80%' delay={5} />
-					<FloatingShape color='bg-gray-500' size='w-32 h-32' top='40%' left='-10%' delay={2} />
-				</>
-			)}
-			</div>
-			<Routes>
-				<Route
-					path='/'
-					element={
-						<ProtectedRoute>
-						<Home/>
-						{/* <DashboardPage/> */}
-						</ProtectedRoute>
-					}
-				/>
-				<Route
-					path='/signup'
-					element={
-						<RedirectAuthenticatedUser>
-							<SignUpPage />
-						</RedirectAuthenticatedUser>
-					}
-				/>
-				<Route
-					path='/login'
-					element={
-						<RedirectAuthenticatedUser>
-							<LoginPage />
-						</RedirectAuthenticatedUser>
-					}
-				/>
+		<>
+			<ValuesContext.Provider value={{ isSidebarOpen, setIsSidebarOpen }}>
+				<Header />
+				<div
+					className={`min-h-full flex items-center justify-center relative overflow-hidden ${
+						isFloatingPage
+							? "bg-gradient-to-br from-gray-900 via-blue-900 to-black-900"
+							: "bg-gradient-to-br from-gray-900 via-green-900 to-emerald-900"
+					}`}
+				>
+					{isFloatingPage && (
+						<>
+							<FloatingShape color='bg-blue-500' size='w-64 h-64' top='-5%' left='10%' delay={0} />
+							<FloatingShape color='bg-black-500' size='w-48 h-48' top='70%' left='80%' delay={5} />
+							<FloatingShape color='bg-gray-500' size='w-32 h-32' top='40%' left='-10%' delay={2} />
+						</>
+					)}
+				</div>
+				<Routes>
 					<Route
-					path='/upload'
-					element={
-						<ProtectedRoute>
-							<UploadDocumentPage />
-						</ProtectedRoute>
-					}
-				/>
-				<Route
-					path='/scsit/courses'
-					element={
-						<ProtectedRoute>
-						<Courses/>
-						</ProtectedRoute>
-					}
-				/>
+						path='/'
+						element={
+							<ProtectedRoute>
+								<Home />
+							</ProtectedRoute>
+						}
+					/>
 					<Route
-					path='/scsit/:course/semesters'
-					element={
-						<ProtectedRoute>
-						<SemestersPage />
-						</ProtectedRoute>
-					}
-				/>
+						path='/signup'
+						element={
+							<RedirectAuthenticatedUser>
+								<SignUpPage />
+							</RedirectAuthenticatedUser>
+						}
+					/>
 					<Route
-					path='/scsit/:course/semesters/:semesterId'
-					element={
-						<ProtectedRoute>
-						<DocumentsPage />
-						</ProtectedRoute>
-					}
-				/>
+						path='/login'
+						element={
+							<RedirectAuthenticatedUser>
+								<LoginPage />
+							</RedirectAuthenticatedUser>
+						}
+					/>
 					<Route
-					path='/profile/files'
-					element={
-						<ProtectedRoute>
-						<MyFilesPage />
-						</ProtectedRoute>
-					}
-				/>
+						path='/upload'
+						element={
+							<ProtectedRoute>
+								<UploadDocumentPage />
+							</ProtectedRoute>
+						}
+					/>
 					<Route
-					path='/share/file/:id'
-					element={
-						<ShareFilePage />
-					}
-				/>
+						path='/scsit/courses'
+						element={
+							<ProtectedRoute>
+								<Courses />
+							</ProtectedRoute>
+						}
+					/>
 					<Route
-					path='/allfiles'
-					element={
-						<ProtectedRoute>
-						<AllFilesPage />
-						</ProtectedRoute>
-					}
-				/>
+						path='/scsit/:course/semesters'
+						element={
+							<ProtectedRoute>
+								<SemestersPage />
+							</ProtectedRoute>
+						}
+					/>
 					<Route
-					path='/about'
-					element={
-						<ProtectedRoute>
-						<AboutPage />
-						</ProtectedRoute>
-					}
-				/>
-				<Route path='/verify-email' element={<EmailVerificationPage />} />
-				<Route
-					path='/forgot-password'
-					element={
-						<RedirectAuthenticatedUser>
-							<ForgotPasswordPage />
-						</RedirectAuthenticatedUser>
-					}
-				/>
-
-				<Route
-					path='/reset-password/:token'
-					element={
-						<RedirectAuthenticatedUser>
-							<ResetPasswordPage />
-						</RedirectAuthenticatedUser>
-					}
-				/>
-				{/* catch all routes */}
-				<Route path='*' element={<Navigate to='/' replace />} />
-			</Routes>
-			<Footer />
-			<Toaster />
-	</>
+						path='/scsit/:course/semesters/:semesterId'
+						element={
+							<ProtectedRoute>
+								<DocumentsPage />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path='/profile/files'
+						element={
+							<ProtectedRoute>
+								<MyFilesPage />
+							</ProtectedRoute>
+						}
+					/>
+					<Route path='/share/file/:id' element={<ShareFilePage />} />
+					<Route
+						path='/allfiles'
+						element={
+							<ProtectedRoute>
+								<AllFilesPage />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path='/attendance/manager/user/:userId'
+						element={
+							<ProtectedRoute>
+								<AttendanceManager />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path='/planner/todos'
+						element={
+							<ProtectedRoute>
+								<PlannerPage />
+							</ProtectedRoute>
+						}
+					/>
+					<Route path='/calculations/tools/:toolName' element={<CalculatorPage />} />
+					<Route
+						path='/about'
+						element={
+							<ProtectedRoute>
+								<AboutPage />
+							</ProtectedRoute>
+						}
+					/>
+					<Route path='/verify-email' element={<EmailVerificationPage />} />
+					<Route
+						path='/forgot-password'
+						element={
+							<RedirectAuthenticatedUser>
+								<ForgotPasswordPage />
+							</RedirectAuthenticatedUser>
+						}
+					/>
+					<Route
+						path='/reset-password/:token'
+						element={
+							<RedirectAuthenticatedUser>
+								<ResetPasswordPage />
+							</RedirectAuthenticatedUser>
+						}
+					/>
+					<Route path='*' element={<Navigate to='/' replace />} />
+				</Routes>
+				<Footer />
+				<Toaster />
+			</ValuesContext.Provider>
+		</>
 	);
 }
 

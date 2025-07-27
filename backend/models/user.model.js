@@ -15,6 +15,12 @@ const userSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
+		course: {
+			type: String,
+		},
+		semester: {
+			type: Number,
+		},
 		lastLogin: {
 			type: Date,
 			default: Date.now,

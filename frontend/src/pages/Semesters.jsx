@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { AlertCircle, BookOpen, Code, FileText, GraduationCap, Briefcase, School, Shield } from "lucide-react"
 import FileViewer from "../fileComponents/FileViewer"
@@ -8,6 +8,8 @@ import UploadPage from "../fileComponents/UploadPage"
 import { useNavigate, useParams } from "react-router-dom"
 import { Helmet } from "react-helmet-async"
 import { API_URL } from "../utils/urls"
+import { useSwipeable } from "react-swipeable"
+import { ValuesContext } from "../context/ValuesContext"
 
 const semestersByCourse = {
   "BCA": ["1", "2", "3", "4", "5", "6"],
@@ -53,10 +55,6 @@ const SemestersPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFile, setSelectedFile] = useState(null);
   const [showUploadPage, setShowUploadPage] = useState(false);
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
 
   useEffect(() => {
     const fetchPaperCounts = async () => {
@@ -119,6 +117,32 @@ const SemestersPage = () => {
   const handleCloseViewer = () => {
     setSelectedFile(null);
   };
+
+   useEffect(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    }, [])
+
+   const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
+  
+    const isExcludedRoute = location.pathname.startsWith("/login") || location.pathname === "/signup";
+    const isMobile = window.innerWidth <= 768;
+    const swipeHandlers = useSwipeable({
+      onSwipedLeft: () => {
+        if (isMobile && !isExcludedRoute) {
+          setIsSidebarOpen(true);
+          console.log("Swiped left - opening sidebar");
+        }
+      },
+      onSwipedRight: () => {
+        if (isMobile && !isExcludedRoute && isSidebarOpen) {
+          setIsSidebarOpen(false);
+          console.log("Swiped right - closing sidebar");
+        }
+      },
+      preventDefaultTouchmoveEvent: false,
+      trackMouse: false,
+      delta: 30,
+    });
   
   if (!isLoading && semesterData.length === 0) {
     return (
@@ -157,7 +181,7 @@ const SemestersPage = () => {
   }
 
   return (
-    <div className="min-h-screen w-full h-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center justify-center p-0 pb-8 pt-16">
+    <div {...swipeHandlers} className="min-h-screen w-full h-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center justify-center p-0 pb-8 pt-16">
       <Helmet>
         <title>{`${course?.toUpperCase().replace(/_/g, ' ')} Semesters - SCSIT Indore`}</title>
         <meta name="description" content={`Explore semesters for the ${course?.toUpperCase().replace(/_/g, ' ')} program at the School of Computer Science and IT, Indore.`} />

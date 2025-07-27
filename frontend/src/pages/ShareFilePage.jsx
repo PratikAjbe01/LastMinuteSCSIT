@@ -1,11 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useContext } from "react"
 import { motion } from "framer-motion"
 import { X, ZoomIn, ZoomOut, RotateCw, Eye, Share2, Loader } from "lucide-react"
 import { useNavigate, useParams } from "react-router-dom"
 import { RWebShare } from "react-web-share"
 import { API_URL } from "../utils/urls"
+import { useSwipeable } from "react-swipeable"
+import { ValuesContext } from "../context/ValuesContext"
 
 const SecureImage = ({ src, alt, className }) => {
   const preventActions = (e) => e.preventDefault();
@@ -123,6 +125,32 @@ const ShareFilePage = () => {
         navigate('/');
     }
 
+     useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }, [])
+
+     const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
+    
+      const isExcludedRoute = location.pathname.startsWith("/login") || location.pathname === "/signup";
+      const isMobile = window.innerWidth <= 768;
+      const swipeHandlers = useSwipeable({
+        onSwipedLeft: () => {
+          if (isMobile && !isExcludedRoute) {
+            setIsSidebarOpen(true);
+            console.log("Swiped left - opening sidebar");
+          }
+        },
+        onSwipedRight: () => {
+          if (isMobile && !isExcludedRoute && isSidebarOpen) {
+            setIsSidebarOpen(false);
+            console.log("Swiped right - closing sidebar");
+          }
+        },
+        preventDefaultTouchmoveEvent: false,
+        trackMouse: false,
+        delta: 30,
+      });
+
     if (loading) {
         return (
             <div className="fixed inset-0 bg-gray-900 z-50 flex flex-col items-center justify-center">
@@ -144,7 +172,7 @@ const ShareFilePage = () => {
     }
 
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-gray-900 z-50 grid grid-rows-[auto_1fr_auto] h-screen overflow-hidden">
+        <motion.div {...swipeHandlers} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-gray-900 z-50 grid grid-rows-[auto_1fr_auto] h-screen overflow-hidden">
             <header className="bg-gray-800 bg-opacity-90 backdrop-filter backdrop-blur-xl border-b border-gray-700 p-2 sm:p-4 flex items-center justify-between gap-2 z-30">
                 <div className="flex items-center space-x-3 min-w-0">
                     <Eye className="w-5 h-5 text-green-400 flex-shrink-0" />

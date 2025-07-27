@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useContext } from "react"
 import { motion } from "framer-motion"
 import { ArrowLeft, Upload, FileText, Check, X, AlertCircle } from "lucide-react"
 import { useNavigate } from "react-router-dom"
@@ -8,6 +8,8 @@ import { useAuthStore } from "../store/authStore"
 import Select from "react-select"
 import { Helmet } from "react-helmet-async"
 import { API_URL } from "../utils/urls"
+import { useSwipeable } from "react-swipeable"
+import { ValuesContext } from "../context/ValuesContext"
 
 const UploadDocumentPage = () => {
   const navigate = useNavigate()
@@ -201,7 +203,7 @@ const UploadDocumentPage = () => {
   }
 
   const availableSemesters = selectedCourse ? semestersByCourse?.[selectedCourse]?.map((sem) => ({ value: sem, label: `${sem}${getOrdinalSuffix(parseInt(sem, 10))} Semester` })) ?? [] : []
-  
+
   const availableSubjects = selectedCourse && selectedSemester ? (selectedCourse === "MCA" ? subjectsByCourseAndSemester?.[selectedCourse]?.[selectedSemester]?.subjects?.map(sub => ({ value: sub.name, label: sub.name })) ?? [] : subjectsByCourseAndSemester?.[selectedCourse]?.[selectedSemester]?.map(sub => ({ value: sub, label: sub })) ?? []) : []
 
   const handleDragOver = (e) => {
@@ -389,8 +391,30 @@ const UploadDocumentPage = () => {
     }),
   }
 
+  const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
+
+  const isExcludedRoute = location.pathname.startsWith("/login") || location.pathname === "/signup";
+  const isMobile = window.innerWidth <= 768;
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => {
+      if (isMobile && !isExcludedRoute) {
+        setIsSidebarOpen(true);
+        console.log("Swiped left - opening sidebar");
+      }
+    },
+    onSwipedRight: () => {
+      if (isMobile && !isExcludedRoute && isSidebarOpen) {
+        setIsSidebarOpen(false);
+        console.log("Swiped right - closing sidebar");
+      }
+    },
+    preventDefaultTouchmoveEvent: false,
+    trackMouse: false,
+    delta: 30,
+  });
+
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center p-0 pb-4 pt-20 sm:pt-24">
+    <div {...swipeHandlers} className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center p-0 pb-4 pt-20 sm:pt-24">
       <Helmet>
         <title>Upload Document - LastMinute SCSIT</title>
         <meta name="description" content="Upload your examination papers and study materials for various courses at SCSIT, Indore." />

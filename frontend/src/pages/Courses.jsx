@@ -2,15 +2,13 @@
 
 import { motion } from "framer-motion"
 import { BookOpen, FileText, GraduationCap, Code, Laptop, Briefcase, School, Shield } from "lucide-react"
-import { useEffect } from "react"
+import { useContext, useEffect } from "react"
 import { Helmet } from "react-helmet-async"
 import { useNavigate } from "react-router-dom"
+import { useSwipeable } from "react-swipeable"
+import { ValuesContext } from "../context/ValuesContext"
 
 const Courses = () => {
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }, [])
   
   const courses = [
     {
@@ -119,10 +117,36 @@ const Courses = () => {
     },
   ]
 
+   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }, [])
+
   const navigate  = useNavigate();
 
+   const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
+  
+    const isExcludedRoute = location.pathname.startsWith("/login") || location.pathname === "/signup";
+    const isMobile = window.innerWidth <= 768;
+    const swipeHandlers = useSwipeable({
+      onSwipedLeft: () => {
+        if (isMobile && !isExcludedRoute) {
+          setIsSidebarOpen(true);
+          console.log("Swiped left - opening sidebar");
+        }
+      },
+      onSwipedRight: () => {
+        if (isMobile && !isExcludedRoute && isSidebarOpen) {
+          setIsSidebarOpen(false);
+          console.log("Swiped right - closing sidebar");
+        }
+      },
+      preventDefaultTouchmoveEvent: false,
+      trackMouse: false,
+      delta: 30,
+    });
+
   return (
-    <div className="min-h-full w-full h-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center justify-center p-0 pb-8 pt-16">
+    <div {...swipeHandlers} className="min-h-full w-full h-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center justify-center p-0 pb-8 pt-16">
      <Helmet>
         <title>Courses - LastMinute SCSIT</title>
         <meta name="description" content="Explore the diverse range of courses offered at LastMinute SCSIT." />

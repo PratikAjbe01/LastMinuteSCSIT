@@ -2,12 +2,14 @@
 
 import { motion } from "framer-motion";
 import { ArrowLeft, FileText, Calendar } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import FileViewer from "../fileComponents/FileViewer";
 import { Helmet } from "react-helmet-async";
 import loadingGif from "../../public/loadinggif.gif";
 import { API_URL } from "../utils/urls";
+import { useSwipeable } from "react-swipeable";
+import { ValuesContext } from "../context/ValuesContext";
 
 const courses = [
     { value: "BCA", label: "Bachelor of Computer Applications (BCA)" },
@@ -231,6 +233,28 @@ const DocumentsPage = () => {
         }
     }, [])
 
+     const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
+    
+      const isExcludedRoute = location.pathname.startsWith("/login") || location.pathname === "/signup";
+      const isMobile = window.innerWidth <= 768;
+      const swipeHandlers = useSwipeable({
+        onSwipedLeft: () => {
+          if (isMobile && !isExcludedRoute) {
+            setIsSidebarOpen(true);
+            console.log("Swiped left - opening sidebar");
+          }
+        },
+        onSwipedRight: () => {
+          if (isMobile && !isExcludedRoute && isSidebarOpen) {
+            setIsSidebarOpen(false);
+            console.log("Swiped right - closing sidebar");
+          }
+        },
+        preventDefaultTouchmoveEvent: false,
+        trackMouse: false,
+        delta: 30,
+      });
+
     if (loading) {
         return (
             <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-black-900 flex items-center justify-center text-white">
@@ -255,7 +279,7 @@ const DocumentsPage = () => {
     }
 
     return (
-        <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-black-900 flex flex-col p-0">
+        <div {...swipeHandlers} className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-black-900 flex flex-col p-0">
             <Helmet>
                 <title>{`${course?.toUpperCase()} - ${semesterData.title} | SCSIT`}</title>
                 <meta name="description" content={`Documents for ${courseLabel} ${semesterData.title}.`} />

@@ -1,22 +1,26 @@
 "use client"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useContext } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { BookOpen, User, LogOut, Menu, X, Home, Upload, GraduationCap, File, Files } from "lucide-react"
+import { BookOpen, User, LogOut, Menu, X, Home, Upload, GraduationCap, File, Files, PanelTopClose, BookMarked, Workflow, Edit } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { useAuthStore } from "../store/authStore"
+import { ValuesContext } from "../context/ValuesContext"
+import { useSwipeable } from "react-swipeable"
+import { EditProfileModal } from "./EditProfileModal"
 
 const Header = () => {
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   const initials = user?.name
     ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
     : ""
 
   const toggleSidebar = () => {
@@ -33,6 +37,9 @@ const Header = () => {
       { href: "/scsit/courses", label: "Courses", icon: GraduationCap },
       { href: "/upload", label: "Upload", icon: Upload },
       { href: "/allfiles", label: "All Files", icon: Files },
+      { href: "/calculations/tools/cgpa", label: "Tools", icon: PanelTopClose },
+      { href: `/attendance/manager/user/${user?.id}`, label: "Attendance Manager", icon: BookMarked },
+      { href: "/planner/todos", label: "Task Planner", icon: Workflow },
     ]
 
     if (user?.isAdmin) {
@@ -42,9 +49,22 @@ const Header = () => {
     return items
   }, [user])
 
+  const swipeHandlers = useSwipeable({
+    onSwipedRight: () => {
+      if (isSidebarOpen) {
+        setIsSidebarOpen(false);
+        console.log("Swiped right - closing sidebar");
+      }
+    },
+    preventDefaultTouchmoveEvent: false,
+    trackMouse: false,
+    delta: 30,
+  });
+
   return (
     <>
       <motion.header
+        {...swipeHandlers}
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
@@ -81,7 +101,8 @@ const Header = () => {
 
       <AnimatePresence>
         {isSidebarOpen && (
-          <motion.div
+          <motion.div 
+            {...swipeHandlers}
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
@@ -113,9 +134,9 @@ const Header = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
                     onClick={(e) => {
-                        e.preventDefault();
-                        navigate(item.href);
-                        closeSidebar();
+                      e.preventDefault();
+                      navigate(item.href);
+                      closeSidebar();
                     }}
                     className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:text-white hover:bg-slate-700 rounded-lg transition-all duration-200 group cursor-pointer"
                   >
@@ -139,7 +160,8 @@ const Header = () => {
                     </div>
                   </div>
 
-                  <motion.button
+                <div className="flex items-center justify-between space-x-2 gap-2">
+                    <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {
@@ -152,6 +174,19 @@ const Header = () => {
                     <LogOut className="w-4 h-4" />
                     <span>Logout</span>
                   </motion.button>
+                   <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setEditModalOpen(true);
+                      closeSidebar();
+                    }}
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-[9px] bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200"
+                  >
+                    <Edit className="w-4 h-4" />
+                    <span>Edit</span>
+                  </motion.button>
+                </div>
                 </div>
               ) : (
                 <motion.button
@@ -170,6 +205,13 @@ const Header = () => {
           </motion.div>
         )}
       </AnimatePresence>
+    {editModalOpen && (
+        <EditProfileModal
+          isOpen={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          user={user}
+        />
+      )}
     </>
   )
 }

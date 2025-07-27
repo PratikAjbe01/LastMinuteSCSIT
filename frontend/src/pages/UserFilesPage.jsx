@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useContext } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Helmet } from "react-helmet-async"
 import { useAuthStore } from "../store/authStore"
@@ -8,6 +8,8 @@ import { useNavigate } from "react-router-dom"
 import { User, Mail, FileText, Calendar, Book, Tag, Edit, Trash2, X, Loader, AlertCircle, ShieldCheck, GraduationCap, FileX, Upload, View, BookDashed } from "lucide-react"
 import FileViewer from "../fileComponents/FileViewer"
 import { API_URL } from "../utils/urls"
+import { useSwipeable } from "react-swipeable"
+import { ValuesContext } from "../context/ValuesContext"
 
 const MyFilesPage = () => {
     const { user } = useAuthStore();
@@ -174,9 +176,35 @@ const MyFilesPage = () => {
         setSelectedViewFile(file);
     };
 
+     useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }, [])
+
+     const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
+    
+      const isExcludedRoute = location.pathname.startsWith("/login") || location.pathname === "/signup";
+      const isMobile = window.innerWidth <= 768;
+      const swipeHandlers = useSwipeable({
+        onSwipedLeft: () => {
+          if (isMobile && !isExcludedRoute) {
+            setIsSidebarOpen(true);
+            console.log("Swiped left - opening sidebar");
+          }
+        },
+        onSwipedRight: () => {
+          if (isMobile && !isExcludedRoute && isSidebarOpen) {
+            setIsSidebarOpen(false);
+            console.log("Swiped right - closing sidebar");
+          }
+        },
+        preventDefaultTouchmoveEvent: false,
+        trackMouse: false,
+        delta: 30,
+      });
+
     return (
         <>
-            <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center p-0 pb-8 pt-24">
+            <div {...swipeHandlers} className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center p-0 pb-8 pt-24">
                 <Helmet>
                     <title>My Uploaded Files - SCSIT</title>
                     <meta name="description" content="Manage your uploaded files." />

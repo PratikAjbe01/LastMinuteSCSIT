@@ -1,10 +1,12 @@
 "use client"
 
-import { useEffect } from "react"
+import { useContext, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Helmet } from "react-helmet-async"
 import { useNavigate } from "react-router-dom"
 import { Target, BookOpen, Users, Archive, Filter, Shield, Upload, BrainCircuit, Database, Wind, Palette, Linkedin, ArrowRight, Cloud } from "lucide-react"
+import { ValuesContext } from "../context/ValuesContext"
+import { useSwipeable } from "react-swipeable"
 
 const Section = ({ title, children }) => (
     <div className="mb-20">
@@ -23,10 +25,6 @@ const Section = ({ title, children }) => (
 
 const AboutPage = () => {
   const navigate = useNavigate();
-  
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }, [])
 
   const features = [
     { icon: Archive, title: "Centralized Repository", description: "End the frantic search. Our platform organizes years of papers, notes, and syllabi into one unified library, structured by course and semester.", href: "/scsit/courses" },
@@ -49,8 +47,34 @@ const AboutPage = () => {
     { name: "Cloudinary", icon: Cloud },
   ];
 
+   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }, [])
+
+   const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
+  
+    const isExcludedRoute = location.pathname.startsWith("/login") || location.pathname === "/signup";
+    const isMobile = window.innerWidth <= 768;
+    const swipeHandlers = useSwipeable({
+      onSwipedLeft: () => {
+        if (isMobile && !isExcludedRoute) {
+          setIsSidebarOpen(true);
+          console.log("Swiped left - opening sidebar");
+        }
+      },
+      onSwipedRight: () => {
+        if (isMobile && !isExcludedRoute && isSidebarOpen) {
+          setIsSidebarOpen(false);
+          console.log("Swiped right - closing sidebar");
+        }
+      },
+      preventDefaultTouchmoveEvent: false,
+      trackMouse: false,
+      delta: 30,
+    });
+
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 text-white p-0 pb-16 pt-24 overflow-x-hidden">
+    <div {...swipeHandlers} className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 text-white p-0 pb-16 pt-24 overflow-x-hidden">
       <Helmet>
         <title>About Us - LastMinute SCSIT</title>
         <meta name="description" content="Learn about the mission and technology behind LastMinute SCSIT, the academic resource hub for SCSIT, Indore." />

@@ -1,34 +1,22 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
-import { X, ZoomIn, ZoomOut, RotateCw, Eye, Share2 } from "lucide-react"
+import { X, ZoomIn, ZoomOut, RotateCw, Eye, Share2, RefreshCcw } from "lucide-react"
 import { useParams } from "react-router-dom"
 import { RWebShare } from "react-web-share"
-import { API_URL, CLIENT_URL } from "../utils/urls"
-
-const SecureImage = ({ src, alt, className }) => {
-  const preventActions = (e) => e.preventDefault();
-  return (
-    <img
-      src={src}
-      alt={alt}
-      className={className}
-      onContextMenu={preventActions}
-      onDragStart={preventActions}
-    />
-  );
-};
+import Img from "../components/lazyLoadImage/Img"
+import { CLIENT_URL } from "../utils/urls"
 
 const Watermark = () => {
     const watermarkText = "© LastMinute SCSIT";
     return (
-        <div className="absolute inset-0 z-20 overflow-hidden pointer-events-none select-none">
+        <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none select-none">
             <div className="absolute -inset-1/4">
                 {Array.from({ length: 150 }).map((_, i) => (
                     <p
                         key={i}
-                        className="text-white/20 font-bold text-2xl whitespace-nowrap opacity-50"
+                        className="text-white/10 font-bold text-2xl whitespace-nowrap opacity-50"
                         style={{
                             position: 'absolute',
                             top: `${(i * 10) % 150}%`,
@@ -48,7 +36,7 @@ const FileViewer = ({ file, onClose }) => {
   const [zoom, setZoom] = useState(100);
   const [rotation, setRotation] = useState(0);
   const [pdfUrl, setPdfUrl] = useState(null);
-  const { course, semesterId } = useParams();
+  const mainRef = useRef(null);
 
   useEffect(() => {
     document.body.classList.add('no-scroll', 'no-select');
@@ -79,12 +67,16 @@ const FileViewer = ({ file, onClose }) => {
     }
   }, [file]);
 
-  const handleZoomIn = () => setZoom((prev) => Math.min(prev + 25, 300));
+  const handleZoomIn = () => setZoom((prev) => Math.min(prev + 25, 150));
   const handleZoomOut = () => setZoom((prev) => Math.max(prev - 25, 50));
   const handleRotate = () => setRotation((prev) => (prev + 90) % 360);
   const handleReset = () => {
     setZoom(100);
     setRotation(0);
+    if (mainRef.current) {
+        mainRef.current.scrollTop = (mainRef.current.scrollHeight - mainRef.current.clientHeight) / 2;
+        mainRef.current.scrollLeft = (mainRef.current.scrollWidth - mainRef.current.clientWidth) / 2;
+    }
   };
 
   return (
@@ -109,10 +101,11 @@ const FileViewer = ({ file, onClose }) => {
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleRotate} className="p-2 sm:p-3 bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600 rounded-lg transition-colors">
             <RotateCw className="w-4 h-4" />
           </motion.button>
-          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleReset} className="hidden sm:block px-3 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg transition-colors text-sm font-medium">
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleReset} className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-green-600/80 text-white hover:bg-green-600 rounded-lg transition-colors text-sm font-medium">
+            <RefreshCcw className="w-4 h-4" />
             Reset
           </motion.button>
-          <RWebShare data={{ text: `Check out this file from SCSIT: ${file?.name || file?.title}`, url: `${CLIENT_URL}/share/file/${file?._id}`, title: "LastMinute SCSIT Shared you a File" }}>
+          <RWebShare data={{ text: `Check out this file from SCSIT: ${file?.name || file?.title}`, url: `${CLIENT_URL}/share/file/${file?._id}`, title: `LastMinute SCSIT Shared you a file - ${file?.name || file?.title}` }}>
             <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="p-2 sm:p-3 text-gray-300 hover:text-white hover:bg-gray-600 transition-colors bg-gray-700 rounded-lg">
               <Share2 className="w-4 h-4" />
             </motion.button>
@@ -124,28 +117,38 @@ const FileViewer = ({ file, onClose }) => {
       </header>
 
       <main 
+        ref={mainRef}
         className="relative overflow-auto flex items-center justify-center p-4"
         onDoubleClick={(e) => e.preventDefault()}
       >
-        <Watermark />
         <motion.div
             animate={{ rotate: rotation }}
-            style={{ width: `${zoom}%`, height: `${zoom}%` }}
+            style={{ 
+                width: zoom === 100 ? '100%' : `${zoom}%`, 
+                height: zoom === 100 ? '100%' : `${zoom}%`
+            }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }} 
             className="relative flex items-center justify-center"
         >
-          {file?.type === "document" && pdfUrl ? (
+            <Watermark />
             <div 
-                className="relative w-full h-full"
+                className="w-full h-full flex items-center justify-center"
                 onContextMenu={(e) => e.preventDefault()}
             >
-                <iframe src={pdfUrl} title={file.title} className="w-full h-full border-0 rounded-lg bg-white shadow-2xl" />
+                {file?.type === "document" && pdfUrl ? (
+                    <iframe src={pdfUrl} title={file.title} className="w-full h-full border-0 rounded-lg bg-white shadow-2xl" />
+                ) : file?.type === "image" ? (
+                    <Img 
+                        src={file.fileUrl || file.url} 
+                        alt={file.title} 
+                        className="w-full h-full object-contain"
+                        onContextMenu={(e) => e.preventDefault()}
+                        onDragStart={(e) => e.preventDefault()}
+                    />
+                ) : (
+                    <div className="text-white text-center">Loading preview...</div>
+                )}
             </div>
-          ) : file?.type === "image" ? (
-            <SecureImage src={file.fileUrl || file.url} alt={file.title} className="w-full h-full object-contain" />
-          ) : (
-            <div className="text-white text-center">Loading preview...</div>
-          )}
         </motion.div>
       </main>
       
@@ -159,7 +162,7 @@ const FileViewer = ({ file, onClose }) => {
                 <ZoomIn className="w-5 h-5" />
             </motion.button>
             <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleReset} className="p-3 bg-green-600 text-white rounded-lg">
-                Reset
+                <RefreshCcw className="w-5 h-5"/>
             </motion.button>
           </div>
           <div className="hidden sm:block bg-gray-800 bg-opacity-90 backdrop-filter backdrop-blur-xl border-t border-gray-700 p-2">

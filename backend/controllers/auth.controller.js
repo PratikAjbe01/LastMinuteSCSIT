@@ -257,3 +257,42 @@ export const checkAuth = async (req, res) => {
 		res.status(400).json({ success: false, message: error.message });
 	}
 };
+
+export const updateProfile = async (req, res) => {
+    try {
+        const userId = req.userId || req.body.userId;
+        const { username, course, semester } = req.body;
+
+        if (!userId) {
+            return res.status(401).json({ success: false, message: "Unauthorized. User ID is missing." });
+        }
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found." });
+        }
+        
+        user.name = username ?? user.name;
+        user.course = course ?? user.course;
+        user.semester = semester ?? user.semester;
+
+        await user.save({ validateModifiedOnly: true });
+
+        const savedUser = await User.findById(userId).select("-password");
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully.",
+            user: savedUser,
+        });
+
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ success: false, message: error.message });
+        }
+        
+        console.log("Error in updateProfile controller: ", error);
+        return res.status(500).json({ success: false, message: "Server error while updating profile." });
+    }
+};
