@@ -1,3 +1,39 @@
+"use client"
+
+import { useState, useRef, useEffect, useContext } from "react"
+import { motion } from "framer-motion"
+import { ArrowLeft, Upload, FileText, Check, X, AlertCircle } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { useAuthStore } from "../store/authStore"
+import Select from "react-select"
+import { Helmet } from "react-helmet-async"
+import { API_URL } from "../utils/urls"
+import { useSwipeable } from "react-swipeable"
+import { ValuesContext } from "../context/ValuesContext"
+
+const UploadDocumentPage = () => {
+  const navigate = useNavigate()
+  const [fileName, setFileName] = useState("")
+  const [selectedCourse, setSelectedCourse] = useState("")
+  const [selectedSemester, setSelectedSemester] = useState("")
+  const [selectedSubject, setSelectedSubject] = useState("")
+  const [selectedTypes, setSelectedTypes] = useState(null)
+  const [selectedCategory, setSelectedCategory] = useState(null)
+  const [selectedYear, setSelectedYear] = useState("")
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadStatus, setUploadStatus] = useState("idle")
+  const [uploadMessage, setUploadMessage] = useState("")
+  const fileInputRef = useRef(null)
+  const { user } = useAuthStore()
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }, [])
+
+  useEffect(() => {
+    if (selectedCategory === "paper") {
       setSelectedTypes("image")
     } else {
       setSelectedTypes(null)
@@ -241,7 +277,7 @@
     }
   }
 
-  const handleUpload = async () => {
+    const handleUpload = async () => {
     if (!user?.isAdmin || user?.isAdmin !== 'admin') {
       setUploadStatus("error")
       setUploadMessage("Only admins are authorized to upload documents.")
@@ -267,7 +303,7 @@
     cloudFormData.append("file", selectedFile);
     cloudFormData.append("upload_preset", uploadPreset);
     cloudFormData.append("folder", "documents");
-     
+
        const cloudRes = await fetch(
       `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
       {
@@ -281,7 +317,7 @@
       throw new Error(cloudData.error?.message || "Cloudinary upload failed");
     }
      const formData = new FormData()
-   
+
       formData.append("name", fileName)
       formData.append("course", selectedCourse)
       formData.append("semester", selectedSemester)
@@ -290,13 +326,30 @@
       formData.append("year", selectedYear)
       formData.append("category", selectedCategory)
       formData.append("uploadedBy", user?._id || user?.id)
-      formData.append("fileUrl", cloudData?.secure_url);
+      formData.append("fileUrl", cloudData?.secure_url || cloudData?.url);
       formData.append("contentType", cloudData?.resource_type);
       formData.append("format", cloudData?.format);
-     const res = await fetch(`${API_URL}/api/files/upload`, {
+     const payload = {
+        name: fileName,
+        course: selectedCourse,
+        semester: selectedSemester,
+        subject: selectedSubject,
+        types: selectedTypes,
+        year: selectedYear,
+        category: selectedCategory,
+        uploadedBy: user?._id || user?.id,
+        fileUrl: cloudData?.secure_url || cloudData?.url,
+        contentType: cloudData?.resource_type,
+        format: cloudData?.format
+      }
+
+      const res = await fetch(`${API_URL}/api/files/upload`, {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload),
       })
+      
       const json = await res?.json()
       if (!res?.ok || !json?.success) {
         throw new Error(json?.message || "Upload failed")
@@ -321,7 +374,7 @@
     } finally {
       setIsUploading(false)
     }
-  }
+ }
 
   const removeFile = () => {
     setSelectedFile(null)
