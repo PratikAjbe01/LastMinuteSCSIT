@@ -1,39 +1,3 @@
-"use client"
-
-import { useState, useRef, useEffect, useContext } from "react"
-import { motion } from "framer-motion"
-import { ArrowLeft, Upload, FileText, Check, X, AlertCircle } from "lucide-react"
-import { useNavigate } from "react-router-dom"
-import { useAuthStore } from "../store/authStore"
-import Select from "react-select"
-import { Helmet } from "react-helmet-async"
-import { API_URL } from "../utils/urls"
-import { useSwipeable } from "react-swipeable"
-import { ValuesContext } from "../context/ValuesContext"
-
-const UploadDocumentPage = () => {
-  const navigate = useNavigate()
-  const [fileName, setFileName] = useState("")
-  const [selectedCourse, setSelectedCourse] = useState("")
-  const [selectedSemester, setSelectedSemester] = useState("")
-  const [selectedSubject, setSelectedSubject] = useState("")
-  const [selectedTypes, setSelectedTypes] = useState(null)
-  const [selectedCategory, setSelectedCategory] = useState(null)
-  const [selectedYear, setSelectedYear] = useState("")
-  const [selectedFile, setSelectedFile] = useState(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadStatus, setUploadStatus] = useState("idle")
-  const [uploadMessage, setUploadMessage] = useState("")
-  const fileInputRef = useRef(null)
-  const { user } = useAuthStore()
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }, [])
-
-  useEffect(() => {
-    if (selectedCategory === "paper") {
       setSelectedTypes("image")
     } else {
       setSelectedTypes(null)
