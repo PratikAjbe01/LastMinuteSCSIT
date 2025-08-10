@@ -326,7 +326,9 @@ const UploadDocumentPage = () => {
       formData.append("year", selectedYear)
       formData.append("category", selectedCategory)
       formData.append("uploadedBy", user?._id || user?.id)
-      formData.append("cloudData", JSON.stringify(cloudData));
+      formData.append("fileUrl", cloudData?.secure_url);
+      formData.append("contentType", cloudData?.resource_type);
+      formData.append("format", cloudData?.format);
      const res = await fetch(`${API_URL}/api/files/upload`, {
         method: "POST",
         body: formData,
