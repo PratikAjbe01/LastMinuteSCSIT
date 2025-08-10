@@ -296,8 +296,28 @@ const UploadDocumentPage = () => {
     setIsUploading(true)
     setUploadStatus("idle")
     try {
-      const formData = new FormData()
-      formData.append("file", selectedFile)
+   const cloudName = "dbf1lifdi"; // cloud name
+    const uploadPreset = "frontend_uploads"; //  unsigned preset
+
+    const cloudFormData = new FormData();
+    cloudFormData.append("file", selectedFile);
+    cloudFormData.append("upload_preset", uploadPreset);
+    cloudFormData.append("folder", "documents");
+     
+       const cloudRes = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+      {
+        method: "POST",
+        body: cloudFormData,
+      }
+    );
+     const cloudData = await cloudRes.json();
+
+    if (!cloudData.secure_url) {
+      throw new Error(cloudData.error?.message || "Cloudinary upload failed");
+    }
+     const formData = new FormData()
+   
       formData.append("name", fileName)
       formData.append("course", selectedCourse)
       formData.append("semester", selectedSemester)
@@ -306,7 +326,8 @@ const UploadDocumentPage = () => {
       formData.append("year", selectedYear)
       formData.append("category", selectedCategory)
       formData.append("uploadedBy", user?._id || user?.id)
-      const res = await fetch(`${API_URL}/api/files/upload`, {
+      formData.append("cloudData", JSON.stringify(cloudData));
+     const res = await fetch(`${API_URL}/api/files/upload`, {
         method: "POST",
         body: formData,
       })
@@ -327,6 +348,7 @@ const UploadDocumentPage = () => {
       }
       setUploadStatus("success")
       setUploadMessage("File uploaded successfully!")
+       console.log("Cloudinary file URL:", cloudData.secure_url);
     } catch (err) {
       setUploadStatus("error")
       setUploadMessage(err?.message || "Upload failed. Please try again.")
