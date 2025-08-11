@@ -298,6 +298,7 @@ const UploadDocumentPage = () => {
     try {
    const cloudName = "dbf1lifdi"; // cloud name
     const uploadPreset = "frontend_uploads"; //  unsigned preset
+   const resourceType = selectedFile.type === "application/pdf" ? "raw" : "auto";
 
     const cloudFormData = new FormData();
     cloudFormData.append("file", selectedFile);
@@ -305,7 +306,7 @@ const UploadDocumentPage = () => {
     cloudFormData.append("folder", "documents");
 
        const cloudRes = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+      `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
       {
         method: "POST",
         body: cloudFormData,
