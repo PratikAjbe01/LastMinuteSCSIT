@@ -298,7 +298,7 @@ const UploadDocumentPage = () => {
     try {
    const cloudName = "dbf1lifdi"; // cloud name
     const uploadPreset = "frontend_uploads"; //  unsigned preset
-   const resourceType = selectedFile.type === "application/pdf" ? "raw" : "auto";
+   const resourceType = selectedFile.type === "application/pdf" ? "auto" : "auto";
 
     const cloudFormData = new FormData();
     cloudFormData.append("file", selectedFile);
@@ -333,7 +333,9 @@ for (let [key, value] of cloudFormData.entries()) {
       formData.append("category", selectedCategory)
       formData.append("uploadedBy", user?._id || user?.id)
       formData.append("fileUrl", cloudData?.secure_url || cloudData?.url);
-      formData.append("contentType", cloudData?.resource_type);
+      // formData.append("contentType", cloudData?.resource_type);
+      formData.append("contentType", selectedFile.type || "application/pdf");
+
       formData.append("format", cloudData?.format);
      const payload = {
         name: fileName,
