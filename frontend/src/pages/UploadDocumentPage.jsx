@@ -304,8 +304,11 @@ const UploadDocumentPage = () => {
     cloudFormData.append("file", selectedFile);
     cloudFormData.append("upload_preset", uploadPreset);
     cloudFormData.append("folder", "documents");
-    console.log("cloudData :-> ",cloudData);
-
+   
+console.log("📤 Before upload - cloudData content:");
+for (let [key, value] of cloudFormData.entries()) {
+  console.log(`${key}:`, value);
+}
        const cloudRes = await fetch(
       `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
       {
@@ -318,6 +321,7 @@ const UploadDocumentPage = () => {
     if (!cloudData.secure_url) {
       throw new Error(cloudData.error?.message || "Cloudinary upload failed");
     }
+    console.log("✅ After upload - Cloudinary response:", cloudData);
      const formData = new FormData()
 
       formData.append("name", fileName)
@@ -344,6 +348,10 @@ const UploadDocumentPage = () => {
         contentType: cloudData?.resource_type,
         format: cloudData?.format
       }
+      console.log("📤 Before backend upload (FormData):");
+for (let [key, value] of formData.entries()) {
+  console.log(`${key}:`, value);
+}
 
       const res = await fetch(`${API_URL}/api/files/upload`, {
         method: "POST",
@@ -356,6 +364,7 @@ const UploadDocumentPage = () => {
       if (!res?.ok || !json?.success) {
         throw new Error(json?.message || "Upload failed")
       }
+      console.log("📤 Backend JSON payload:", payload);
       setSelectedFile(null)
       setFileName("")
       setSelectedCourse("")
