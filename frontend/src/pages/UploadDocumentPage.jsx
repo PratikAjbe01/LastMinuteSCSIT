@@ -304,6 +304,7 @@ const UploadDocumentPage = () => {
     cloudFormData.append("file", selectedFile);
     cloudFormData.append("upload_preset", uploadPreset);
     cloudFormData.append("folder", "documents");
+    console.log("cloudData :-> ",cloudData);
 
        const cloudRes = await fetch(
       `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
