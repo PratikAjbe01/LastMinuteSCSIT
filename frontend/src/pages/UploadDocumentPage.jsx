@@ -304,6 +304,9 @@ const UploadDocumentPage = () => {
     cloudFormData.append("file", selectedFile);
     cloudFormData.append("upload_preset", uploadPreset);
     cloudFormData.append("folder", "documents");
+   cloudFormData.append("resource_type", resourceType); // Add this
+    cloudFormData.append("access_mode", "public");
+
    
 console.log("📤 Before upload - cloudData content:");
 for (let [key, value] of cloudFormData.entries()) {
