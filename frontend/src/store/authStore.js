@@ -2,7 +2,7 @@ import { create } from "zustand";
 import axios from "axios";
 import { API_URL } from "../utils/urls";
 
-const URL = ${API_URL}/api/auth;
+const URL = `${API_URL}/api/auth`;
 
 axios.defaults.withCredentials = true;
 
@@ -19,7 +19,7 @@ export const useAuthStore = create((set) => ({
     signup: async (email, password, name) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await axios.post(${URL}/signup, { email, password, name });
+            const response = await axios.post(`${URL}/signup`, { email, password, name });
             localStorage.setItem("user", JSON.stringify(response.data.user));
             set({ user: response.data.user, isAuthenticated: true, isLoading: false });
         } catch (error) {
@@ -30,7 +30,7 @@ export const useAuthStore = create((set) => ({
     login: async (email, password, role) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await axios.post(${URL}/login, { email, password, role });
+            const response = await axios.post(`${URL}/login`, { email, password, role });
 
             if (role === 'admin' && response?.data?.user?.isAdmin === 'admin') {
                 set({ isLoading: false });
@@ -52,7 +52,7 @@ export const useAuthStore = create((set) => ({
     verifyAdminOtp: async (email, code) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await axios.post(${URL}/verify-admin-otp, { email, code });
+            const response = await axios.post(`${URL}/verify-admin-otp`, { email, code });
             localStorage.setItem("user", JSON.stringify(response.data.user));
             set({
                 isAuthenticated: true,
@@ -78,7 +78,7 @@ export const useAuthStore = create((set) => ({
     verifyEmail: async (code) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await axios.post(${URL}/verify-email, { code });
+            const response = await axios.post(`${URL}/verify-email`, { code });
             localStorage.setItem("user", JSON.stringify(response.data.user));
             set({ user: response.data.user, isAuthenticated: true, isLoading: false });
             return response.data;
@@ -99,7 +99,7 @@ export const useAuthStore = create((set) => ({
     forgotPassword: async (email) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await axios.post(${URL}/forgot-password, { email });
+            const response = await axios.post(`${URL}/forgot-password`, { email });
             set({ message: response.data.message, isLoading: false });
         } catch (error) {
             set({
@@ -112,7 +112,7 @@ export const useAuthStore = create((set) => ({
     resetPassword: async (token, password) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await axios.post(${URL}/reset-password/${token}, { password });
+            const response = await axios.post(`${URL}/reset-password/${token}`, { password });
             set({ message: response.data.message, isLoading: false });
         } catch (error) {
             set({

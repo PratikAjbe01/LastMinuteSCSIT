@@ -162,7 +162,7 @@ const DocumentsPage = () => {
             }
 
             try {
-                const response = await fetch(${API_URL}/api/files/fetchCourseAndSemester, {
+                const response = await fetch(`${API_URL}/api/files/fetchCourseAndSemester`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -170,7 +170,7 @@ const DocumentsPage = () => {
                     body: JSON.stringify({ course: selectedCourseInfo.value, semester }),
                 });
 
-                if (!response.ok) throw new Error(HTTP error! Status: ${response.status});
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                 const result = await response.json();
                 if (!result.success) throw new Error(result.message || "Failed to fetch files");
 
@@ -213,7 +213,7 @@ const DocumentsPage = () => {
     };
 
     const onBack = () => {
-        navigate(/scsit/${course}/semesters/);
+        navigate(`/scsit/${course}/semesters/`);
     };
 
     useEffect(() => {
@@ -282,8 +282,8 @@ const DocumentsPage = () => {
     return (
         <div {...swipeHandlers} className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-black-900 flex flex-col p-0">
             <Helmet>
-                <title>{${course?.toUpperCase()} - ${semesterData.title} | SCSIT}</title>
-                <meta name="description" content={Documents for ${courseLabel} ${semesterData.title}.} />
+                <title>{`${course?.toUpperCase()} - ${semesterData.title} | SCSIT`}</title>
+                <meta name="description" content={`Documents for ${courseLabel} ${semesterData.title}.`} />
             </Helmet>
             <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="sticky top-0 z-20 bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-b-2xl border-b border-gray-700 pt-16 sm:pt-20 px-4 sm:px-6 md:px-8">
                 <div className="flex flex-col sm:flex-row items-center justify-between pt-2">
@@ -301,7 +301,8 @@ const DocumentsPage = () => {
                     </motion.button>
                     <div className="flex flex-wrap justify-end gap-2 sm:gap-4">
                         {categories.map((cat) => (
-                            <button key={cat.value} className={px-3 py-1 sm:px-4 sm:py-2 rounded-lg text-sm sm:text-base font-semibold transition-all duration-200 ${selectedCategory === cat.value ? 'bg-green-500 text-white shadow-lg' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}} onClick={() => setSelectedCategory(cat.value)}>
+                            <button key={cat.value} className={`px-3 py-1 sm:px-4 sm:py-2 rounded-lg text-sm sm:text-base font-semibold transition-all duration-200 ${selectedCategory === cat.value ? 'bg-green-500 text-white shadow-lg' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+onClick={() => setSelectedCategory(cat.value)}>
                                 {cat.label}
                             </button>
                         ))}

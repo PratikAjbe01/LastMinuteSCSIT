@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Helmet } from "react-helmet-async"
 import { useAuthStore } from "../store/authStore"
 import { useNavigate } from "react-router-dom"
-import { User, Mail, FileText, Calendar, Book, Tag, Edit, Trash2, X, Loader, AlertCircle, ShieldCheck, GraduationCap, FileX, Upload, View, BookDashed } from "lucide-react"
+import { User, Mail, Calendar, Book, Tag, Edit, Trash2, X, Loader, AlertCircle, ShieldCheck, GraduationCap, FileX, Upload, View, BookDashed } from "lucide-react"
 import FileViewer from "../fileComponents/FileViewer"
 import { API_URL } from "../utils/urls"
 import { useSwipeable } from "react-swipeable"
@@ -39,11 +39,11 @@ const MyFilesPage = () => {
             setIsLoading(true);
             setError(null);
             try {
-                const response = await fetch(${API_URL}/api/files/adminfiles, {
+                const response = await fetch(`${API_URL}/api/files/adminfiles`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': Bearer ${user.token},
+                        'Authorization': `Bearer ${user.token}`,
                     },
                     body: JSON.stringify({ userId: user._id }),
                 });
@@ -101,11 +101,11 @@ const MyFilesPage = () => {
         setIsSubmitting(true);
         setModalError('');
         try {
-            const response = await fetch(${API_URL}/api/files/update, {
+            const response = await fetch(`${API_URL}/api/files/update`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': Bearer ${user.token},
+                    'Authorization': `Bearer ${user.token}`,
                 },
                 body: JSON.stringify({
                     id: selectedFile._id,
@@ -134,11 +134,11 @@ const MyFilesPage = () => {
         setIsSubmitting(true);
         setModalError('');
         try {
-            const response = await fetch(${API_URL}/api/files/delete, {
+            const response = await fetch(`${API_URL}/api/files/delete`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': Bearer ${user.token},
+                    'Authorization':`Bearer ${user.token}`,
                 },
                 body: JSON.stringify({ 
                     id: selectedFile._id,
@@ -161,7 +161,7 @@ const MyFilesPage = () => {
             setFiles(files.filter(f => f._id !== selectedFile._id));
             closeDeleteModal();
 
-        } catch (err) {
+        }catch (err) {
             setModalError(err.message || "An error occurred.");
         } finally {
             setIsSubmitting(false);
@@ -172,7 +172,7 @@ const MyFilesPage = () => {
         setSelectedViewFile(null);
     };
 
-     const handleFileClick = (file, subject) => {
+     const handleFileClick = (file) => {
         setSelectedViewFile(file);
     };
 

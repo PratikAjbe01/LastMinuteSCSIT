@@ -73,7 +73,8 @@ const getOrdinalSuffix = (n) => {
 
 const semesterOptions = Array.from({ length: 10 }, (_, i) => ({
     value: (i + 1).toString(),
-    label: ${i + 1}${getOrdinalSuffix(i + 1)} Semester
+   label: `${i + 1}${getOrdinalSuffix(i + 1)} Semester`
+
 }));
 
 const customSelectStyles = {
@@ -113,7 +114,7 @@ const AllFilesPage = () => {
             setIsLoading(true);
             setError(null);
             try {
-                const response = await fetch(${API_URL}/api/files/allfiles);
+                const response = await fetch(`${API_URL}/api/files/allfiles`);
                 const result = await response.json();
                 if (!response.ok || !result.success) {
                     throw new Error(result.message || 'Failed to fetch files.');
