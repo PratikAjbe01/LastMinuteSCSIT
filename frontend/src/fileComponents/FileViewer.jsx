@@ -181,7 +181,7 @@ const FileViewer = ({ file, onClose }) => {
           {/* ✅ Loading overlay */}
           {loading && (
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-              <span className="text-white text-lg">Loading...</span>
+              <span className="text-white text-lg">wait 30sec For bigger Files...</span>
             </div>
           )}
 
