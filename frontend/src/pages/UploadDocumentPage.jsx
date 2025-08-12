@@ -412,7 +412,8 @@ const handleUpload = async () => {
   try {
     const cloudName = "dbf1lifdi"; // cloud name
     const uploadPreset = "frontend_uploads"; // unsigned preset
-    const resourceType = selectedFile.type === "application/pdf" ? "raw" : "image";
+    // const resourceType = selectedFile.type === "application/pdf" ? "raw" : "image";
+    const resourceType = selectedFile.type === "application/pdf" ? "auto" : "auto";
 
     const cloudFormData = new FormData();
     cloudFormData.append("file", selectedFile);
@@ -445,7 +446,7 @@ const handleUpload = async () => {
       category: selectedCategory,
       uploadedBy: user?._id || user?.id,
       fileUrl: cloudData?.secure_url || cloudData?.url,
-      contentType: cloudData?.resource_type,
+      contentType: cloudData?.resource_type||"application/pdf",
       format: cloudData?.format
     };
 
