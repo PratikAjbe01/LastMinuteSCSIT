@@ -297,34 +297,30 @@ const UploadDocumentPage = () => {
     setUploadStatus("idle")
     try {
    const cloudName = "dbf1lifdi"; // cloud name
-    const uploadPreset = "frontend_uploads"; //  unsigned preset
-   const resourceType = selectedFile.type === "application/pdf" ? "auto" : "auto";
+const uploadPreset = "frontend_uploads"; // unsigned preset
+const resourceType = selectedFile.type === "application/pdf" ? "raw" : "image";
 
-    const cloudFormData = new FormData();
-    cloudFormData.append("file", selectedFile);
-    cloudFormData.append("upload_preset", uploadPreset);
-    cloudFormData.append("folder", "documents");
-   cloudFormData.append("resource_type", resourceType); // Add this
-    cloudFormData.append("access_mode", "public");
+const cloudFormData = new FormData();
+cloudFormData.append("file", selectedFile);
+cloudFormData.append("upload_preset", uploadPreset);
+cloudFormData.append("folder", "documents");
 
-   
-console.log("📤 Before upload - cloudData content:");
-for (let [key, value] of cloudFormData.entries()) {
-  console.log(`${key}:`, value);
+console.log("📤 Uploading to Cloudinary:", resourceType, selectedFile.name);
+
+const cloudRes = await fetch(
+  `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
+  {
+    method: "POST",
+    body: cloudFormData,
+  }
+);
+
+const cloudData = await cloudRes.json();
+if (!cloudData.secure_url) {
+  throw new Error(cloudData.error?.message || "Cloudinary upload failed");
 }
-       const cloudRes = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
-      {
-        method: "POST",
-        body: cloudFormData,
-      }
-    );
-     const cloudData = await cloudRes.json();
+console.log("✅ Uploaded:", cloudData);
 
-    if (!cloudData.secure_url) {
-      throw new Error(cloudData.error?.message || "Cloudinary upload failed");
-    }
-    console.log("✅ After upload - Cloudinary response:", cloudData);
      const formData = new FormData()
 
       formData.append("name", fileName)
