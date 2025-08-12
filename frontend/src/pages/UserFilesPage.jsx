@@ -39,11 +39,11 @@ const MyFilesPage = () => {
             setIsLoading(true);
             setError(null);
             try {
-                const response = await fetch(`${API_URL}/api/files/adminfiles`, {
+                const response = await fetch(${API_URL}/api/files/adminfiles, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${user.token}`,
+                        'Authorization': Bearer ${user.token},
                     },
                     body: JSON.stringify({ userId: user._id }),
                 });
@@ -101,11 +101,11 @@ const MyFilesPage = () => {
         setIsSubmitting(true);
         setModalError('');
         try {
-            const response = await fetch(`${API_URL}/api/files/update`, {
+            const response = await fetch(${API_URL}/api/files/update, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user.token}`,
+                    'Authorization': Bearer ${user.token},
                 },
                 body: JSON.stringify({
                     id: selectedFile._id,
@@ -134,11 +134,11 @@ const MyFilesPage = () => {
         setIsSubmitting(true);
         setModalError('');
         try {
-            const response = await fetch(`${API_URL}/api/files/delete`, {
+            const response = await fetch(${API_URL}/api/files/delete, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user.token}`,
+                    'Authorization': Bearer ${user.token},
                 },
                 body: JSON.stringify({ 
                     id: selectedFile._id,
@@ -219,7 +219,7 @@ const MyFilesPage = () => {
                             <div>
                                 <h1 className="text-2xl font-bold text-white">{user?.name}</h1>
                                 <p className="text-green-400 flex items-center gap-2"><Mail size={16} /> {user?.email}</p>
-                                {user?.isAdmin && <p className="text-amber-400 flex items-center gap-2 mt-1 font-semibold"><ShieldCheck size={16} /> Admin Account</p>}
+                                {user?.isAdmin === 'admin' && <p className="text-amber-400 flex items-center gap-2 mt-1 font-semibold"><ShieldCheck size={16} /> Admin Account</p>}
                             </div>
                         </div>
                         <h2 className="text-4xl font-extrabold text-white text-center mb-10">Your Uploaded Files</h2>

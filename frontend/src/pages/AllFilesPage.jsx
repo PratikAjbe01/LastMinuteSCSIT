@@ -73,7 +73,7 @@ const getOrdinalSuffix = (n) => {
 
 const semesterOptions = Array.from({ length: 10 }, (_, i) => ({
     value: (i + 1).toString(),
-    label: `${i + 1}${getOrdinalSuffix(i + 1)} Semester`
+    label: ${i + 1}${getOrdinalSuffix(i + 1)} Semester
 }));
 
 const customSelectStyles = {
@@ -113,7 +113,7 @@ const AllFilesPage = () => {
             setIsLoading(true);
             setError(null);
             try {
-                const response = await fetch(`${API_URL}/api/files/allfiles`);
+                const response = await fetch(${API_URL}/api/files/allfiles);
                 const result = await response.json();
                 if (!response.ok || !result.success) {
                     throw new Error(result.message || 'Failed to fetch files.');
@@ -243,8 +243,9 @@ const AllFilesPage = () => {
                     <div className="text-center text-red-400 bg-red-500/10 p-4 rounded-lg flex items-center justify-center gap-2"><AlertCircle /> {error}</div>
                 ) : (
                     <AnimatePresence>
+                         <div className="text-gray-400 block mb-4 text-center">{filteredFiles.length} Files Found</div>
                         {filteredFiles.length > 0 ? (
-                            <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">                
                                 {filteredFiles.map((file) => (
                                     <motion.div layout key={file._id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.3 }} className="bg-gray-800/60 backdrop-blur-xl rounded-2xl border border-gray-700 overflow-hidden flex flex-col group">
                                         <div className="p-6 flex-grow">
@@ -258,8 +259,8 @@ const AllFilesPage = () => {
                                             </div>
                                         </div>
                                         <div className="bg-gray-900/50 p-4 mt-auto" onClick={() => handleFileClick(file, file.subject)}>
-                                            <span className="flex items-center justify-center gap-2 w-full text-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors">
-                                                <FileIcon size={16} className="transition-transform group-hover:translate-x-1" /> View File
+                                            <span className="flex items-center justify-center gap-2 w-full text-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors cursor-pointer">
+                                                <FileIcon size={16} className="transition-transform group-hover:translate-x-1 cursor-pointer" /> View File
                                             </span>
                                         </div>
                                     </motion.div>

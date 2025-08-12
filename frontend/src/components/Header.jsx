@@ -42,6 +42,12 @@ const Header = () => {
   const closeSidebar = () => {
     setIsSidebarOpen(false)
   }
+   const handleLogout = async () => {
+    await logout();
+    closeSidebar();
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
 
  const navigationItems = useMemo(() => {
     const items = [
@@ -173,11 +179,7 @@ const swipeHandlers = useSwipeable({
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        logout()
-                        closeSidebar()
-                        navigate("/")
-                      }}
+                      onClick={handleLogout} // ✅ replaced inline function
                       className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
                     >
                       <LogOut className="w-4 h-4" />

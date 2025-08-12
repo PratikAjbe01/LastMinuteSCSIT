@@ -162,7 +162,7 @@ const DocumentsPage = () => {
             }
 
             try {
-                const response = await fetch(`${API_URL}/api/files/fetchCourseAndSemester`, {
+                const response = await fetch(${API_URL}/api/files/fetchCourseAndSemester, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -170,10 +170,10 @@ const DocumentsPage = () => {
                     body: JSON.stringify({ course: selectedCourseInfo.value, semester }),
                 });
 
-                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                if (!response.ok) throw new Error(HTTP error! Status: ${response.status});
                 const result = await response.json();
                 if (!result.success) throw new Error(result.message || "Failed to fetch files");
-                
+
                 const courseKey = selectedCourseInfo.value.toUpperCase();
                 const semesterKey = semester.toString();
                 const baseSemesterStructure = ALL_SEMESTER_DATA[courseKey]?.[semesterKey];
@@ -196,7 +196,7 @@ const DocumentsPage = () => {
                         papers: filesBySubject[subject.name] || [],
                     })),
                 };
-                
+
                 setSemesterData(updatedSemester);
             } catch (err) {
                 setError(err.message);
@@ -213,10 +213,10 @@ const DocumentsPage = () => {
     };
 
     const onBack = () => {
-        navigate(`/scsit/${course}/semesters/`);
+        navigate(/scsit/${course}/semesters/);
     };
 
-     useEffect(() => {
+    useEffect(() => {
         const handleContextMenu = (e) => {
             e.preventDefault()
         }
@@ -233,27 +233,28 @@ const DocumentsPage = () => {
         }
     }, [])
 
-     const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
-    
-      const isExcludedRoute = location.pathname.startsWith("/login") || location.pathname === "/signup";
-      const isMobile = window.innerWidth <= 768;
-      const swipeHandlers = useSwipeable({
+    const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
+    const [showAll, setShowAll] = useState(6);
+
+    const isExcludedRoute = location.pathname.startsWith("/login") || location.pathname === "/signup";
+    const isMobile = window.innerWidth <= 768;
+    const swipeHandlers = useSwipeable({
         onSwipedLeft: () => {
-          if (isMobile && !isExcludedRoute) {
-            setIsSidebarOpen(true);
-            console.log("Swiped left - opening sidebar");
-          }
+            if (isMobile && !isExcludedRoute) {
+                setIsSidebarOpen(true);
+                console.log("Swiped left - opening sidebar");
+            }
         },
         onSwipedRight: () => {
-          if (isMobile && !isExcludedRoute && isSidebarOpen) {
-            setIsSidebarOpen(false);
-            console.log("Swiped right - closing sidebar");
-          }
+            if (isMobile && !isExcludedRoute && isSidebarOpen) {
+                setIsSidebarOpen(false);
+                console.log("Swiped right - closing sidebar");
+            }
         },
         preventDefaultTouchmoveEvent: false,
         trackMouse: false,
         delta: 30,
-      });
+    });
 
     if (loading) {
         return (
@@ -281,8 +282,8 @@ const DocumentsPage = () => {
     return (
         <div {...swipeHandlers} className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-black-900 flex flex-col p-0">
             <Helmet>
-                <title>{`${course?.toUpperCase()} - ${semesterData.title} | SCSIT`}</title>
-                <meta name="description" content={`Documents for ${courseLabel} ${semesterData.title}.`} />
+                <title>{${course?.toUpperCase()} - ${semesterData.title} | SCSIT}</title>
+                <meta name="description" content={Documents for ${courseLabel} ${semesterData.title}.} />
             </Helmet>
             <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="sticky top-0 z-20 bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-b-2xl border-b border-gray-700 pt-16 sm:pt-20 px-4 sm:px-6 md:px-8">
                 <div className="flex flex-col sm:flex-row items-center justify-between pt-2">
@@ -300,28 +301,28 @@ const DocumentsPage = () => {
                     </motion.button>
                     <div className="flex flex-wrap justify-end gap-2 sm:gap-4">
                         {categories.map((cat) => (
-                            <button key={cat.value} className={`px-3 py-1 sm:px-4 sm:py-2 rounded-lg text-sm sm:text-base font-semibold transition-all duration-200 ${selectedCategory === cat.value ? 'bg-green-500 text-white shadow-lg' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`} onClick={() => setSelectedCategory(cat.value)}>
+                            <button key={cat.value} className={px-3 py-1 sm:px-4 sm:py-2 rounded-lg text-sm sm:text-base font-semibold transition-all duration-200 ${selectedCategory === cat.value ? 'bg-green-500 text-white shadow-lg' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}} onClick={() => setSelectedCategory(cat.value)}>
                                 {cat.label}
                             </button>
                         ))}
                     </div>
                 </div>
             </motion.div>
-            
+
             <div className="space-y-6 sm:space-y-8 w-full px-4 sm:px-6 md:px-8 flex-1 my-8">
                 {semesterData.subjects.length > 0 ? (
                     semesterData.subjects.map((subject, subjectIndex) => {
                         const filteredPapers = subject.papers.filter(paper => paper.category === selectedCategory);
                         return (
-                            <motion.div key={subject.name} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 * subjectIndex }} className="bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl overflow-hidden border border-gray-700">
+                            <motion.div key={subject.name} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 * subjectIndex }} className="bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl overflow-hidden border border-gray-700 pb-2">
                                 <div className="p-4 sm:p-6 border-b border-gray-700">
                                     <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2">{subject.name}</h2>
-                                    <p className="text-sm sm:text-base text-gray-300">{categoryDescriptions[selectedCategory]}</p>
+                                    <p className="text-sm sm:text-base text-gray-300">{categoryDescriptions[selectedCategory]} • {filteredPapers.length} Papers</p>
                                 </div>
                                 <div className="p-4 sm:p-6">
                                     {filteredPapers.length > 0 ? (
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {filteredPapers.map((paper, paperIndex) => (
+                                        <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {filteredPapers.slice(0, showAll === null? undefined : showAll).map((paper, paperIndex) => (
                                                 <motion.div key={paperIndex} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }} onClick={() => handleFileClick(paper)} className="bg-gray-700 bg-opacity-50 rounded-xl p-3 sm:p-4 cursor-pointer border border-gray-600 hover:border-green-500 transition-all duration-300">
                                                     <div className="flex items-start space-x-3">
                                                         <div className="flex-shrink-0">
@@ -330,7 +331,7 @@ const DocumentsPage = () => {
                                                             </div>
                                                         </div>
                                                         <div className="flex-1 min-w-0">
-                                                            <h3 className="text-white font-semibold text-xs sm:text-sm md:text-base mb-1 truncate">{paper.name}</h3>
+                                                            <h3 className="text-white font-semibold text-xs sm:text-sm md:text-base mb-1">{paper.name}</h3>
                                                             <div className="flex items-center space-x-2 text-xs text-gray-400">
                                                                 <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                                                                 <span>{paper.year || "Unknown"}</span>
@@ -347,6 +348,7 @@ const DocumentsPage = () => {
                                             No {categories.find(cat => cat.value === selectedCategory)?.label.toLowerCase()} available for this subject yet.
                                         </div>
                                     )}
+                                      <span className="absolute bottom-2 right-4 cursor-pointer text-blue-400 text-sm" onClick={() => setShowAll(showAll == 6 ? null : 6)}>{showAll == 6 ? "Show All" : "Show Less"}</span>
                                 </div>
                             </motion.div>
                         );
