@@ -33,11 +33,10 @@ const ProtectedRoute = ({ children }) => {
   if (!user?.isVerified) return <Navigate to="/verify-email" replace />;
   return children;
 };
-
 const RedirectAuthenticatedUser = ({ children }) => {
-  const { isAuthenticated, user } = useAuthStore();
-  if (isAuthenticated && user?.isVerified) return <Navigate to="/" replace />;
-  return children;
+	const { isAuthenticated, user } = useAuthStore();
+	if (isAuthenticated && user?.isVerified) return <Navigate to='/' replace />;
+	return children;
 };
 
 const AdminRoute = ({ children }) => {
