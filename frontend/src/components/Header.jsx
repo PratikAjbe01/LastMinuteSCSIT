@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useContext, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { BookOpen, User, LogOut, Menu, X, Home, Upload, GraduationCap, File, Files, PanelTopClose, BookMarked, Workflow, Edit } from "lucide-react"
+import { BookOpen, User, LogOut, Menu, X, Home, Upload, GraduationCap, File, Files, PanelTopClose,  Edit } from "lucide-react"
 import { useMatch, useNavigate } from "react-router-dom"
 import { useAuthStore } from "../store/authStore"
 import { ValuesContext } from "../context/ValuesContext"
@@ -51,12 +51,11 @@ const Header = () => {
       { href: "/upload", label: "Upload", icon: Upload },
       { href: "/allfiles", label: "All Files", icon: Files },
       { href: "/calculations/tools/cgpa", label: "Tools", icon: PanelTopClose },
-      { href: `/attendance/manager/user/${user?.id}`, label: "Attendance Manager", icon: BookMarked },
-      { href: "/planner/todos", label: "Task Planner", icon: Workflow },
     ]
 
     if (user?.isAdmin) {
-      items.push({ href: "/profile/files", label: "Uploaded Files", icon: File })
+        items.push({ href: "/upload", label: "Upload", icon: Upload });
+      items.push({ href: "/profile/files", label: "Uploaded Files", icon: File });
     }
 
     return items
