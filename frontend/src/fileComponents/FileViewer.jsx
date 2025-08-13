@@ -6,6 +6,8 @@ import { X, ZoomIn, ZoomOut, RotateCw, Eye, Share2, RefreshCcw } from "lucide-re
 import { RWebShare } from "react-web-share";
 import Img from "../components/lazyLoadImage/Img";
 import { CLIENT_URL } from "../utils/urls";
+import { Navigate } from "react-router-dom"
+
 
 const Watermark = () => {
   const watermarkText = "© LastMinute SCSIT";
@@ -37,6 +39,9 @@ const FileViewer = ({ file, onClose }) => {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const mainRef = useRef(null);
+  if(!localStorage.getItem("user")){
+    return <Navigate to={'/login'} replace />
+  }
 
   useEffect(() => {
     const checkMobile = () => {

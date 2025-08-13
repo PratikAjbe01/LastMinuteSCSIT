@@ -10,7 +10,7 @@ import { Helmet } from "react-helmet-async"
 import { API_URL } from "../utils/urls"
 import { useSwipeable } from "react-swipeable"
 import { ValuesContext } from "../context/ValuesContext"
-
+import toast from "react-hot-toast"
 const semestersByCourse = {
   "BCA": ["1", "2", "3", "4", "5", "6"],
   "MCA": ["1", "2", "3", "4"],
@@ -109,10 +109,24 @@ const SemestersPage = () => {
     fetchPaperCounts();
 }, [course]);
 
-
-  const handleSemesterClick = (semesterId) => {
+const handleSemesterClick = (semesterId) => {
+    if (!localStorage.getItem("user")) {
+       toast.error('User Must Be Logged In.', {
+        style: {
+          border: '1px solid #713200',
+          padding: '16px',
+          color: '#713200',
+        },
+        iconTheme: {
+          primary: '#4ade80',
+          secondary: '#ffffff',
+        },
+      });
+    }
     navigate(`/scsit/${course}/semesters/${semesterId}`);
   };
+
+
 
   const handleCloseViewer = () => {
     setSelectedFile(null);
