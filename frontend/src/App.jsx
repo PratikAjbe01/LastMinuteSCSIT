@@ -129,9 +129,9 @@ function App() {
               <Route
                 path="/"
                 element={
-                  <ProtectedRoute>
+            
                     <Home />
-                  </ProtectedRoute>
+           
                 }
               />
               <Route
@@ -145,17 +145,17 @@ function App() {
               <Route
                 path="/scsit/courses"
                 element={
-                  <ProtectedRoute>
+                
                     <Courses />
-                  </ProtectedRoute>
+                 
                 }
               />
               <Route
                 path="/scsit/:course/semesters"
                 element={
-                  <ProtectedRoute>
+             
                     <SemestersPage />
-                  </ProtectedRoute>
+                  
                 }
               />
               <Route
@@ -169,9 +169,9 @@ function App() {
               <Route
                 path="/profile/files"
                 element={
-                  <ProtectedRoute>
+                 
                     <MyFilesPage />
-                  </ProtectedRoute>
+                
                 }
               />
               <Route path="/share/file/:id" element={<ShareFilePage />} />
@@ -198,9 +198,8 @@ function App() {
               <Route
                 path="/about"
                 element={
-                  <ProtectedRoute>
+         
                     <AboutPage />
-                  </ProtectedRoute>
                 }
               />
               <Route path="/verify-email" element={<EmailVerificationPage />} />
