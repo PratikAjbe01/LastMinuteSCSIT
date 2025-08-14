@@ -2,13 +2,12 @@
 
 import { useState, useMemo, useContext, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { BookOpen, User, LogOut, Menu, X, Home, Upload, GraduationCap, File, Files, PanelTopClose,  Edit } from "lucide-react"
-import { useMatch, useNavigate } from "react-router-dom"
+import { BookOpen, User, LogOut, Menu, X, Home, Upload, GraduationCap, File, Files, PanelTopClose, Edit } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 import { useAuthStore } from "../store/authStore"
 import { ValuesContext } from "../context/ValuesContext"
 import { useSwipeable } from "react-swipeable"
 import { EditProfileModal } from "./EditProfileModal"
-import toast from "react-hot-toast"
 
 const Header = () => {
   const navigate = useNavigate()
@@ -43,58 +42,37 @@ const Header = () => {
   const closeSidebar = () => {
     setIsSidebarOpen(false)
   }
+   const handleLogout = async () => {
+    await logout();
+    closeSidebar();
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
 
-  const navigationItems = useMemo(() => {
+ const navigationItems = useMemo(() => {
     const items = [
       { href: "/", label: "Home", icon: Home },
       { href: "/scsit/courses", label: "Courses", icon: GraduationCap },
-      { href: "/upload", label: "Upload", icon: Upload },
       { href: "/allfiles", label: "All Files", icon: Files },
       { href: "/calculations/tools/cgpa", label: "Tools", icon: PanelTopClose },
     ]
 
-    if (user?.isAdmin) {
-        items.push({ href: "/upload", label: "Upload", icon: Upload });
-      items.push({ href: "/profile/files", label: "Uploaded Files", icon: File });
-    }
+    if (user?.isAdmin === "admin") {
+  items.push({ href: "/upload", label: "Upload", icon: Upload });
+  items.push({ href: "/profile/files", label: "Uploaded Files", icon: File });
+}
 
     return items
   }, [user])
 
-  const swipeHandlers = useSwipeable({
-    onSwipedRight: () => closeSidebar(),
-    preventDefaultTouchmoveEvent: true,
-    trackMouse: true,
-    delta: 50,
-  });
+const swipeHandlers = useSwipeable({
+  onSwipedLeft: () => closeSidebar(),
+  preventDefaultTouchmoveEvent: true,
+  trackMouse: true,
+  delta: 50,
+});
 
-  const handleLogout = async () => {
-    await logout()
-    closeSidebar()
-    localStorage.removeItem("user");
-    navigate("/login")
-  }
 
-  const isSemestersPage = useMatch('/scsit/:course/semesters');
-
-  const handleNavLinkClick = (href) => {
-    const noToastPages = ['/', '/about', '/scsit/courses', '/allfiles'];
-    if (!localStorage.getItem("user") && !noToastPages.includes(href) && !isSemestersPage) {
-      toast.error('User Must Be Logged In.', {
-        style: {
-          border: '1px solid #713200',
-          padding: '16px',
-          color: '#713200',
-        },
-        iconTheme: {
-          primary: '#4ade80',
-          secondary: '#ffffff',
-        },
-      });
-    }
-    navigate(href);
-    closeSidebar();
-  }
 
   return (
     <>
@@ -136,14 +114,14 @@ const Header = () => {
 
       <AnimatePresence>
         {isSidebarOpen && (
-          <motion.div
-            {...swipeHandlers}
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
-            className="fixed top-0 right-0 h-full w-80 bg-slate-800 shadow-2xl z-50 flex flex-col"
-          >
+         <motion.div
+  {...swipeHandlers}
+  initial={{ x: "100%" }}
+  animate={{ x: 0 }}
+  exit={{ x: "100%" }}
+  transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
+  className="fixed top-0 right-0 h-full w-80 bg-slate-800 shadow-2xl z-50 flex flex-col"
+>
 
             <div className="flex items-center justify-between p-6 border-b border-slate-700 flex-shrink-0">
               <div className="flex items-center space-x-3">
@@ -164,19 +142,22 @@ const Header = () => {
             <div className="flex-1 overflow-y-auto">
               <nav className="space-y-2 p-4">
                 {navigationItems.map((item, index) => (
-                  <motion.div
+                  <motion.a
                     key={item.href}
+                    href={item.href}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05, type: "spring", stiffness: 100 }}
-                    onClick={() => {
-                      handleNavLinkClick(item.href);
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate(item.href);
+                      closeSidebar();
                     }}
                     className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:text-white hover:bg-slate-700 rounded-lg transition-all duration-200 group cursor-pointer"
                   >
                     <item.icon className="w-5 h-5 text-green-400 group-hover:text-green-300 transition-colors" />
                     <span className="font-medium">{item.label}</span>
-                  </motion.div>
+                  </motion.a>
                 ))}
               </nav>
             </div>
@@ -198,9 +179,7 @@ const Header = () => {
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        handleLogout();
-                      }}
+                      onClick={handleLogout} // ✅ replaced inline function
                       className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
                     >
                       <LogOut className="w-4 h-4" />

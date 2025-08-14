@@ -28,16 +28,16 @@ import { useAuthStore } from "./store/authStore";
 import { ValuesContext } from "./context/ValuesContext";
 
 const ProtectedRoute = ({ children }) => {
-	const { isAuthenticated } = useAuthStore();
-	if (!isAuthenticated) return <Navigate to='/login' replace />;
-	return children;
+  const { isAuthenticated, user } = useAuthStore();
+   if (!isAuthenticated) return <Navigate to="/" replace />;
+  if (!user?.isVerified) return <Navigate to="/verify-email" replace />;
+  return children;
 };
 
-
 const RedirectAuthenticatedUser = ({ children }) => {
-	const { isAuthenticated } = useAuthStore();
-	if (isAuthenticated ) return <Navigate to='/' replace />;
-	return children;
+  const { isAuthenticated, user } = useAuthStore();
+  if (isAuthenticated && user?.isVerified) return <Navigate to="/" replace />;
+  return children;
 };
 
 const AdminRoute = ({ children }) => {
