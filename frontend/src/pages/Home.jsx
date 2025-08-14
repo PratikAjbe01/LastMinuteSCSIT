@@ -2,7 +2,7 @@
 
 import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
-import { Upload, FileText, Users, ListTodo, Calculator, CheckSquare, ArrowRight, Sparkles, Star } from "lucide-react"
+import { Upload, FileText, Users, Calculator, ArrowRight, Sparkles, Star } from "lucide-react"
 import { useContext, useEffect, useMemo } from "react"
 import { Helmet } from 'react-helmet-async';
 import { useSwipeable } from "react-swipeable"
@@ -15,68 +15,49 @@ const HomePage = () => {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }, [])
 
-  const features = useMemo(() => [
-    {
-      id: 1,
-      title: "Access Question Papers",
-      description: "Explore a comprehensive collection of previous year question papers for MCA and other programs at SCSIT, Indore.",
-      icon: FileText,
-      path: "/scsit/courses",
-      linkText: "Browse Courses",
-      gradient: "from-blue-500 to-cyan-500",
-      delay: 0.1
-    },
-    {
-      id: 2,
-      title: "Upload Documents",
-      description: "Contribute to the community by uploading question papers and study materials to help fellow students.",
-      icon: Upload,
-      path: "/upload",
-      linkText: "Upload Now",
-      gradient: "from-purple-500 to-pink-500",
-      delay: 0.2
-    },
-    {
-      id: 3,
-      title: "About This Website",
-      description: "Learn more about our mission to provide a centralized hub for academic resources for all students at SCSIT, Indore.",
-      icon: Users,
-      path: "/about",
-      linkText: "Learn More",
-      gradient: "from-orange-500 to-red-500",
-      delay: 0.3
-    },
-    {
-      id: 4,
-      title: "Attendance Manager",
-      description: "Easily track your attendance for each subject and receive timely alerts to stay on top of your academic requirements.",
-      icon: CheckSquare,
-      path: "/tools/attendance-manager",
-      linkText: "Track Attendance",
-      gradient: "from-green-500 to-emerald-500",
-      delay: 0.4
-    },
-    {
-      id: 5,
-      title: "Advanced Tools",
-      description: "Calculate your CGPA, SGPA, attendance, and percentages with our suite of powerful scientific and academic calculators.",
-      icon: Calculator,
-      path: "/calculations/tools/scientific",
-      linkText: "Access Tools",
-      gradient: "from-indigo-500 to-purple-500",
-      delay: 0.5
-    },
-    {
-      id: 6,
-      title: "Task Planner",
-      description: "Organize your assignments, projects, and study schedule with an intuitive task planner to boost your productivity.",
-      icon: ListTodo,
-      path: "/planner/todos",
-      linkText: "Organize Tasks",
-      gradient: "from-teal-500 to-cyan-500",
-      delay: 0.6
-    },
-  ], []);
+const features = useMemo(() => [
+  {
+    id: 1,
+    title: "Access Question Papers",
+    description: "Explore a comprehensive collection of previous year question papers for MCA and other programs at SCSIT, Indore.",
+    icon: FileText,
+    path: "/scsit/courses",
+    linkText: "Browse Courses",
+    gradient: "from-blue-500 to-cyan-500",
+    delay: 0.1
+  },
+  {
+    id: 2,
+    title: "Upload Documents",
+    description: "Contribute to the community by uploading question papers and study materials to help fellow students.",
+    icon: Upload,
+    path: "/upload",
+    linkText: "Upload Now",
+    gradient: "from-purple-500 to-pink-500",
+    delay: 0.2
+  },
+  {
+    id: 3,
+    title: "About This Website",
+    description: "Learn more about our mission to provide a centralized hub for academic resources for all students at SCSIT, Indore.",
+    icon: Users,
+    path: "/about",
+    linkText: "Learn More",
+    gradient: "from-orange-500 to-red-500",
+    delay: 0.3
+  },
+  {
+    id: 4,
+    title: "Advanced Tools",
+    description: "Calculate your CGPA, SGPA, attendance, and percentages with our suite of powerful scientific and academic calculators.",
+    icon: Calculator,
+    path: "/calculations/tools/scientific",
+    linkText: "Access Tools",
+    gradient: "from-indigo-500 to-purple-500",
+    delay: 0.5
+  }
+], []);
+
 
   const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
 
@@ -121,7 +102,7 @@ const HomePage = () => {
     )), []);
 
   return (
-    <div {...swipeHandlers} className="min-h-screen w-full relative overflow-hidden mt-18">
+   <div {...swipeHandlers} className="min-h-screen w-full relative overflow-hidden mt-18">
       <Helmet>
         <title>lastMinuteSCSIT - Home</title>
         <meta name="description" content="Access and share previous year question papers and study resources for SCSIT, Indore." />

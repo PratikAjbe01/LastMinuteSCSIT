@@ -33,8 +33,6 @@ const Footer = () => {
             <ul className="space-y-3">
               <li><a href="/calculations/tools/cgpa" className="hover:text-teal-400 hover:pl-1 transition-all duration-300">CGPA Calculator</a></li>
               <li><a href="/calculations/tools/sgpa" className="hover:text-teal-400 hover:pl-1 transition-all duration-300">SGPA Calculator</a></li>
-              <li><a href="/calculations/tools/attendance" className="hover:text-teal-400 hover:pl-1 transition-all duration-300">Attendance Calculator</a></li>
-              <li><a href="/calculations/tools/scientific" className="hover:text-teal-400 hover:pl-1 transition-all duration-300">Scientific Calculator</a></li>
             </ul>
           </div>
         </div>

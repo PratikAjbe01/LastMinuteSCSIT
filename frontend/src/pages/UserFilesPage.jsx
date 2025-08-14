@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Helmet } from "react-helmet-async"
 import { useAuthStore } from "../store/authStore"
 import { useNavigate } from "react-router-dom"
-import { User, Mail, FileText, Calendar, Book, Tag, Edit, Trash2, X, Loader, AlertCircle, ShieldCheck, GraduationCap, FileX, Upload, View, BookDashed } from "lucide-react"
+import { User, Mail, Calendar, Book, Tag, Edit, Trash2, X, Loader, AlertCircle, ShieldCheck, GraduationCap, FileX, Upload, View, BookDashed } from "lucide-react"
 import FileViewer from "../fileComponents/FileViewer"
 import { API_URL } from "../utils/urls"
 import { useSwipeable } from "react-swipeable"
@@ -138,7 +138,7 @@ const MyFilesPage = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user.token}`,
+                    'Authorization':`Bearer ${user.token}`,
                 },
                 body: JSON.stringify({ 
                     id: selectedFile._id,
@@ -161,7 +161,7 @@ const MyFilesPage = () => {
             setFiles(files.filter(f => f._id !== selectedFile._id));
             closeDeleteModal();
 
-        } catch (err) {
+        }catch (err) {
             setModalError(err.message || "An error occurred.");
         } finally {
             setIsSubmitting(false);
@@ -172,7 +172,7 @@ const MyFilesPage = () => {
         setSelectedViewFile(null);
     };
 
-     const handleFileClick = (file, subject) => {
+     const handleFileClick = (file) => {
         setSelectedViewFile(file);
     };
 
