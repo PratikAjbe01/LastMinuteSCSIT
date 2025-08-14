@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useContext, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { BookOpen, User, LogOut, Menu, X, Home, Upload, GraduationCap, File, Files, PanelTopClose, BookMarked, Workflow, Edit, FileChartPie, Users } from "lucide-react"
+import { BookOpen, User, LogOut, Menu, X, Home, Upload, GraduationCap, File, Files, PanelTopClose, Edit, FileChartPie, Users } from "lucide-react"
 import { useMatch, useNavigate } from "react-router-dom"
 import { useAuthStore } from "../store/authStore"
 import { ValuesContext } from "../context/ValuesContext"
@@ -48,12 +48,12 @@ const Header = () => {
     const items = [
       { href: "/", label: "Home", icon: Home },
       { href: "/scsit/courses", label: "Courses", icon: GraduationCap },
-      { href: "/upload", label: "Upload", icon: Upload },
       { href: "/allfiles", label: "All Files", icon: Files },
       { href: "/calculations/tools/cgpa", label: "Tools", icon: PanelTopClose },
     ]
 
     if (user?.isAdmin==="admin") {
+      items.push({ href: "/upload", label: "Upload", icon: Upload })
       items.push({ href: "/profile/files", label: "My Files", icon: File })
       items.push({ href: "/allfiles/admin", label: "Admin Uploads", icon: FileChartPie })
       items.push({ href: "/allusers", label: "All Users", icon: Users })

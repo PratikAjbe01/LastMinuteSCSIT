@@ -399,7 +399,7 @@ const DocumentsPage = () => {
                                                             </div>
                                                         </div>
                                                         <div className="flex-1 min-w-0">
-                                                            <h3 className="text-white font-semibold text-xs sm:text-sm md:text-base mb-1 truncate">
+                                                            <h3 className="text-white font-semibold text-xs sm:text-sm md:text-base mb-1 ">
                                                                 {paper.name}
                                                             </h3>
                                                             <div className="flex items-center space-x-2 text-xs text-gray-400">
