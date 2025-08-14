@@ -307,7 +307,7 @@ const features = useMemo(() => [
               <iframe
                 className="absolute top-0 left-0 w-full h-full rounded-3xl"
                 src="https://www.youtube.com/embed/StnOGs-kOiE?autoplay=1&mute=1&rel=0"
-                title="YouTube video player"
+                title="LastMinuteSCSIT video player"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen

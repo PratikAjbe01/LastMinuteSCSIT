@@ -9,52 +9,96 @@ const API_URL = "https://lastminutescsit-api.vercel.app";
 
 export const uploadFile = async (req, res) => {
   try {
-    const { name, course, semester, subject, types, year, category, uploadedBy } = req.body;
-    const file = req.file;
+    let {
+      name,
+      course,
+      semester,
+      subject,
+      types,
+      year,
+      category,
+      uploadedBy,
+      fileUrl,
+      contentType,
+      format
+    } = req.body;
 
-    if (!file) return res.status(400).json({ success: false, message: 'No file uploaded' });
+    if (!fileUrl || typeof fileUrl !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'No file URL provided'
+      });
+    }
 
     if (!name || !course || !semester || !subject || !types || !year || !category) {
-      fs.unlinkSync(file.path);
-      return res.status(400).json({ success: false, message: 'Missing required fields' });
-    }
-
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
-    if (!allowedTypes.includes(file.mimetype)) {
-      fs.unlinkSync(file.path);
-      return res.status(400).json({ success: false, message: 'Invalid file type. Only PDF, JPG, PNG are allowed' });
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      fs.unlinkSync(file.path);
-      return res.status(400).json({ success: false, message: 'File size must be less than 10MB' });
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
     }
 
     if (!/^\d{4}$/.test(year)) {
-      fs.unlinkSync(file.path);
-      return res.status(400).json({ success: false, message: 'Invalid year format' });
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid year format'
+      });
     }
 
-   const validTypes = ['image', 'document'];
+    let resolvedContentType;
+    const lowerFormat = format ? format.toLowerCase() : null;
+
+    if (contentType === 'raw') {
+      resolvedContentType = 'application/pdf';
+    } else if (contentType === 'image' && lowerFormat) {
+      if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(lowerFormat)) {
+        resolvedContentType = `image/${lowerFormat === 'jpg' ? 'jpeg' : lowerFormat}`;
+      }
+    }
+
+    if (!resolvedContentType) {
+      return res.status(400).json({
+        success: false,
+        message: `Could not determine a valid file type. Received contentType: '${contentType}', format: '${format}'.`
+      });
+    }
+
+    const allowedMimeTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp'
+    ];
+
+    if (!allowedMimeTypes.includes(resolvedContentType)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid file type: ${resolvedContentType}. Only PDF, JPG, PNG, GIF, WEBP are allowed`
+      });
+    }
+
+    const validTypes = ['image', 'document'];
     if (typeof types !== 'string' || !validTypes.includes(types.toLowerCase())) {
-      fs.unlinkSync(file.path);
-      return res.status(400).json({ success: false, message: 'Invalid file type. Must be "image" or "document"' });
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid type field. Must be "image" or "document"'
+      });
     }
 
-    // Determine resource_type for Cloudinary
-    const isPDF = file.mimetype === 'application/pdf';
-    const resourceType = isPDF ? 'raw' : 'image';
+    if (resolvedContentType === 'application/pdf' && types.toLowerCase() !== 'document') {
+      return res.status(400).json({
+        success: false,
+        message: 'PDF files must be categorized with type "document"'
+      });
+    }
 
-    // Upload to Cloudinary
-    const result = await cloudinary.uploader.upload(file.path, {
-      folder: 'Uploads',
-      resource_type: resourceType,
-      access_mode: 'public',
-    });
+    if (resolvedContentType.startsWith('image/') && types.toLowerCase() !== 'image') {
+      return res.status(400).json({
+        success: false,
+        message: 'Image files must be categorized with type "image"'
+      });
+    }
 
-    fs.unlinkSync(file.path); // Clean up local file
-
-    // Save file metadata to MongoDB
     const newFile = new File({
       name,
       type: types.toLowerCase(),
@@ -63,17 +107,18 @@ export const uploadFile = async (req, res) => {
       semester,
       year,
       isFree: 'free',
-      fileUrl: result.secure_url,
-      contentType: file.mimetype,
+      fileUrl,
+      contentType: resolvedContentType,
       category,
       uploadedBy: uploadedBy || "anonymous",
+      format: format || 'unknown'
     });
 
     await newFile.save();
 
     res.status(200).json({
       success: true,
-      message: 'File uploaded successfully',
+      message: 'File saved successfully',
       data: {
         fileId: newFile._id,
         name,
@@ -82,18 +127,20 @@ export const uploadFile = async (req, res) => {
         subject,
         year,
         types: types.toLowerCase(),
-        url: result.secure_url,
-        public_id: result.public_id,
-        asset_id: result.asset_id,
-        category
+        url: fileUrl,
+        format: format || 'unknown',
+        category,
+        contentType: resolvedContentType
       },
     });
+
   } catch (err) {
-    if (req.file?.path && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
     console.error('Upload error:', err);
-    res.status(500).json({ success: false, message: 'Upload failed', error: err.message });
+    res.status(500).json({
+      success: false,
+      message: 'Upload failed',
+      error: err.message
+    });
   }
 };
 
@@ -111,7 +158,7 @@ export const fetchFilesCourseAndSemester = async (req, res) => {
     }
 
     const files = await File.find({ course, semester: semesterNum })
-      .select('name type course subject semester year fileUrl category contentType')
+      .select('name type course subject semester year fileUrl category contentType format')
       .lean();
 
     if (!files.length) {
@@ -123,11 +170,13 @@ export const fetchFilesCourseAndSemester = async (req, res) => {
     }
 
     const modifiedFiles = files.map(file => {
-      if (file.type === "document") {
-        return {
-          ...file,
-          fileUrl: `${API_URL}/api/files/proxy?url=${encodeURIComponent(file.fileUrl)}`
-        };
+      if (file.type === "document" && file.fileUrl && file.fileUrl.includes('cloudinary.com')) {
+        if (file.contentType === 'application/pdf' || file.format === 'pdf') {
+          return {
+            ...file,
+            fileUrl: `${API_URL}/api/files/proxy?url=${encodeURIComponent(file.fileUrl)}`
+          };
+        }
       }
       return file;
     });
@@ -198,7 +247,7 @@ export const fetchAdminFiles = async (req, res) => {
 
     const files = await File.find({ uploadedBy: userId }).sort({ createdAt: -1 }).lean();;
 
-      const modifiedFiles = files.map(file => {
+    const modifiedFiles = files.map(file => {
       if (file.type === "document") {
         return {
           ...file,
@@ -329,5 +378,38 @@ export const deleteFile = async (req, res) => {
   } catch (err) {
     console.error('Delete file error:', err);
     res.status(500).json({ success: false, message: 'Failed to delete file', error: err.message });
+  }
+};
+
+export const fetchAdminsFiles = async (req, res) => {
+  try {
+    const userIdsToExclude = [
+      '6895f843be0be24cfae5f5ae',
+      '6895f86fbe0be24cfae5f5b1'
+    ];
+
+    const files = await File.find({ uploadedBy: { $nin: userIdsToExclude } })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const modifiedFiles = files.map(file => {
+      if (file.type === "document") {
+        return {
+          ...file,
+          fileUrl: `${API_URL}/api/files/proxy?url=${encodeURIComponent(file.fileUrl)}`
+        };
+      }
+      return file;
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Files retrieved successfully',
+      data: modifiedFiles,
+    });
+
+  } catch (err) {
+    console.error('Fetch all files error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch all files', error: err.message });
   }
 };

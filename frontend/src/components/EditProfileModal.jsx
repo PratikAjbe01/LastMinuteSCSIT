@@ -1,8 +1,10 @@
 import { useState, useMemo, useEffect } from "react";
-import { User, Mail, ShieldCheck, BookOpen, GraduationCap, Save, X } from "lucide-react";
+import { User, Mail, ShieldCheck, BookOpen, GraduationCap, Save, X, RotateCw } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import { API_URL } from "../utils/urls";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Modal = ({ children, onClose, title }) => (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 z-50" onClick={onClose}>
@@ -48,7 +50,7 @@ const CustomSelect = ({ options, value, onChange, placeholder, disabled, icon: I
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
-            
+
             {isOpen && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800/98 border border-gray-600/50 rounded-xl backdrop-blur-lg z-50 max-h-60 overflow-y-auto">
                     {options.map((option) => (
@@ -70,9 +72,10 @@ const CustomSelect = ({ options, value, onChange, placeholder, disabled, icon: I
     );
 };
 
-export const EditProfileModal = ({ user, onClose }) => {
-    const { checkAuth, setUser } = useAuthStore();
+export const EditProfileModal = ({ onClose }) => {
+    const { checkAuth, setUser, user } = useAuthStore();
     const [userSemester, setUserSemester] = useState(null);
+    const navigate = useNavigate();
 
     const staticSemesterData = {
         1: { title: "1st Semester" },
@@ -102,11 +105,11 @@ export const EditProfileModal = ({ user, onClose }) => {
             if (!semester) return null;
             const s = String(semester);
             let label = `${s}${s === '1' ? 'st' : s === '2' ? 'nd' : s === '3' ? 'rd' : 'th'} Semester`;
-            
+
             if (user?.course === 'MCA' && staticSemesterData[semester]?.title) {
                 label = staticSemesterData[semester].title;
             }
-            
+
             return { value: s, label };
         };
         setUserSemester(formatSemester(user?.semester));
@@ -119,32 +122,32 @@ export const EditProfileModal = ({ user, onClose }) => {
     });
     const [isSaving, setIsSaving] = useState(false);
 
-   const handleSave = async () => {
-    setIsSaving(true);
-    try {
-        const response = await fetch(`${API_URL}/api/auth/update-profile`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId: user._id, ...profileData }),
-        });
-        
-        const data = await response.json();
-        console.log("Response:", data.user);
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            const response = await fetch(`${API_URL}/api/auth/update-profile`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId: user._id, ...profileData }),
+            });
 
-        if (data.message === "Profile updated successfully.") {
-            checkAuth();
-            onClose();
-            setUser(data.user);
-            toast.success("Profile updated successfully!");
-        } else {
-            console.error("Error updating profile:", data.message);
+            const data = await response.json();
+            console.log("Response:", data.user);
+
+            if (data.message === "Profile updated successfully.") {
+                checkAuth();
+                onClose();
+                setUser(data.user);
+                toast.success("Profile updated successfully!");
+            } else {
+                console.error("Error updating profile:", data.message);
+            }
+        } catch (error) {
+            console.error("Error updating profile:", error);
+        } finally {
+            setIsSaving(false);
         }
-    } catch (error) {
-        console.error("Error updating profile:", error);
-    } finally {
-        setIsSaving(false);
-    }
-};
+    };
 
     const courseOptions = useMemo(() =>
         Object.keys(subjectsByCourseAndSemester).map(course => ({
@@ -184,6 +187,25 @@ export const EditProfileModal = ({ user, onClose }) => {
 
     const currentCourse = courseOptions.find(c => c.value === profileData.course) || courseOptions.find(c => c.value === user?.course?.toUpperCase());
     const currentSemester = semesterOptions.find(s => s.value === profileData.semester) || userSemester;
+
+    const [loadLoading, setLoadLoading] = useState(false);
+
+    const handleProfileLoad = async () => {
+        setLoadLoading(true);
+          try {
+            const response = await axios.get(`${API_URL}/api/auth/fetchuser/${user._id}`);
+            console.log("Fetched user:", response.data.user);
+            if (response?.data?.user) {
+                localStorage.setItem("user", JSON.stringify(response.data.user));
+                setUser(response.data.user);
+            }
+            setLoadLoading(false);
+        } catch (error) {
+           console.log(error);
+        }finally{
+            setLoadLoading(false);
+        }
+    }
 
     return (
         <Modal title="Edit Profile" onClose={onClose}>
@@ -235,21 +257,49 @@ export const EditProfileModal = ({ user, onClose }) => {
                     {user?.isAdmin && (
                         <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 text-green-400 rounded-full text-sm font-semibold border border-green-500/20">
                             <ShieldCheck size={16} />
-                            <span>Admin</span>
+                            <span>{user?.isAdmin || "User"}</span>
                         </div>
                     )}
                 </div>
-                <div className="flex justify-end gap-4 pt-6 border-t border-gray-700/50">
+                <div className="flex flex-col sm:flex-row justify-end gap-4 pt-6 border-t border-gray-700/50">
+                  <button
+                            onClick={() => {
+                                handleProfileLoad();
+                            }}
+                            className="px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:bg-gray-500 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+                        >
+                            {loadLoading ? (
+                            <>
+                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                Loading new profile...
+                            </>
+                        ) : (
+                            <>
+                                New Changes <RotateCw size={18} />
+                            </>
+                        )}
+                        </button>
+                    {!user?.isVerified && (
+                        <button
+                            onClick={() => {
+                                navigate('/verify-user-email');
+                                onClose();
+                            }}
+                            className="px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:bg-gray-500 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
+                        >
+                            Verify Email
+                        </button>
+                    )}
                     <button
                         onClick={onClose}
-                        className="px-6 py-3 bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
+                        className="px-3 py-3 bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="px-8 py-3 bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white font-semibold rounded-xl transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
+                        className="px-4 py-3 bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 text-center"
                     >
                         {isSaving ? (
                             <>
@@ -271,7 +321,7 @@ export const EditProfileModal = ({ user, onClose }) => {
 
 export default function App() {
     const [showModal, setShowModal] = useState(true);
-    
+
     const mockUser = {
         username: "John Doe",
         name: "John Doe",
@@ -284,13 +334,13 @@ export default function App() {
     return (
         <div className="min-h-screen bg-gray-900 flex items-center justify-center">
             {showModal && (
-                <EditProfileModal 
-                    user={mockUser} 
-                    onClose={() => setShowModal(false)} 
+                <EditProfileModal
+                    user={mockUser}
+                    onClose={() => setShowModal(false)}
                 />
             )}
             {!showModal && (
-                <button 
+                <button
                     onClick={() => setShowModal(true)}
                     className="px-6 py-3 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-xl transition-all"
                 >

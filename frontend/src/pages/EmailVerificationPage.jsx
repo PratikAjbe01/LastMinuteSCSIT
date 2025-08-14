@@ -56,7 +56,6 @@ const EmailVerificationPage = () => {
 		}
 	};
 
-	// Auto submit when all fields are filled
 	useEffect(() => {
 		if (code.every((digit) => digit !== "")) {
 			handleSubmit(new Event("submit"));
@@ -109,6 +108,14 @@ const EmailVerificationPage = () => {
 						{isLoading ? "Verifying..." : "Verify Email"}
 					</motion.button>
 				</form>
+					<motion.button
+						whileHover={{ scale: 1.05 }}
+						whileTap={{ scale: 0.95 }} 
+						onClick={()=> {navigate('/')}} 
+						className='w-full bg-gradient-to-br from-purple-500 to-pink-500 rounded-full group-hover:opacity-25 group-hover:scale-150 transition-all duration-700 text-white font-bold py-3 px-4 shadow-lg hover:from-green-600 hover:to-emerald-700 mt-4'
+					>
+						Verify Later {'( Go to Home )'}
+					</motion.button>
 			</motion.div>
 		</div>
 		</div>

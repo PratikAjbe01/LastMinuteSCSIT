@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion";
-import { ArrowLeft, FileText, Calendar } from "lucide-react";
+import { ArrowLeft, FileText, Calendar, Filter } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import FileViewer from "../fileComponents/FileViewer";
@@ -131,6 +131,7 @@ const DocumentsPage = () => {
     const [error, setError] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
     const [selectedCategory, setSelectedCategory] = useState('paper');
+    const [subjectFilters, setSubjectFilters] = useState({});
 
     const categories = [
         { value: 'paper', label: 'Question Papers' },
@@ -234,10 +235,30 @@ const DocumentsPage = () => {
     }, [])
 
     const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
-    const [showAll, setShowAll] = useState(6);
+    const [showAllMap, setShowAllMap] = useState({});
 
-    const isExcludedRoute = location.pathname.startsWith("/login") || location.pathname === "/signup";
-    const isMobile = window.innerWidth <= 768;
+    const toggleShowAll = (subjectName) => {
+        setShowAllMap(prev => ({
+            ...prev,
+            [subjectName]: prev[subjectName] === 6 ? null : 6
+        }));
+    };
+
+    const setSubjectYearFilter = (subjectName, year) => {
+        setSubjectFilters(prev => ({
+            ...prev,
+            [subjectName]: year === 'all' ? null : year
+        }));
+    };
+
+    const getUniqueYears = (papers) => {
+        const years = [...new Set(papers.map(paper => paper.year).filter(Boolean))];
+        return years.sort((a, b) => b - a);
+    };
+
+    const isExcludedRoute = typeof window !== 'undefined' && 
+        (window.location.pathname.startsWith("/login") || window.location.pathname === "/signup");
+    const isMobile = typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
     const swipeHandlers = useSwipeable({
         onSwipedLeft: () => {
             if (isMobile && !isExcludedRoute) {
@@ -258,7 +279,7 @@ const DocumentsPage = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-black-900 flex items-center justify-center text-white">
+            <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-black flex items-center justify-center text-white">
                 <img src={loadingGif} alt="Loading..." className="h-32 w-32 sm:h-48 sm:w-48 md:h-60 md:w-60" />
             </div>
         );
@@ -266,7 +287,7 @@ const DocumentsPage = () => {
 
     if (error || !semesterData) {
         return (
-            <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-black-900 flex flex-col items-center justify-center p-4">
+            <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-black flex flex-col items-center justify-center p-4">
                 <div className="text-center">
                     <h1 className="text-2xl font-bold text-red-500 mb-4">An Error Occurred</h1>
                     <p className="text-gray-300 mb-6">{error || "No data available for this semester."}</p>
@@ -280,7 +301,7 @@ const DocumentsPage = () => {
     }
 
     return (
-        <div {...swipeHandlers} className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-black-900 flex flex-col p-0">
+        <div {...swipeHandlers} className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-black flex flex-col p-0">
             <Helmet>
                 <title>{`${course?.toUpperCase()} - ${semesterData.title} | SCSIT`}</title>
                 <meta name="description" content={`Documents for ${courseLabel} ${semesterData.title}.`} />
@@ -301,8 +322,7 @@ const DocumentsPage = () => {
                     </motion.button>
                     <div className="flex flex-wrap justify-end gap-2 sm:gap-4">
                         {categories.map((cat) => (
-                            <button key={cat.value} className={`px-3 py-1 sm:px-4 sm:py-2 rounded-lg text-sm sm:text-base font-semibold transition-all duration-200 ${selectedCategory === cat.value ? 'bg-green-500 text-white shadow-lg' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
-onClick={() => setSelectedCategory(cat.value)}>
+                            <button key={cat.value} className={`px-3 py-1 sm:px-4 sm:py-2 rounded-lg text-sm sm:text-base font-semibold transition-all duration-200 ${selectedCategory === cat.value ? 'bg-green-500 text-white shadow-lg' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`} onClick={() => setSelectedCategory(cat.value)}>
                                 {cat.label}
                             </button>
                         ))}
@@ -314,17 +334,64 @@ onClick={() => setSelectedCategory(cat.value)}>
                 {semesterData.subjects.length > 0 ? (
                     semesterData.subjects.map((subject, subjectIndex) => {
                         const filteredPapers = subject.papers.filter(paper => paper.category === selectedCategory);
+                        const years = getUniqueYears(filteredPapers);
+                        const selectedYear = subjectFilters[subject.name];
+                        const displayPapers = selectedYear 
+                            ? filteredPapers.filter(paper => paper.year == selectedYear)
+                            : filteredPapers;
+                        
+                        const showAll = showAllMap[subject.name];
+                        const papersToShow = showAll === null 
+                            ? displayPapers 
+                            : displayPapers.slice(0, showAll || 6);
+
                         return (
                             <motion.div key={subject.name} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 * subjectIndex }} className="bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl overflow-hidden border border-gray-700 pb-2">
                                 <div className="p-4 sm:p-6 border-b border-gray-700">
-                                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2">{subject.name}</h2>
-                                    <p className="text-sm sm:text-base text-gray-300">{categoryDescriptions[selectedCategory]} • {filteredPapers.length} Papers</p>
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div>
+                                            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1">{subject.name}</h2>
+                                            <p className="text-sm sm:text-base text-gray-300">
+                                                {categoryDescriptions[selectedCategory]} • {displayPapers.length} Papers
+                                            </p>
+                                        </div>
+                                        
+                                        {years.length > 0 && (
+                                            <div className="flex items-center gap-2">
+                                                <Filter className="w-4 h-4 text-gray-400 hidden sm:block" />
+                                                <div className="relative">
+                                                    <select 
+                                                        value={selectedYear || 'all'}
+                                                        onChange={(e) => setSubjectYearFilter(subject.name, e.target.value)}
+                                                        className="appearance-none bg-gray-700 text-white text-sm rounded-lg px-4 py-2 pr-8 focus:ring-2 focus:ring-green-500 focus:outline-none cursor-pointer w-full sm:w-auto"
+                                                    >
+                                                        <option value="all">All Years</option>
+                                                        {years.map(year => (
+                                                            <option key={year} value={year}>{year}</option>
+                                                        ))}
+                                                    </select>
+                                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                                                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
+                                
                                 <div className="p-4 sm:p-6">
-                                    {filteredPapers.length > 0 ? (
+                                    {displayPapers.length > 0 ? (
                                         <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {filteredPapers.slice(0, showAll === null? undefined : showAll).map((paper, paperIndex) => (
-                                                <motion.div key={paperIndex} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }} onClick={() => handleFileClick(paper)} className="bg-gray-700 bg-opacity-50 rounded-xl p-3 sm:p-4 cursor-pointer border border-gray-600 hover:border-green-500 transition-all duration-300">
+                                            {papersToShow.map((paper, paperIndex) => (
+                                                <motion.div 
+                                                    key={`${paper._id || paperIndex}`} 
+                                                    whileHover={{ scale: 1.02, y: -2 }} 
+                                                    whileTap={{ scale: 0.98 }} 
+                                                    onClick={() => handleFileClick(paper)} 
+                                                    className="bg-gray-700 bg-opacity-50 rounded-xl p-3 sm:p-4 cursor-pointer border border-gray-600 hover:border-green-500 transition-all duration-300"
+                                                >
                                                     <div className="flex items-start space-x-3">
                                                         <div className="flex-shrink-0">
                                                             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
@@ -332,9 +399,11 @@ onClick={() => setSelectedCategory(cat.value)}>
                                                             </div>
                                                         </div>
                                                         <div className="flex-1 min-w-0">
-                                                            <h3 className="text-white font-semibold text-xs sm:text-sm md:text-base mb-1">{paper.name}</h3>
+                                                            <h3 className="text-white font-semibold text-xs sm:text-sm md:text-base mb-1 truncate">
+                                                                {paper.name}
+                                                            </h3>
                                                             <div className="flex items-center space-x-2 text-xs text-gray-400">
-                                                                <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                                <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                                                                 <span>{paper.year || "Unknown"}</span>
                                                                 <span className="text-gray-500">•</span>
                                                                 <span className="uppercase">{paper.type}</span>
@@ -346,10 +415,23 @@ onClick={() => setSelectedCategory(cat.value)}>
                                         </div>
                                     ) : (
                                         <div className="text-gray-400 text-center col-span-full text-sm sm:text-base py-4">
-                                            No {categories.find(cat => cat.value === selectedCategory)?.label.toLowerCase()} available for this subject yet.
+                                            No {categories.find(cat => cat.value === selectedCategory)?.label.toLowerCase()} available for this subject {selectedYear ? `in ${selectedYear}` : ''}.
                                         </div>
                                     )}
-                                      <span className="absolute bottom-2 right-4 cursor-pointer text-blue-400 text-sm" onClick={() => setShowAll(showAll == 6 ? null : 6)}>{showAll == 6 ? "Show All" : "Show Less"}</span>
+                                    
+                                    {displayPapers.length > 6 && (
+                                        <div className="flex justify-center mt-4">
+                                            <button 
+                                                onClick={() => toggleShowAll(subject.name)}
+                                                className="text-green-400 hover:text-green-300 text-sm font-medium flex items-center gap-1"
+                                            >
+                                                {showAll === null ? "Show Less" : "Show All"} 
+                                                <span className="bg-gray-700 rounded-full px-2 py-0.5 text-xs">
+                                                    {displayPapers.length}
+                                                </span>
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </motion.div>
                         );

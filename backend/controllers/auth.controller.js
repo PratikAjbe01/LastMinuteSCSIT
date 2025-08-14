@@ -10,6 +10,7 @@ import {
 	sendWelcomeEmail,
 } from "../mailtrap/emails.js";
 import { User } from "../models/user.model.js";
+import mongoose from "mongoose";
 
 export const signup = async (req, res) => {
 	const { email, password, name } = req.body;
@@ -34,12 +35,11 @@ export const signup = async (req, res) => {
 			password: hashedPassword,
 			name,
 			verificationToken,
-			verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+			verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000,
 		});
 
 		await user.save();
 
-		// jwt
 		generateTokenAndSetCookie(res, user._id);
 
 		await sendVerificationEmail(user.email, verificationToken);
@@ -90,6 +90,34 @@ export const verifyEmail = async (req, res) => {
 	}
 };
 
+export const sendVerifyEmail = async (req, res) => {
+	const { userId } = req.body;
+	try {
+		const user = await User.findById(userId);
+		if (!user) {
+			return res.status(404).json({ success: false, message: "User not found" });
+		}
+
+		if (user?.isVerified) {
+			return res.status(400).json({ success: false, message: "User is already verified" });
+		}
+
+		if(!user?.verificationToken) {
+			const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+			user.verificationToken = verificationToken;
+			user.verificationTokenExpiresAt = Date.now() + 10 * 60 * 1000;
+			await user.save();
+		}
+
+		await sendVerificationEmail(user?.email, user?.verificationToken || verificationToken);
+
+		res.status(200).json({ success: true, message: "Verification email sent" });
+	} catch (error) {
+		console.log("error in sendVerifyEmail ", error);
+		res.status(500).json({ success: false, message: "Server error" });
+	}
+};
+
 export const login = async (req, res) => {
 	try {
 		const { email, password, role } = req.body;
@@ -104,14 +132,14 @@ export const login = async (req, res) => {
 			return res.status(400).json({ success: false, message: "Invalid Password!" });
 		}
 
-		if(user?.isAdmin === 'admin' && role !== 'admin') {
+		if (user?.isAdmin === 'admin' && role !== 'admin') {
 			return res.status(403).json({ success: false, message: "Admins are required to check the box!" });
 		}
 
-		if(user?.isAdmin !== 'admin' && role === 'admin') {
+		if (user?.isAdmin !== 'admin' && role === 'admin') {
 			return res.status(403).json({ success: false, message: "You are not authorized to access this admin resource." });
 		}
-		
+
 		if (user?.isAdmin === 'admin' && user?.isAdmin) {
 			const otp = Math.floor(100000 + Math.random() * 900000).toString();
 			user.verificationToken = otp;
@@ -119,7 +147,7 @@ export const login = async (req, res) => {
 			await user.save();
 
 			await sendAdminLoginOtpEmail(user?.email, otp);
-			
+
 			return res.status(200).json({
 				success: true,
 				message: "OTP sent to your email.",
@@ -133,7 +161,7 @@ export const login = async (req, res) => {
 		await user.save();
 
 		const userResponse = { ...user._doc };
-        delete userResponse.password;
+		delete userResponse.password;
 
 		res.status(200).json({
 			success: true,
@@ -166,8 +194,8 @@ export const verifyAdminOtp = async (req, res) => {
 
 		generateTokenAndSetCookie(res, user._id);
 
-        const userResponse = { ...user._doc };
-        delete userResponse.password;
+		const userResponse = { ...user._doc };
+		delete userResponse.password;
 
 		res.status(200).json({
 			success: true,
@@ -259,42 +287,42 @@ export const checkAuth = async (req, res) => {
 };
 
 export const updateProfile = async (req, res) => {
-    try {
-        const userId = req.userId || req.body.userId;
-        const { username, course, semester } = req.body;
+	try {
+		const userId = req.userId || req.body.userId;
+		const { username, course, semester } = req.body;
 
-        if (!userId) {
-            return res.status(401).json({ success: false, message: "Unauthorized. User ID is missing." });
-        }
+		if (!userId) {
+			return res.status(401).json({ success: false, message: "Unauthorized. User ID is missing." });
+		}
 
-        const user = await User.findById(userId);
+		const user = await User.findById(userId);
 
-        if (!user) {
-            return res.status(404).json({ success: false, message: "User not found." });
-        }
-        
-        user.name = username || user.name;
-        user.course = course || user.course;
-        user.semester = semester || user.semester;
+		if (!user) {
+			return res.status(404).json({ success: false, message: "User not found." });
+		}
 
-        await user.save({ validateModifiedOnly: true });
+		user.name = username || user.name;
+		user.course = course || user.course;
+		user.semester = semester || user.semester;
 
-        const savedUser = await User.findById(userId).select("-password");
+		await user.save({ validateModifiedOnly: true });
 
-        return res.status(200).json({
-            success: true,
-            message: "Profile updated successfully.",
-            user: savedUser,
-        });
+		const savedUser = await User.findById(userId).select("-password");
 
-    } catch (error) {
-        if (error.name === 'ValidationError') {
-            return res.status(400).json({ success: false, message: error.message });
-        }
-        
-        console.log("Error in updateProfile controller: ", error);
-        return res.status(500).json({ success: false, message: "Server error while updating profile." });
-    }
+		return res.status(200).json({
+			success: true,
+			message: "Profile updated successfully.",
+			user: savedUser,
+		});
+
+	} catch (error) {
+		if (error.name === 'ValidationError') {
+			return res.status(400).json({ success: false, message: error.message });
+		}
+
+		console.log("Error in updateProfile controller: ", error);
+		return res.status(500).json({ success: false, message: "Server error while updating profile." });
+	}
 };
 
 export const fetchUser = async (req, res) => {
@@ -310,3 +338,73 @@ export const fetchUser = async (req, res) => {
 		return res.status(500).json({ success: false, message: "Server error while fetching user." });
 	}
 }
+
+export const fetchAllUser = async (req, res) => {
+	try {
+		const users = await User.find().select("-password").sort({ createdAt: -1 });
+		if (!users || users.length === 0) {
+			return res.status(404).json({ success: false, message: "No users found." });
+		}
+		return res.status(200).json({ success: true, users });
+	} catch (error) {
+		console.log("Error in fetchAllUser controller: ", error);
+		return res.status(500).json({ success: false, message: "Server error while fetching users." });
+	}
+};
+
+export const deleteUser = async (req, res) => {
+	try {
+		const { userId } = req.body;
+
+		if (!mongoose.Types.ObjectId.isValid(userId)) {
+			return res.status(404).json({ success: false, message: 'Invalid user ID' });
+		}
+
+		const user = await User.findById(userId);
+
+		if (!user) {
+			return res.status(404).json({ success: false, message: 'User not found' });
+		}
+
+		await User.findByIdAndDelete(userId);
+
+		res.status(200).json({
+			success: true,
+			message: 'User deleted successfully',
+		});
+	} catch (err) {
+		console.error('Delete user error:', err);
+		res.status(500).json({ success: false, message: 'Failed to delete user', error: err.message });
+	}
+};
+
+export const updateUser = async (req, res) => {
+	try {
+		const { isVerified, isAdmin } = req.body;
+		const { userId } = req.body;
+
+		if (!mongoose.Types.ObjectId.isValid(userId)) {
+			return res.status(404).json({ success: false, message: 'Invalid user ID' });
+		}
+
+		const user = await User.findById(userId);
+
+		if (!user) {
+			return res.status(404).json({ success: false, message: 'User not found' });
+		}
+
+		user.isAdmin = isAdmin || user.isAdmin;
+		user.isVerified = isVerified ? true : false;
+
+		await user.save();
+
+		res.status(200).json({
+			success: true,
+			message: 'User updated successfully',
+			data: user,
+		});
+	} catch (err) {
+		console.error('Update user error:', err);
+		res.status(500).json({ success: false, message: 'Failed to update user', error: err.message });
+	}
+};

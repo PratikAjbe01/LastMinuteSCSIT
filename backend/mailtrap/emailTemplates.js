@@ -123,3 +123,50 @@ export const PASSWORD_RESET_REQUEST_TEMPLATE = `
 </body>
 </html>
 `;
+
+export const WELCOME_EMAIL_TEMPLATE = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Welcome to LastMinute SCSIT</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(to right, #4CAF50, #45a049); padding: 20px; text-align: center;">
+    <h1 style="color: white; margin: 0;">Welcome, {name}!</h1>
+  </div>
+  <div style="background-color: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    <p>Hello {name},</p>
+    <p>Welcome to <strong>LastMinute SCSIT - Academic Resource Hub 📚</strong>!</p>
+    <p>This platform is built for the students of the School of Computer Science & IT (SCSIT), Indore. It helps you access and share academic resources like previous year question papers, notes, and syllabi — all in one place.</p>
+    
+    <h3>✨ Key Features</h3>
+    <ul>
+      <li><strong>Course & Semester Navigation:</strong> Browse academic programs by semester.</li>
+      <li><strong>Categorized Documents:</strong> View materials by subject as Question Papers, Notes, or Syllabi.</li>
+      <li><strong>Advanced Filtering & Search:</strong> Use real-time search and filters for course, semester, subject, year, and more.</li>
+      <li><strong>Secure In-App File Viewer:</strong> Zoom and rotate PDFs/images — with right-click & download disabled.</li>
+      <li><strong>Mobile-First Design:</strong> Seamlessly accessible on mobile and desktop.</li>
+      <li><strong>Smooth Animations:</strong> Enjoy a modern experience powered by Framer Motion.</li>
+    </ul>
+
+    <h3>🔐 Admin Features</h3>
+    <ul>
+      <li><strong>Secure Authentication:</strong> Admins can log in to manage files and access protected routes.</li>
+      <li><strong>Detailed File Upload:</strong> Add files with relevant metadata (course, subject, year, etc.).</li>
+      <li><strong>File Management Dashboard:</strong> Edit, delete, or view your uploaded files from the "My Files" page.</li>
+    </ul>
+
+    <p>We’re excited to have you on board. If you ever need help, our support team is here for you.</p>
+    <p>Enjoy using LastMinute SCSIT!</p>
+
+    <p>Best regards,<br>Your LastMinute SCSIT Team</p>
+  </div>
+  <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
+    <p>This is an automated message, please do not reply to this email.</p>
+  </div>
+</body>
+</html>
+`;
+

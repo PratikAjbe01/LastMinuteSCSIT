@@ -1,12 +1,15 @@
 import { motion } from "framer-motion";
 import { useAuthStore } from "../store/authStore";
 import { formatDate } from "../utils/date";
+import { useNavigate } from "react-router-dom";
 
 const DashboardPage = () => {
 	const { user, logout } = useAuthStore();
+	const navigate = useNavigate();
 
 	const handleLogout = () => {
 		logout();
+		navigate("/login");
 	};
 	return (
 		<motion.div

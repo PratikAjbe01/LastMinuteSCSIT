@@ -10,6 +10,10 @@ import {
 	verifyAdminOtp,
 	updateProfile,
 	fetchUser,
+	fetchAllUser,
+	updateUser,
+	deleteUser,
+	sendVerifyEmail,
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -17,6 +21,7 @@ const router = express.Router();
 
 router.get("/check-auth", checkAuth);
 router.get("/fetchuser/:userId", fetchUser);
+router.get("/fetchallusers", fetchAllUser);
 
 router.post("/signup", signup);
 router.post("/login", login);
@@ -29,5 +34,8 @@ router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
 
 router.post("/update-profile", updateProfile);
+router.post("/delete-user", deleteUser);
+router.post("/update-user", updateUser);
+router.post("/sendverifyemail", sendVerifyEmail);
 
 export default router;
