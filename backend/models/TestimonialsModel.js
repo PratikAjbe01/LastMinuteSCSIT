@@ -33,6 +33,11 @@ const testimonialSchema = new mongoose.Schema(
         },
         semester: {
             type: Number,
+        },
+        show: {
+            type: String,
+            enum: ['yes', 'no'],
+            default: "no",
         }
     },
     { timestamps: true }

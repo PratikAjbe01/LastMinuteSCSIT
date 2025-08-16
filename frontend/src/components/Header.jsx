@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useContext, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { BookOpen, User, LogOut, Menu, X, Home, Upload, GraduationCap, File, Files, PanelTopClose, BookMarked, Workflow, Edit, FileChartPie, Users, Trophy } from "lucide-react"
+import { BookOpen, User, LogOut, Menu, X, Home, Upload, GraduationCap, File, Files, PanelTopClose, BookMarked, Workflow, Edit, FileChartPie, Users, Trophy, Edit2 } from "lucide-react"
 import { useMatch, useNavigate, useLocation } from "react-router-dom" // Added useLocation
 import { useAuthStore } from "../store/authStore"
 import { ValuesContext } from "../context/ValuesContext"
@@ -61,6 +61,7 @@ const Header = () => {
       items.push({ href: "/profile/files", label: "My Files", icon: File })
       items.push({ href: "/admin/allfiles", label: "Admin Uploads", icon: FileChartPie })
       items.push({ href: "/allusers", label: "All Users", icon: Users })
+      items.push({ href: "/admins/testimonials", label: "Manage Testimonials", icon: Edit2 })
     }
 
     return items

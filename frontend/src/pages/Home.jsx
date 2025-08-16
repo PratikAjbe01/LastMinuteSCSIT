@@ -1,65 +1,80 @@
-"use client"
+"use client";
 
-import { useNavigate, useLocation } from "react-router-dom"
-import { motion } from "framer-motion"
-import { Upload, FileText, Users, ListTodo, Calculator, CheckSquare, ArrowRight, Sparkles, Star, Settings, Keyboard, Smartphone, MoveLeft, MoveRight } from "lucide-react"
-import { useContext, useEffect, useMemo } from "react"
-import { Helmet } from 'react-helmet-async';
-import { useSwipeable } from "react-swipeable"
-import { ValuesContext } from "../context/ValuesContext"
-import { EditProfileModal } from "../components/EditProfileModal"
-import { useState } from "react"
-import Testimonials from "../components/Testimonials"
-import { useAuthStore } from "../store/authStore"
+import { useNavigate, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  Upload,
+  FileText,
+  Users,
+  ListTodo,
+  Calculator,
+  CheckSquare,
+  ArrowRight,
+  Sparkles,
+  Star,
+  Settings,
+  Keyboard,
+  Smartphone,
+  MoveLeft,
+  MoveRight,
+} from "lucide-react";
+import { useContext, useEffect, useMemo } from "react";
+import { Helmet } from "react-helmet-async";
+import { useSwipeable } from "react-swipeable";
+import { ValuesContext } from "../context/ValuesContext";
+import { EditProfileModal } from "../components/EditProfileModal";
+import { useState } from "react";
+import Testimonials from "../components/Testimonials";
+import { useAuthStore } from "../store/authStore";
 
 const HomePage = () => {
   const { user } = useAuthStore();
-  const navigate = useNavigate()
-  const location = useLocation()
+  const navigate = useNavigate();
+  const location = useLocation();
   const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
   const [editModalOpen, setEditModalOpen] = useState(false);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }, [])
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.ctrlKey) {
         switch (e.key.toLowerCase()) {
-          case 's':
+          case "s":
             e.preventDefault();
-            setIsSidebarOpen(prev => !prev);
+            setIsSidebarOpen((prev) => !prev);
             break;
-          case 'p':
+          case "p":
             e.preventDefault();
-            navigate('/scsit/courses');
+            navigate("/scsit/courses");
             break;
-          case 'u':
-            if (user?.role === 'admin') {
+          case "u":
+            if (user?.role === "admin") {
               e.preventDefault();
-              navigate('/upload');
+              navigate("/upload");
             }
             break;
-          case 'a':
+          case "a":
             e.preventDefault();
-            navigate('/allfiles');
+            navigate("/allfiles");
             break;
-          case 'q':
+          case "q":
             e.preventDefault();
-            navigate('/calculations/tools/cgpa');
+            navigate("/calculations/tools/cgpa");
             break;
-          case 'h':
+          case "h":
             e.preventDefault();
-            navigate('/home');
+            navigate("/home");
             break;
-          case 'd':
+          case "d":
             if (user?.course && user?.semester) {
               e.preventDefault();
               navigate(`/scsit/${user.course}/semesters/${user.semester}`);
             }
             break;
-          case 'l':
+          case "l":
             if (user?._id) {
               e.preventDefault();
               navigate(`/admins/leaderboard`);
@@ -71,24 +86,87 @@ const HomePage = () => {
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [navigate, setIsSidebarOpen, user]);
 
+  const features = useMemo(
+    () => [
+      {
+        id: 1,
+        title: "Access Question Papers",
+        description:
+          "Explore a comprehensive collection of previous year question papers for MCA and other programs at SCSIT, Indore.",
+        icon: FileText,
+        path: "/scsit/courses",
+        linkText: "Browse Courses",
+        gradient: "from-blue-500 to-cyan-500",
+        delay: 0.1,
+      },
+      {
+        id: 2,
+        title: "Upload Documents",
+        description:
+          "Contribute to the community by uploading question papers and study materials to help fellow students.",
+        icon: Upload,
+        path: "/upload",
+        linkText: "Upload Now",
+        gradient: "from-purple-500 to-pink-500",
+        delay: 0.2,
+      },
+      {
+        id: 3,
+        title: "About This Website",
+        description:
+          "Learn more about our mission to provide a centralized hub for academic resources for all students at SCSIT, Indore.",
+        icon: Users,
+        path: "/about",
+        linkText: "Learn More",
+        gradient: "from-orange-500 to-red-500",
+        delay: 0.3,
+      },
+      {
+        id: 4,
+        title: "Attendance Manager",
+        description:
+          "Easily track your attendance for each subject and receive timely alerts to stay on top of your academic requirements.",
+        icon: CheckSquare,
+        path: "/tools/attendance-manager",
+        linkText: "Track Attendance",
+        gradient: "from-green-500 to-emerald-500",
+        delay: 0.4,
+      },
+      {
+        id: 5,
+        title: "Advanced Tools",
+        description:
+          "Calculate your CGPA, SGPA, attendance, and percentages with our suite of powerful scientific and academic calculators.",
+        icon: Calculator,
+        path: "/calculations/tools/scientific",
+        linkText: "Access Tools",
+        gradient: "from-indigo-500 to-purple-500",
+        delay: 0.5,
+      },
+      {
+        id: 6,
+        title: "Task Planner",
+        description:
+          "Organize your assignments, projects, and study schedule with an intuitive task planner to boost your productivity.",
+        icon: ListTodo,
+        path: "/planner/todos",
+        linkText: "Organize Tasks",
+        gradient: "from-teal-500 to-cyan-500",
+        delay: 0.6,
+      },
+    ],
+    [],
+  );
 
-  const features = useMemo(() => [
-    { id: 1, title: "Access Question Papers", description: "Explore a comprehensive collection of previous year question papers for MCA and other programs at SCSIT, Indore.", icon: FileText, path: "/scsit/courses", linkText: "Browse Courses", gradient: "from-blue-500 to-cyan-500", delay: 0.1 },
-    { id: 2, title: "Upload Documents", description: "Contribute to the community by uploading question papers and study materials to help fellow students.", icon: Upload, path: "/upload", linkText: "Upload Now", gradient: "from-purple-500 to-pink-500", delay: 0.2 },
-    { id: 3, title: "About This Website", description: "Learn more about our mission to provide a centralized hub for academic resources for all students at SCSIT, Indore.", icon: Users, path: "/about", linkText: "Learn More", gradient: "from-orange-500 to-red-500", delay: 0.3 },
-    { id: 4, title: "Attendance Manager", description: "Easily track your attendance for each subject and receive timely alerts to stay on top of your academic requirements.", icon: CheckSquare, path: "/tools/attendance-manager", linkText: "Track Attendance", gradient: "from-green-500 to-emerald-500", delay: 0.4 },
-    { id: 5, title: "Advanced Tools", description: "Calculate your CGPA, SGPA, attendance, and percentages with our suite of powerful scientific and academic calculators.", icon: Calculator, path: "/calculations/tools/scientific", linkText: "Access Tools", gradient: "from-indigo-500 to-purple-500", delay: 0.5 },
-    { id: 6, title: "Task Planner", description: "Organize your assignments, projects, and study schedule with an intuitive task planner to boost your productivity.", icon: ListTodo, path: "/planner/todos", linkText: "Organize Tasks", gradient: "from-teal-500 to-cyan-500", delay: 0.6 },
-  ], []);
-
-  const isExcludedRoute = location.pathname.startsWith("/login") || location.pathname === "/signup";
+  const isExcludedRoute =
+    location.pathname.startsWith("/login") || location.pathname === "/signup";
 
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => {
@@ -102,7 +180,7 @@ const HomePage = () => {
       } else if (!isExcludedRoute && user?.course && user?.semester) {
         navigate(`/scsit/${user.course}/semesters/${user.semester}`);
       } else if (!user?.course || !user?.semester) {
-        navigate('/scsit/mca/semesters/3');
+        navigate("/scsit/mca/semesters/3");
       }
     },
     preventDefaultTouchmoveEvent: true,
@@ -110,48 +188,59 @@ const HomePage = () => {
     delta: 60,
   });
 
-  const floatingParticles = useMemo(() =>
-    [...Array(25)].map((_, i) => (
-      <motion.div
-        key={i}
-        className="absolute w-1 h-1 bg-green-400/30 rounded-full"
-        style={{
-          left: `${Math.random() * 100}%`,
-          top: `${Math.random() * 100}%`,
-        }}
-        animate={{
-          y: [0, -50, 0],
-          opacity: [0, 0.7, 0],
-          scale: [0, 1, 0],
-        }}
-        transition={{
-          duration: Math.random() * 6 + 4,
-          repeat: Infinity,
-          delay: Math.random() * 5,
-        }}
-      />
-    )), []);
+  const floatingParticles = useMemo(
+    () =>
+      [...Array(25)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-1 h-1 bg-green-400/30 rounded-full"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+          }}
+          animate={{
+            y: [0, -50, 0],
+            opacity: [0, 0.7, 0],
+            scale: [0, 1, 0],
+          }}
+          transition={{
+            duration: Math.random() * 6 + 4,
+            repeat: Infinity,
+            delay: Math.random() * 5,
+          }}
+        />
+      )),
+    [],
+  );
 
   const desktopShortcuts = [
     { keys: "Ctrl + S", action: "Toggle Sidebar" },
     { keys: "Ctrl + P", action: "View All Papers" },
     { keys: "Ctrl + U", action: "Upload a File", admin: true },
     { keys: "Ctrl + A", action: "See All Files" },
-    { keys: "Ctrl + Q", action: "Open tools page with CGPA Calculator as default" },
+    {
+      keys: "Ctrl + Q",
+      action: "Open tools page with CGPA Calculator as default",
+    },
     { keys: "Ctrl + H", action: "Return to Home" },
     { keys: "Ctrl + L", action: "View Leaderboard" },
   ];
 
-
   return (
     <>
-      <div {...swipeHandlers} className="min-h-screen w-full relative overflow-hidden pt-20">
+      <div
+        {...swipeHandlers}
+        className="min-h-screen w-full relative pt-20 bg-gradient-to-br from-gray-900 via-blue-900 to-slate-900 z-0"
+      >
         <Helmet>
           <title>lastMinuteSCSIT - Home</title>
-          <meta name="description" content="Access and share previous year question papers and study resources for SCSIT, Indore." />
+          <meta
+            name="description"
+            content="Access and share previous year question papers and study resources for SCSIT, Indore."
+          />
         </Helmet>
 
-        <div className="fixed inset-0 -z-10">
+        <div className="fixed inset-0 -z-10 bg-gradient-to-br from-gray-900 via-blue-900 to-slate-900 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-slate-900" />
           <div className="absolute inset-0">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-blue-900/30 to-emerald-900/30" />
@@ -159,9 +248,7 @@ const HomePage = () => {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-green-500/15 via-transparent to-transparent" />
           </div>
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,black_40%,transparent)]" />
-          <div className="absolute inset-0">
-            {floatingParticles}
-          </div>
+          <div className="absolute inset-0">{floatingParticles}</div>
         </div>
 
         <div className="relative z-10 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 -mt-20">
@@ -173,7 +260,9 @@ const HomePage = () => {
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500/15 to-emerald-500/15 backdrop-filter backdrop-blur-xl border border-green-500/30 rounded-full mb-8 shadow-lg"
             >
               <Sparkles className="w-5 h-5 text-green-400" />
-              <span className="text-sm text-green-300 font-semibold tracking-wide">Your Academic Success Partner</span>
+              <span className="text-sm text-green-300 font-semibold tracking-wide">
+                Your Academic Success Partner
+              </span>
             </motion.div>
 
             <motion.h1
@@ -199,7 +288,9 @@ const HomePage = () => {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="mt-8 text-lg sm:text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed font-light"
             >
-              Your comprehensive platform for accessing and sharing previous year question papers and study resources for the School of Computer Science and Information Technology, Indore.
+              Your comprehensive platform for accessing and sharing previous
+              year question papers and study resources for the School of
+              Computer Science and Information Technology, Indore.
             </motion.p>
 
             <motion.div
@@ -264,12 +355,13 @@ const HomePage = () => {
                 </span>
               </h2>
               <p className="text-gray-400 text-xl max-w-3xl mx-auto leading-relaxed">
-                Everything you need to excel in your academic journey, all in one place.
+                Everything you need to excel in your academic journey, all in
+                one place.
               </p>
             </motion.div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {features.map((feature) => {
-                const IconComponent = feature.icon
+                const IconComponent = feature.icon;
                 return (
                   <motion.div
                     key={feature.id}
@@ -281,9 +373,13 @@ const HomePage = () => {
                     className="group relative"
                   >
                     <div className="relative h-full bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden hover:border-white/20 transition-all duration-300">
-                      <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
+                      <div
+                        className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
+                      />
                       <div className="relative p-8">
-                        <div className={`w-16 h-16 bg-gradient-to-r ${feature.gradient} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                        <div
+                          className={`w-16 h-16 bg-gradient-to-r ${feature.gradient} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}
+                        >
                           <IconComponent className="w-8 h-8 text-white" />
                         </div>
                         <h3 className="text-2xl font-bold text-white mb-3">
@@ -300,10 +396,12 @@ const HomePage = () => {
                           <ArrowRight className="w-5 h-5" />
                         </button>
                       </div>
-                      <div className={`absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br ${feature.gradient} rounded-full opacity-10 group-hover:opacity-20 group-hover:scale-150 transition-all duration-500`} />
+                      <div
+                        className={`absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br ${feature.gradient} rounded-full opacity-10 group-hover:opacity-20 group-hover:scale-150 transition-all duration-500`}
+                      />
                     </div>
                   </motion.div>
-                )
+                );
               })}
             </div>
           </div>
@@ -324,7 +422,8 @@ const HomePage = () => {
                 </span>
               </h2>
               <p className="text-gray-400 text-xl max-w-3xl mx-auto leading-relaxed">
-                Watch a quick overview of how LastMinuteSCSIT helps you stay organized and prepared for your exams.
+                Watch a quick overview of how LastMinuteSCSIT helps you stay
+                organized and prepared for your exams.
               </p>
             </motion.div>
             <motion.div
@@ -334,7 +433,10 @@ const HomePage = () => {
               viewport={{ once: true }}
               className="relative bg-gray-800/30 backdrop-filter backdrop-blur-xl rounded-3xl border border-gray-700/50 shadow-2xl shadow-green-500/10 overflow-hidden"
             >
-              <div className="relative w-full overflow-hidden rounded-3xl" style={{ paddingTop: "56.25%" }}>
+              <div
+                className="relative w-full overflow-hidden rounded-3xl"
+                style={{ paddingTop: "56.25%" }}
+              >
                 <iframe
                   className="absolute top-0 left-0 w-full h-full rounded-3xl"
                   src="https://www.youtube.com/embed/StnOGs-kOiE?autoplay=1&mute=1&rel=0"
@@ -368,7 +470,8 @@ const HomePage = () => {
                 </span>
               </h2>
               <p className="text-gray-400 text-xl max-w-3xl mx-auto leading-relaxed">
-                Use these handy shortcuts and gestures to master the platform and speed up your workflow.
+                Use these handy shortcuts and gestures to master the platform
+                and speed up your workflow.
               </p>
             </motion.div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
@@ -381,7 +484,9 @@ const HomePage = () => {
               >
                 <div className="flex items-center gap-4 mb-8">
                   <Keyboard className="w-8 h-8 text-green-400" />
-                  <h3 className="text-3xl font-bold text-white">Desktop Shortcuts</h3>
+                  <h3 className="text-3xl font-bold text-white">
+                    Desktop Shortcuts
+                  </h3>
                 </div>
 
                 <div className="relative p-6 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/20 mb-8">
@@ -394,9 +499,15 @@ const HomePage = () => {
                     <div>
                       <h4 className="font-bold text-white text-lg flex items-center gap-2">
                         Quick Dashboard
-                        <kbd className="px-2 py-1 text-xs font-sans font-semibold text-gray-300 bg-gray-500/20 border border-gray-500/30 rounded-md">Ctrl + D</kbd>
+                        <kbd className="px-2 py-1 text-xs font-sans font-semibold text-gray-300 bg-gray-500/20 border border-gray-500/30 rounded-md">
+                          Ctrl + D
+                        </kbd>
                       </h4>
-                      <p className="text-gray-400 text-sm mt-1">Access Your current Course/semester{`${user?.course ? ', in your case ' + user?.course + ' - Sem ' + user?.semester : ''}`} files directly from anywhere.</p>
+                      <p className="text-gray-400 text-sm mt-1">
+                        Access Your current Course/semester
+                        {`${user?.course ? ", in your case " + user?.course + " - Sem " + user?.semester : ""}`}{" "}
+                        files directly from anywhere.
+                      </p>
                     </div>
                   </div>
                   <button
@@ -410,17 +521,21 @@ const HomePage = () => {
                 </div>
 
                 <div className="space-y-4">
-                  {desktopShortcuts.map((sc) => (
-                    (!sc.auth || (sc.auth && user?._id)) &&
-                    (!sc.admin || (sc.admin && user?.role === 'admin')) && (
-                      <div key={sc.action} className="flex justify-between items-center p-3 bg-gray-500/10 rounded-lg transition-colors hover:bg-gray-500/20">
-                        <span className="text-gray-300">{sc.action}</span>
-                        <kbd className="px-2 py-1.5 text-xs font-sans font-semibold text-gray-300 bg-gray-500/20 border border-gray-500/30 rounded-md">
-                          {sc.keys}
-                        </kbd>
-                      </div>
-                    )
-                  ))}
+                  {desktopShortcuts.map(
+                    (sc) =>
+                      (!sc.auth || (sc.auth && user?._id)) &&
+                      (!sc.admin || (sc.admin && user?.role === "admin")) && (
+                        <div
+                          key={sc.action}
+                          className="flex justify-between items-center p-3 bg-gray-500/10 rounded-lg transition-colors hover:bg-gray-500/20"
+                        >
+                          <span className="text-gray-300">{sc.action}</span>
+                          <kbd className="px-2 py-1.5 text-xs font-sans font-semibold text-gray-300 bg-gray-500/20 border border-gray-500/30 rounded-md">
+                            {sc.keys}
+                          </kbd>
+                        </div>
+                      ),
+                  )}
                 </div>
               </motion.div>
 
@@ -433,24 +548,43 @@ const HomePage = () => {
               >
                 <div className="flex items-center gap-4 mb-8">
                   <Smartphone className="w-8 h-8 text-cyan-400" />
-                  <h3 className="text-3xl font-bold text-white">Mobile Gestures</h3>
+                  <h3 className="text-3xl font-bold text-white">
+                    Mobile Gestures
+                  </h3>
                 </div>
                 <div className="space-y-8">
                   <div className="p-4">
                     <div className="flex items-center gap-4 mb-2">
                       <MoveLeft className="w-7 h-7 text-cyan-400" />
-                      <h4 className="font-bold text-white text-lg">Swipe Left to Open Sidebar</h4>
+                      <h4 className="font-bold text-white text-lg">
+                        Swipe Left to Open Sidebar
+                      </h4>
                     </div>
-                    <p className="text-gray-400 pl-11">From the homepage, swipe left to quickly open the navigation menu.</p>
+                    <p className="text-gray-400 pl-11">
+                      From the homepage, swipe left to quickly open the
+                      navigation menu.
+                    </p>
                   </div>
                   <div className="p-4">
                     <div className="flex items-center gap-4 mb-2">
                       <MoveRight className="w-7 h-7 text-cyan-400" />
-                      <h4 className="font-bold text-white text-lg">Swipe Right for Actions</h4>
+                      <h4 className="font-bold text-white text-lg">
+                        Swipe Right for Actions
+                      </h4>
                     </div>
                     <ul className="list-disc list-inside text-gray-400 space-y-2 pl-11">
-                      <li><span className="font-semibold text-gray-300">If sidebar is open:</span> closes the sidebar.</li>
-                      <li><span className="font-semibold text-gray-300">If on homepage:</span> goes to your current semester papers.</li>
+                      <li>
+                        <span className="font-semibold text-gray-300">
+                          If sidebar is open:
+                        </span>{" "}
+                        closes the sidebar.
+                      </li>
+                      <li>
+                        <span className="font-semibold text-gray-300">
+                          If on homepage:
+                        </span>{" "}
+                        goes to your current semester papers.
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -481,7 +615,9 @@ const HomePage = () => {
                   Ready to Excel in Your Studies?
                 </h3>
                 <p className="text-gray-300 text-lg mb-10 max-w-3xl mx-auto leading-relaxed">
-                  Join thousands of students who are already benefiting from our comprehensive collection of resources and advanced academic tools.
+                  Join thousands of students who are already benefiting from our
+                  comprehensive collection of resources and advanced academic
+                  tools.
                 </p>
                 <motion.button
                   whileHover={{ scale: 1.05, y: -3 }}
@@ -505,7 +641,7 @@ const HomePage = () => {
         />
       )}
     </>
-  )
-}
+  );
+};
 
-export default HomePage
+export default HomePage;

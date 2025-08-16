@@ -5,10 +5,9 @@ import { ValuesContext } from '../context/ValuesContext';
 const Footer = () => {
   const { user } = useContext(ValuesContext);
   return (
-    <footer className="w-full bg-gradient-to-t from-gray-950 to-gray-900 text-gray-400 border-t border-teal-500/20 py-10 px-4 sm:px-6 lg:px-8">
+    <footer className="relative w-full bg-gradient-to-t from-gray-950 to-gray-900 text-gray-400 border-t border-teal-500/20 py-10 px-4 sm:px-6 lg:px-8 !z-50 block">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
-          {/* Column 1: Brand and mission */}
           <div className="flex flex-col gap-4">
             <h3 className="text-xl font-bold text-white tracking-wide">LastMinute SCSIT</h3>
             <p className="text-sm">
@@ -16,7 +15,6 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* Column 2: Quick Links */}
           <div>
             <h4 className="font-semibold text-gray-200 mb-4 tracking-wider">Quick Links</h4>
             <ul className="space-y-3">
@@ -29,7 +27,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Column 3: Tools */}
           <div>
             <h4 className="font-semibold text-gray-200 mb-4 tracking-wider">Tools</h4>
             <ul className="space-y-3">
@@ -41,7 +38,6 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="border-t border-gray-800 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm">
           <p>© {new Date().getFullYear()} LastMinute SCSIT. All rights reserved.</p>
           <div className="flex items-center gap-2">

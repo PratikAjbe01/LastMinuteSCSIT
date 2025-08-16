@@ -10,6 +10,15 @@ export const getAllTestimonials = async (req, res) => {
     }
 };
 
+export const getAllTestimonialsApproved = async (req, res) => {
+    try {
+        const testimonials = await Testimonials.find({show: "yes"}).sort({ createdAt: -1 });
+        res.status(200).json({ success: true, count: testimonials.length, testimonials });
+    } catch (error) {
+        res.status(500).json({ success: false, message: `Server error: ${error.message}` });
+    }
+}; 
+
 export const getTestimonial = async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -123,5 +132,80 @@ export const deleteTestimonial = async (req, res) => {
         res.status(200).json({ success: true, message: 'Testimonial deleted successfully' });
     } catch (error) {
         res.status(500).json({ success: false, message: `Server error: ${error.message}` });
+    }
+};
+
+export const ToggleShowTestimonial = async (req, res) => {
+    try {
+        const { id } = req.body;
+
+        const testimonial = await Testimonials.findById(id);
+        if (!testimonial) {
+            return res.status(404).json({ success: false, message: 'Testimonial not found' });
+        }
+
+        testimonial.show = testimonial.show === 'yes' ? 'no' : 'yes';
+        await testimonial.save();
+
+        res.status(200).json({ success: true, testimonial, message: 'Testimonial visibility toggled' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: `Server error: ${error.message}` });
+    }
+};
+
+export const getAllTestimonialsWithUserInfo = async (req, res) => {
+    try {
+        const testimonials = await Testimonials.aggregate([
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'userId',
+                    foreignField: '_id',
+                    as: 'userDetails'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$userDetails',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    message: '$text', 
+                    status: 1,
+                    show: 1,
+                    rating: 1,
+                    createdAt: 1,
+                    updatedAt: 1,
+                    isUserAdmin: 1,
+                    course: 1,
+                    semester: 1,
+                    user: {
+                        _id: '$userDetails._id',
+                        name: '$userDetails.name',
+                        email: '$userDetails.email'
+                    }
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            count: testimonials.length,
+            testimonials
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: `Server error: ${error.message}`
+        });
     }
 };

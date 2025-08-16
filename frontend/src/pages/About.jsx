@@ -45,6 +45,7 @@ import {
   Trash2,
   X,
   MessageCircle,
+  Star,
 } from "lucide-react";
 import { ValuesContext } from "../context/ValuesContext";
 import { useSwipeable } from "react-swipeable";
@@ -103,49 +104,118 @@ const FeatureCard = ({ feature, index, navigate }) => (
   </motion.div>
 );
 
-const DeveloperCard = ({ dev, index }) => (
-  <motion.div
-    key={index}
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.5, delay: index * 0.1 }}
-    className="relative bg-slate-800/50 backdrop-blur-xl p-8 rounded-2xl border border-slate-700 text-center flex flex-col items-center group overflow-hidden h-full hover:shadow-2xl hover:shadow-green-500/10"
-  >
-    <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-green-500/10 to-transparent"></div>
-    <img
-      className="relative w-32 h-32 rounded-full mx-auto mb-4 border-4 border-slate-600 group-hover:border-green-500 transition-colors duration-300 object-cover"
-      src={dev.imageUrl}
-      alt={dev.name}
-    />
-    <h3 className="text-2xl font-bold text-white">{dev.name}</h3>
-    <p className="text-green-400 font-semibold mb-4">{dev.role}</p>
-    <div className="flex gap-3 mt-auto">
-      <a
-        href={dev.linkedinUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center justify-center w-10 h-10 bg-slate-700 hover:bg-blue-600 text-white rounded-full transition-colors"
+const DeveloperCard = ({ dev, index }) => {
+  const handleImageError = (e) => {
+    const nameInitial = dev.name.charAt(0).toUpperCase();
+    e.target.src = `https://placehold.co/200x200/1e293b/94a3b8?text=${nameInitial}`;
+  };
+
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const rotateX = useTransform(mouseY, [-200, 200], [-12, 12]);
+  const rotateY = useTransform(mouseX, [-200, 200], [12, -12]);
+  const cardX = useTransform(mouseX, [0, 1], [0, 0]);
+  const cardY = useTransform(mouseY, [0, 1], [0, 0]);
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    mouseX.set(e.clientX - rect.left - rect.width / 2);
+    mouseY.set(e.clientY - rect.top - rect.height / 2);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
+
+  return (
+    <motion.div
+      style={{
+        transformStyle: "preserve-3d",
+        rotateX,
+        rotateY,
+        x: cardX,
+        y: cardY,
+      }}
+      initial={{ opacity: 0, scale: 0.9 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8, delay: index * 0.1, ease: "easeOut" }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="relative w-full h-full"
+    >
+      <div
+        className="relative bg-slate-900/80 backdrop-blur-md p-8 rounded-2xl text-center flex flex-col items-center h-full overflow-hidden transition-all duration-300 border border-slate-800 group hover:border-green-400/50 shadow-2xl shadow-slate-950/50"
+        style={{
+          transform: "translateZ(8px)",
+          transformStyle: "preserve-3d",
+        }}
       >
-        <Linkedin size={18} />
-      </a>
-      <a
-        href={dev.githubUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center justify-center w-10 h-10 bg-slate-700 hover:bg-gray-600 text-white rounded-full transition-colors"
-      >
-        <Github size={18} />
-      </a>
-      <a
-        href={`mailto:${dev.email}`}
-        className="inline-flex items-center justify-center w-10 h-10 bg-slate-700 hover:bg-green-600 text-white rounded-full transition-colors"
-      >
-        <Mail size={18} />
-      </a>
-    </div>
-  </motion.div>
-);
+        <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-slate-900/10 to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-500 z-0"></div>
+
+        <div className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/30 rounded-full text-xs text-green-300 font-semibold overflow-hidden">
+          <motion.div style={{ transform: "translateZ(32px)" }}>
+            <Star size={14} className="text-green-400 fill-green-500/30" />
+          </motion.div>
+          <span className="relative z-10">Creator</span>
+          <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_2s_infinite] opacity-50"></div>
+        </div>
+
+        <motion.div
+          className="relative z-10"
+          style={{ transform: "translateZ(40px)" }}
+        >
+          <img
+            className="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-slate-700 group-hover:border-green-400 transition-all duration-300 object-cover shadow-lg group-hover:shadow-green-500/20 group-hover:drop-shadow-[0_0_15px_rgba(16,185,129,0.6)]"
+            src={dev.imageUrl}
+            alt={`${dev.name}'s profile picture`}
+            onError={handleImageError}
+          />
+        </motion.div>
+
+        <motion.div
+          className="relative z-10 flex flex-col flex-grow items-center"
+          style={{ transform: "translateZ(20px)" }}
+        >
+          <h3 className="text-2xl font-bold text-white bg-gradient-to-r from-white to-slate-400 text-transparent bg-clip-text">
+            {dev.name}
+          </h3>
+          <p className="text-green-400 font-medium mb-6">{dev.role}</p>
+
+          <div className="flex gap-4 mt-auto">
+            <a
+              href={dev.linkedinUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${dev.name}'s LinkedIn Profile`}
+              className="social-icon hover:bg-blue-600 hover:shadow-blue-500/30"
+            >
+              <Linkedin size={20} />
+            </a>
+            <a
+              href={dev.githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${dev.name}'s GitHub Profile`}
+              className="social-icon hover:bg-gray-600 hover:shadow-gray-500/30"
+            >
+              <Github size={20} />
+            </a>
+            <a
+              href={`mailto:${dev.email}`}
+              aria-label={`Email ${dev.name}`}
+              className="social-icon hover:bg-red-600 hover:shadow-red-500/30"
+            >
+              <Mail size={20} />
+            </a>
+          </div>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+};
 
 const TechIcon = ({ tech, index }) => (
   <motion.div
@@ -256,21 +326,21 @@ const TestimonialCard = ({ testimonial, onEdit, onDelete, currentUser }) => (
       </div>
       {(currentUser?.role === "admin" ||
         currentUser?._id === testimonial.userId) && (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onEdit}
-              className="p-2 text-gray-400 hover:text-white transition-colors"
-            >
-              <Edit size={16} />
-            </button>
-            <button
-              onClick={onDelete}
-              className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-            >
-              <Trash2 size={16} />
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onEdit}
+            className="p-2 text-gray-400 hover:text-white transition-colors"
+          >
+            <Edit size={16} />
+          </button>
+          <button
+            onClick={onDelete}
+            className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      )}
     </div>
   </motion.div>
 );
@@ -605,11 +675,11 @@ const AboutPage = () => {
     const fetchStats = async () => {
       try {
         const usersResponse = await fetch(`${API_URL}/api/auth/fetchallusers`, {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user'))._id : ''}`,
-          }
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user"))._id : ""}`,
+          },
         });
 
         const usersResult = await usersResponse.json();
@@ -619,15 +689,23 @@ const AboutPage = () => {
         const filesResult = await filesResponse.json();
         const filesCount = filesResult.success ? filesResult.data.length : 0;
 
-        const allTestimonials = await fetch(`${API_URL}/api/testimonials/getalltestimonials`);
+        const allTestimonials = await fetch(
+          `${API_URL}/api/testimonials/getalltestimonials`,
+        );
         const testimonialsResult = await allTestimonials.json();
-        const testimonialsCount = testimonialsResult.success ? testimonialsResult.testimonials.length : 0;
+        const testimonialsCount = testimonialsResult.success
+          ? testimonialsResult.testimonials.length
+          : 0;
 
-        setStats(prevStats => [
+        setStats((prevStats) => [
           { icon: Files, value: filesCount.toString(), label: "Documents" },
           { icon: Users, value: usersCount.toString(), label: "Active Users" },
           { icon: GraduationCap, value: "13", label: "Courses" },
-          { icon: MessageCircle, value: testimonialsCount.toString(), label: "Testimonials" },
+          {
+            icon: MessageCircle,
+            value: testimonialsCount.toString(),
+            label: "Testimonials",
+          },
           { icon: Calendar, value: "1", label: "Active Year" },
         ]);
       } catch (err) {
@@ -693,7 +771,11 @@ const AboutPage = () => {
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...data, course: user?.course || "Unknown", semester: user?.semester || "Unknown" }),
+          body: JSON.stringify({
+            ...data,
+            course: user?.course || "Unknown",
+            semester: user?.semester || "Unknown",
+          }),
         },
       );
       const result = await response.json();
@@ -840,7 +922,7 @@ const AboutPage = () => {
             title="By The Numbers"
             subtitle="Our impact on the SCSIT community"
           >
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 grid-rows-subgrid">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {stats.map((stat, index) => (
                 <StatCard key={index} {...stat} index={index} />
               ))}
@@ -967,10 +1049,7 @@ const AboutPage = () => {
             </div>
           </Section>
 
-          <Section
-            title="My Testimonials"
-            subtitle="Your feedback matters!"
-          >
+          <Section title="My Testimonials" subtitle="Your feedback matters!">
             <div className="max-w-5xl mx-auto">
               {isLoadingTestimonials ? (
                 <div className="text-center text-gray-400">

@@ -32,6 +32,7 @@ import AdminFilesPage from "./pages/AdminFilesPage";
 import UsersPage from "./pages/AllUsersPage";
 import VerifyUserEmail from "./pages/VerifyEmailPage";
 import LeaderboardPage from "./pages/LeaderBoardPage";
+import ManageTestimonials from "./pages/ManageTestimonials";
 
 const ProtectedRoute = ({ children }) => {
 	const { user } = useAuthStore();
@@ -87,9 +88,9 @@ function App() {
 					case 'd':
 						if (user?._id) {
 							e.preventDefault();
-							if(user?.course && user?.semester) {
+							if (user?.course && user?.semester) {
 								navigate(`/scsit/${user.course}/semesters/${user.semester}`);
-							}else {
+							} else {
 								navigate(`/scsit/mca/semesters/3`);
 							}
 						}
@@ -274,6 +275,14 @@ function App() {
 						element={
 							<ProtectedRoute>
 								<VerifyUserEmail />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path='/admins/testimonials'
+						element={
+							<ProtectedRoute>
+								<ManageTestimonials />
 							</ProtectedRoute>
 						}
 					/>
