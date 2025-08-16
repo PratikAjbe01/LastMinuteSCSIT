@@ -7,7 +7,7 @@ import { useContext, useEffect, useMemo } from "react"
 import { Helmet } from 'react-helmet-async';
 import { useSwipeable } from "react-swipeable"
 import { ValuesContext } from "../context/ValuesContext"
-// import { EditProfileModal } from "../components/EditProfileModal"
+import { EditProfileModal } from "../components/EditProfileModal"
 import { useState } from "react"
 // import Testimonials from "../components/Testimonials"
 import { useAuthStore } from "../store/authStore"
@@ -17,7 +17,7 @@ const HomePage = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
-  // const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" })
@@ -137,7 +137,7 @@ const HomePage = () => {
     { keys: "Ctrl + A", action: "See All Files" },
     { keys: "Ctrl + Q", action: "Open tools page with CGPA Calculator as default" },
     { keys: "Ctrl + H", action: "Return to Home" },
-    { keys: "Ctrl + L", action: "View Leaderboard" },
+ 
   ];
 
 
@@ -496,12 +496,12 @@ const HomePage = () => {
           </motion.div>
         </div>
       </div>
-      {/* {editModalOpen && (
+      {editModalOpen && (
         <EditProfileModal
           isOpen={editModalOpen}
           onClose={() => setEditModalOpen(false)}
         />
-      )} */}
+      )}
     </>
   )
 }
