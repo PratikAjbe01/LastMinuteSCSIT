@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Helmet } from "react-helmet-async"
 import { useAuthStore } from "../store/authStore"
 import { useNavigate } from "react-router-dom"
-import { User, Mail, FileText, Calendar, Book, Tag, Edit, Trash2, X, Loader, AlertCircle, ShieldCheck, GraduationCap, FileX, View, BookDashed, Filter } from "lucide-react"
+import { User, Mail, Calendar, Book, Tag, Edit, Trash2, X, Loader, AlertCircle, ShieldCheck, GraduationCap, FileX, View, BookDashed, Filter } from "lucide-react"
 import FileViewer from "../fileComponents/FileViewer"
 import { API_URL } from "../utils/urls"
 import { useSwipeable } from "react-swipeable"
@@ -316,9 +316,9 @@ const AdminFilesPage = () => {
                                 >
                                     <option value="all" className="bg-gray-800 text-white">All Uploaders</option>
                                     {uploaders.map(uploader => (
-                                        <option key={uploader} value={uploader} className="bg-gray-800 text-white">
-                                            {uploader}
-                                        </option>
+                                        <option key={uploader._id} value={uploader._id} className="bg-gray-800 text-white">
+  {uploader.name || uploader.email}
+</option>
                                     ))}
                                 </select>
                             </div>
