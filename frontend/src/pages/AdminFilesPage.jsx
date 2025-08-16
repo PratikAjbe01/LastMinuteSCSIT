@@ -77,17 +77,27 @@ const AdminFilesPage = () => {
         };
 
         fetchFiles();
-    }, [user, navigate]);
 
+    }, [user, navigate]);
     useEffect(() => {
-        let filtered = [...files];
+    let filtered = [...files];
+
+    if (filter !== 'all') {
+        filtered = files.filter(file => file.uploadedBy?._id === filter);
+    }
+
+    setFilteredFiles(filtered);
+}, [filter, files]);
+
+    // useEffect(() => {
+    //     let filtered = [...files];
         
-        if (filter !== 'all') {
-            filtered = files.filter(file => file.uploadedBy === filter);
-        }
+    //     if (filter !== 'all') {
+    //         filtered = files.filter(file => file.uploadedBy === filter);
+    //     }
         
-        setFilteredFiles(filtered);
-    }, [filter, files]);
+    //     setFilteredFiles(filtered);
+    // }, [filter, files]);
 
     const openEditModal = (file) => {
         setSelectedFile(file);
@@ -254,7 +264,14 @@ const AdminFilesPage = () => {
     const totalFiles = files.length;
     const courses = [...new Set(files.map(file => file.course))].filter(Boolean);
     const subjects = [...new Set(files.map(file => file.subject))].filter(Boolean);
-    const uploaders = [...new Set(files.map(file => file.uploadedBy))].filter(Boolean);
+    // const uploaders = [...new Set(files.map(file => file.uploadedBy))].filter(Boolean);
+    const uploaders = files
+  .map(file => file.uploadedBy)   // get uploader object
+  .filter(Boolean)                // remove null
+  .reduce((acc, uploader) => {
+    if (!acc.find(u => u._id === uploader._id)) acc.push(uploader); // deduplicate by _id
+    return acc;
+  }, []);
 
     return (
         <>
@@ -374,7 +391,7 @@ const AdminFilesPage = () => {
                                             <p className="flex items-start gap-2">
                                                 <User size={16} className="text-green-400 mt-0.5 flex-shrink-0" />
                                                 <span className="font-semibold">
-                                                    Uploaded by: {file.uploadedBy || 'N/A'}
+                                                     Uploaded by: {file.uploadedBy?.name || file.uploadedBy?.email || 'N/A'}
                                                 </span>
                                             </p>
                                         </div>
@@ -425,11 +442,11 @@ const AdminFilesPage = () => {
                                 <FileX className="w-12 h-12 text-gray-500" />
                             </div>
                             <h3 className="mt-6 text-2xl font-bold text-white">No Files Found</h3>
-                            <p className="mt-2 text-gray-400 max-w-md mx-auto">
-                                {filter === 'all' 
-                                    ? 'There are currently no files available. Check back later or upload some files if you\'re an admin.'
-                                    : `No files found for uploader "${filter}".`}
-                            </p>
+                           <p className="mt-2 text-gray-400 max-w-md mx-auto">
+    {filter === 'all' 
+        ? 'There are currently no files available. Check back later or upload some files if you\'re an admin.'
+        : `No files found for uploader "${uploaders.find(u => u._id === filter)?.name || uploaders.find(u => u._id === filter)?.email || filter}".`}
+</p>
                         </motion.div>
                     )}
                 </div>
