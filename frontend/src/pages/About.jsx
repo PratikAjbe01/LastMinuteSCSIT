@@ -52,6 +52,7 @@ import { useSwipeable } from "react-swipeable";
 import { API_URL } from "../utils/urls";
 import { useAuthStore } from "../store/authStore";
 import React from "react";
+import toast from "react-hot-toast";
 
 const Section = React.forwardRef(
   ({ title, children, subtitle, ...props }, ref) => (
@@ -326,21 +327,21 @@ const TestimonialCard = ({ testimonial, onEdit, onDelete, currentUser }) => (
       </div>
       {(currentUser?.role === "admin" ||
         currentUser?._id === testimonial.userId) && (
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onEdit}
-            className="p-2 text-gray-400 hover:text-white transition-colors"
-          >
-            <Edit size={16} />
-          </button>
-          <button
-            onClick={onDelete}
-            className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-          >
-            <Trash2 size={16} />
-          </button>
-        </div>
-      )}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onEdit}
+              className="p-2 text-gray-400 hover:text-white transition-colors"
+            >
+              <Edit size={16} />
+            </button>
+            <button
+              onClick={onDelete}
+              className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        )}
     </div>
   </motion.div>
 );
@@ -348,11 +349,13 @@ const TestimonialCard = ({ testimonial, onEdit, onDelete, currentUser }) => (
 const EditModal = ({ isOpen, onClose, testimonial, onUpdate, user }) => {
   const [editedText, setEditedText] = useState(testimonial?.text || "");
   const [editedRating, setEditedRating] = useState(testimonial?.rating || "");
+  const [profileLink, setProfileLink] = useState(testimonial?.userProfile || "");
 
   useEffect(() => {
     if (testimonial) {
       setEditedText(testimonial.text);
       setEditedRating(testimonial.rating);
+      setProfileLink(testimonial?.userProfile);
     }
   }, [testimonial]);
 
@@ -360,7 +363,7 @@ const EditModal = ({ isOpen, onClose, testimonial, onUpdate, user }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onUpdate(testimonial._id, { text: editedText, rating: editedRating });
+    onUpdate(testimonial._id, { text: editedText, rating: editedRating, userProfile: profileLink });
   };
 
   return (
@@ -379,12 +382,14 @@ const EditModal = ({ isOpen, onClose, testimonial, onUpdate, user }) => {
         </button>
         <h3 className="text-2xl font-bold mb-6 text-white">Edit Testimonial</h3>
         <form onSubmit={handleSubmit}>
+          <label className="block font-bold text-gray-100 mb-2">Review </label>
           <textarea
             value={editedText}
             onChange={(e) => setEditedText(e.target.value)}
             className="w-full h-32 p-4 bg-slate-700/50 rounded-lg border border-slate-600 focus:ring-2 focus:ring-green-500 focus:border-green-500"
             required
           />
+          <label className="block font-bold text-gray-100 mt-2">Rating </label>
           <div className="mt-4 flex items-center gap-6">
             {["Good", "Outstanding"].map((r) => (
               <label
@@ -407,6 +412,14 @@ const EditModal = ({ isOpen, onClose, testimonial, onUpdate, user }) => {
                 {r}
               </label>
             ))}
+          </div>
+          <div className="mt-4">
+            <label className="block font-bold text-gray-100">Profile Picture (Optional)</label>
+            <div className="flex rounded-lg bg-gray-800 p-1">
+            </div>
+            <div className="mt-3">
+              <input type="url" value={profileLink} onChange={(e) => setProfileLink(e.target.value)} placeholder="https://example.com/profile.jpg" className="w-full rounded-lg border border-gray-600 bg-gray-800 p-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500" />
+            </div>
           </div>
           <div className="mt-6 flex justify-end">
             <button
@@ -566,7 +579,7 @@ const AboutPage = () => {
       githubUrl: "https://github.com/balram2002",
       email: "bdhakad886@gmail.com",
       imageUrl:
-        "https://media.licdn.com/dms/image/v2/D5603AQHB2Xyb8bUzsA/profile-displayphoto-shrink_800_800/B56ZcplHMmGsAc-/0/1748749285834?e=1756339200&v=beta&t=-SRxJ52qlgxvp4gmkb4jmhJ56QTFwYg89Q93TAd4B0Q",
+        "https://avatars.githubusercontent.com/u/162151085?v=4",
     },
   ];
 
@@ -780,6 +793,7 @@ const AboutPage = () => {
       );
       const result = await response.json();
       if (result.success) {
+        toast.success("Testimonial updated successfully!");
         fetchTestimonials();
         setModalState({ type: null, data: null });
       } else {

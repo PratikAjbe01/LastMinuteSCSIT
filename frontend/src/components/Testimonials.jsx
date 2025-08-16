@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { API_URL } from "../utils/urls";
 import { useAuthStore } from "../store/authStore";
+import Img from './lazyLoadImage/Img';
 
 const ViewTestimonialModal = ({ testimonial, onClose }) => {
   if (!testimonial) return null;
@@ -36,17 +37,28 @@ const ViewTestimonialModal = ({ testimonial, onClose }) => {
         className="relative bg-slate-800/50 border border-slate-700 rounded-2xl w-full max-w-3xl grid md:grid-cols-3 overflow-hidden"
       >
         <div className="p-8 flex flex-col items-center justify-center text-center bg-slate-900/50 border-r border-slate-700">
-          <div className="w-24 h-24 mb-4 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center font-bold text-white text-4xl shrink-0">
-            {testimonial.username
-              .split(" ")
-              .map((n) => n[0])
-              .slice(0, 2)
-              .join("")}
-          </div>
+          {testimonial?.userProfile ? (
+                          <img
+                            src={testimonial.userProfile}
+                            alt={testimonial.username}
+                            className="w-24 h-24 mb-4 rounded-full flex items-center justify-center font-bold text-white text-4xl shrink-0"
+                          />
+                        ) : (
+                          <div className="w-24 h-24 mb-4 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center font-bold text-white text-4xl shrink-0">
+                            {testimonial.username
+                              .split(" ")
+                              .map((n) => n[0])
+                              .slice(0, 2)
+                              .join("")}
+                          </div>
+                        )}
           <h3 className="text-xl font-bold text-white">
             {testimonial.username}
           </h3>
           <p className="text-sm text-gray-400 mb-4">{testimonial.userEmail}</p>
+           {testimonial?.isUserAdmin && (
+                      <p className="text-sm text-gray-400 mb-4 bg-slate-900/80 rounded-xl p-2 px-3">Important Figure</p>
+          )}
 
           <div className="text-left w-full space-y-3 text-sm">
             {testimonial.course && (
@@ -337,13 +349,21 @@ const Testimonials = () => {
                   >
                     <div>
                       <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center font-bold text-white text-base sm:text-lg shrink-0">
-                          {testimonial.username
-                            .split(" ")
-                            .map((n) => n[0])
-                            .slice(0, 2)
-                            .join("")}
-                        </div>
+                       {testimonial?.userProfile ? (
+                          <img
+                            src={testimonial.userProfile}
+                            alt={testimonial.username}
+                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-bold text-white text-base sm:text-lg shrink-0"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center font-bold text-white text-base sm:text-lg shrink-0">
+                            {testimonial.username
+                              .split(" ")
+                              .map((n) => n[0])
+                              .slice(0, 2)
+                              .join("")}
+                          </div>
+                        )}
 
                         <div>
                           <h4 className="font-bold text-white text-base sm:text-lg">

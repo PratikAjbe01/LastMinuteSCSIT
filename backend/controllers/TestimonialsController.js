@@ -51,7 +51,7 @@ export const getTestimonialsByUser = async (req, res) => {
 
 export const uploadTestimonial = async (req, res) => {
     try {
-        const { text, rating, userId, username, userEmail, isUserAdmin, course, semester } = req.body;
+        const { text, rating, userId, username, userEmail, isUserAdmin, course, semester, userProfile } = req.body;
 
         if (!text?.trim() || !userId || !username || !userEmail) {
             return res.status(400).json({ success: false, message: "Missing required fields." });
@@ -63,6 +63,7 @@ export const uploadTestimonial = async (req, res) => {
             userId,
             username,
             userEmail,
+            userProfile: userProfile || "",
             isUserAdmin: isUserAdmin || false,
         };
 
@@ -88,13 +89,14 @@ export const uploadTestimonial = async (req, res) => {
 
 export const updateTestimonial = async (req, res) => {
     try {
-        const { text, rating, course, semester } = req.body;
+        const { text, rating, course, semester, userProfile } = req.body;
         
         const updateData = {};
 
         if (text) updateData.text = text;
         if (rating) updateData.rating = rating;
         if (course) updateData.course = course;
+        if (userProfile) updateData.userProfile = userProfile;
         if (semester && !isNaN(Number(semester))) {
             updateData.semester = Number(semester);
         }
@@ -189,8 +191,8 @@ export const getAllTestimonialsWithUserInfo = async (req, res) => {
                     semester: 1,
                     user: {
                         _id: '$userDetails._id',
-                        name: '$userDetails.name',
-                        email: '$userDetails.email'
+                        name: '$username',
+                        email: '$userEmail',
                     }
                 }
             }

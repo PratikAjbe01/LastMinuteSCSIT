@@ -5,7 +5,7 @@ import { ValuesContext } from '../context/ValuesContext';
 const Footer = () => {
   const { user } = useContext(ValuesContext);
   return (
-    <footer className="relative w-full bg-gradient-to-t from-gray-950 to-gray-900 text-gray-400 border-t border-teal-500/20 py-10 px-4 sm:px-6 lg:px-8 !z-50 block">
+    <footer className="relative w-full bg-gradient-to-t from-gray-950 to-gray-900 text-gray-400 border-t border-teal-500/20 py-10 px-4 sm:px-6 lg:px-8 !z-40 block">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
           <div className="flex flex-col gap-4">

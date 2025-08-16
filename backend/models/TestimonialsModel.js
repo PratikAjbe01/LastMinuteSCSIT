@@ -38,6 +38,9 @@ const testimonialSchema = new mongoose.Schema(
             type: String,
             enum: ['yes', 'no'],
             default: "no",
+        },
+        userProfile:{
+            type: String
         }
     },
     { timestamps: true }
