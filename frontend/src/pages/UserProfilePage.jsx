@@ -679,6 +679,14 @@ const ProfilePage = () => {
                             content="Profile page to view your activity and contributions."
                         />
                     </Helmet>
+
+                    <div className="w-full border-b border-gray-800 pb-6 mb-3">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <h1 className="text-2xl sm:text-3xl font-bold text-white">Your Profile</h1>
+                            <p className="text-gray-400 mt-2 text-sm sm:text-base">Manage your account settings and preferences</p>
+                        </div>
+                    </div>
+
                     <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-br from-blue-900/50 via-gray-900 to-gray-900 -z-10"></div>
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-96 bg-gradient-to-tr from-yellow-900/40 to-transparent rounded-full opacity-30 blur-3xl -z-10"></div>
 
@@ -754,18 +762,23 @@ const ProfilePage = () => {
                                         </div>
                                     </motion.div>
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-16">
-                                        <StatCard
-                                            icon={UploadCloud}
-                                            value={stats.uploads}
-                                            label="Uploads"
-                                            color="blue"
-                                        />
-                                        <StatCard
-                                            icon={Eye}
-                                            value={stats.views}
-                                            label="Total Views on Uploads"
-                                            color="green"
-                                        />
+                                        {
+                                            user?.isAdmin === "admin" && (
+                                                <StatCard
+                                                    icon={UploadCloud}
+                                                    value={stats.uploads}
+                                                    label="Uploads"
+                                                    color="blue"
+                                                />
+                                        )}
+                                        {user?.isAdmin === "admin" && (
+                                            <StatCard
+                                                icon={Eye}
+                                                value={stats.views}
+                                                label="Total Views on Uploads"
+                                                color="green"
+                                            />
+                                        )}
                                         <StatCard
                                             icon={Star}
                                             value={stats.testimonials}

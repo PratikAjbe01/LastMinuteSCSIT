@@ -9,13 +9,15 @@ import { ValuesContext } from "../context/ValuesContext"
 import { useSwipeable } from "react-swipeable"
 import { EditProfileModal } from "./EditProfileModal"
 import toast from "react-hot-toast"
+import { API_URL } from "../utils/urls"
 
 const Header = () => {
   const navigate = useNavigate()
-  const location = useLocation() 
+  const location = useLocation()
   const { user, logout } = useAuthStore()
   const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [fetchedUser, setFetchedUser] = useState();
 
   useEffect(() => {
     if (isSidebarOpen || editModalOpen) {
@@ -27,6 +29,24 @@ const Header = () => {
       document.body.style.overflow = 'auto';
     };
   }, [isSidebarOpen, editModalOpen]);
+
+  useEffect(()=>{
+    const fetchUserData = async () => {
+               try {
+                   const response = await fetch(
+                       `${API_URL}/api/auth/fetchuser/${user._id}`,
+                   );
+                   if (!response.ok) throw new Error("Failed to fetch user data.");
+                   const data = await response?.json();
+                   if (data.success) setFetchedUser(data?.user);
+                   else throw new Error(data.message || "Could not retrieve user.");
+               } catch (error) {
+                   console.error(error.message);
+               }
+           };
+     if(user?._id) fetchUserData();
+     console.log(fetchedUser);
+  }, user?._id)
 
   const initials = user?.name
     ? user.name
@@ -57,11 +77,11 @@ const Header = () => {
       { href: "/admins/leaderboard", label: "LeaderBoard", icon: Trophy },
     ]
 
-    if(user){
+    if (user) {
       items.push({ href: "/user/profile", label: "Profile", icon: User2 })
     }
 
-    if (user?.isAdmin==="admin") {
+    if (user?.isAdmin === "admin") {
       items.push({ href: "/profile/files", label: "My Files", icon: File })
       items.push({ href: "/admin/allfiles", label: "Admin Uploads", icon: FileChartPie })
       items.push({ href: "/allusers", label: "All Users", icon: Users })
@@ -181,7 +201,7 @@ const Header = () => {
               <nav className="space-y-2 p-4">
                 {navigationItems.map((item, index) => {
                   const isActive = isActiveLink(item.href);
-                  
+
                   return (
                     <motion.div
                       key={item.href}
@@ -191,18 +211,16 @@ const Header = () => {
                       onClick={() => {
                         handleNavLinkClick(item.href);
                       }}
-                      className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group cursor-pointer ${
-                        isActive 
-                          ? "bg-green-500/20 text-green-400 border-l-4 border-green-400" 
-                          : "text-gray-300 hover:text-white hover:bg-slate-700"
-                      }`}
+                      className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group cursor-pointer ${isActive
+                        ? "bg-green-500/20 text-green-400 border-l-4 border-green-400"
+                        : "text-gray-300 hover:text-white hover:bg-slate-700"
+                        }`}
                     >
-                      <item.icon 
-                        className={`w-5 h-5 transition-colors ${
-                          isActive 
-                            ? "text-green-400" 
-                            : "text-green-400 group-hover:text-green-300"
-                        }`} 
+                      <item.icon
+                        className={`w-5 h-5 transition-colors ${isActive
+                          ? "text-green-400"
+                          : "text-green-400 group-hover:text-green-300"
+                          }`}
                       />
                       <span className={`font-medium ${isActive ? "font-bold" : ""}`}>
                         {item.label}
@@ -215,25 +233,40 @@ const Header = () => {
 
             <div className="p-6 border-t border-slate-700 bg-slate-900 flex-shrink-0">
               {user ? (
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
-                      {initials || <User className="w-5 h-5" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white font-medium truncate">{user.name || "User"}</p>
-                      <p className="text-gray-400 text-sm truncate">{user.email || "No email provided"}</p>
+                <div className="space-y-6">
+                  <div className="flex items-center space-x-4 cursor-pointer" onClick={()=>{
+                    closeSidebar();
+                    navigate('/user/profile');
+                  }}>
+                    {fetchedUser?.profileUrl ? (
+                      <img
+                        src={fetchedUser.profileUrl}
+                        alt={fetchedUser.name}
+                        className="w-12 h-12 rounded-full object-cover flex items-center justify-center font-bold text-white text-xl shrink-0"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center font-semibold text-white text-lg shrink-0">
+                        {user?.name
+                          ?.split(" ")
+                          .map((n) => n[0])
+                          .slice(0, 2)
+                          .join("")}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-white font-medium truncate">{user?.name || "User"}</p>
+                      <p className="text-gray-400 text-sm truncate">
+                        {user?.email || "No email provided"}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="flex items-stretch justify-between space-x-2">
+                  <div className="flex space-x-3">
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        handleLogout();
-                      }}
-                      className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
+                      onClick={handleLogout}
+                      className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
                     >
                       <LogOut className="w-4 h-4" />
                       <span>Logout</span>
@@ -245,7 +278,7 @@ const Header = () => {
                         setEditModalOpen(true);
                         closeSidebar();
                       }}
-                      className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200"
+                      className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200"
                     >
                       <Edit className="w-4 h-4" />
                       <span>Edit</span>
@@ -253,17 +286,17 @@ const Header = () => {
                   </div>
                 </div>
               ) : (
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`);
-                    closeSidebar();
-                  }}
-                  className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg shadow-md hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
-                >
-                  Login
-                </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`);
+                  closeSidebar();
+                }}
+                className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg shadow-md hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
+              >
+                Login
+              </motion.button>
               )}
             </div>
           </motion.div>
@@ -271,7 +304,7 @@ const Header = () => {
       </AnimatePresence>
       {editModalOpen && (
         <EditProfileModal
-          isOpen={editModalOpen} 
+          isOpen={editModalOpen}
           setIsOpen={setEditModalOpen}
           onClose={() => setEditModalOpen(false)}
         />

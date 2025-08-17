@@ -230,7 +230,7 @@ const HomePage = () => {
     <>
       <div
         {...swipeHandlers}
-        className="min-h-screen w-full relative pt-20 bg-gradient-to-br from-gray-900 via-blue-900 to-slate-900 z-0 overflow-x-auto"
+        className="min-h-screen w-full relative pt-20 bg-gradient-to-br from-gray-900 via-blue-900 to-slate-900 z-0 overflow-x-hidden"
       >
         <Helmet>
           <title>lastMinuteSCSIT - Home</title>
@@ -243,7 +243,7 @@ const HomePage = () => {
         <div className="fixed inset-0 -z-10 bg-gradient-to-br from-gray-900 via-blue-900 to-slate-900 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-slate-900" />
           <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-blue-900/30 to-emerald-900/30" />
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-blue-900 to-emerald-900/30" />
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-cyan-500/15 via-transparent to-transparent" />
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-green-500/15 via-transparent to-transparent" />
           </div>
