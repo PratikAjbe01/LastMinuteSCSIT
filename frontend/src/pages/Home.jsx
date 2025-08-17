@@ -128,17 +128,17 @@ const HomePage = () => {
         gradient: "from-orange-500 to-red-500",
         delay: 0.3,
       },
-      {
-        id: 4,
-        title: "Attendance Manager",
-        description:
-          "Easily track your attendance for each subject and receive timely alerts to stay on top of your academic requirements.",
-        icon: CheckSquare,
-        path: "/tools/attendance-manager",
-        linkText: "Track Attendance",
-        gradient: "from-green-500 to-emerald-500",
-        delay: 0.4,
-      },
+      // {
+      //   id: 4,
+      //   title: "Attendance Manager",
+      //   description:
+      //     "Easily track your attendance for each subject and receive timely alerts to stay on top of your academic requirements.",
+      //   icon: CheckSquare,
+      //   path: "/tools/attendance-manager",
+      //   linkText: "Track Attendance",
+      //   gradient: "from-green-500 to-emerald-500",
+      //   delay: 0.4,
+      // },
       {
         id: 5,
         title: "Advanced Tools",
@@ -150,17 +150,17 @@ const HomePage = () => {
         gradient: "from-indigo-500 to-purple-500",
         delay: 0.5,
       },
-      {
-        id: 6,
-        title: "Task Planner",
-        description:
-          "Organize your assignments, projects, and study schedule with an intuitive task planner to boost your productivity.",
-        icon: ListTodo,
-        path: "/planner/todos",
-        linkText: "Organize Tasks",
-        gradient: "from-teal-500 to-cyan-500",
-        delay: 0.6,
-      },
+      // {
+      //   id: 6,
+      //   title: "Task Planner",
+      //   description:
+      //     "Organize your assignments, projects, and study schedule with an intuitive task planner to boost your productivity.",
+      //   icon: ListTodo,
+      //   path: "/planner/todos",
+      //   linkText: "Organize Tasks",
+      //   gradient: "from-teal-500 to-cyan-500",
+      //   delay: 0.6,
+      // },
     ],
     [],
   );

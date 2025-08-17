@@ -21,8 +21,8 @@ const Footer = () => {
               <li><a href="/" className="hover:text-teal-400 hover:pl-1 transition-all duration-300">Home</a></li>
               <li><a href="/scsit/courses" className="hover:text-teal-400 hover:pl-1 transition-all duration-300">Courses</a></li>
               <li><a href="/allfiles" className="hover:text-teal-400 hover:pl-1 transition-all duration-300">All Files</a></li>
-              <li><a href={`/attendance/manager/user/${user?._id}`} className="hover:text-teal-400 hover:pl-1 transition-all duration-300">Attendance Manager</a></li>
-              <li><a href="/planner/todos" className="hover:text-teal-400 hover:pl-1 transition-all duration-300">Tasks Manager</a></li>
+              {/* <li><a href={`/attendance/manager/user/${user?._id}`} className="hover:text-teal-400 hover:pl-1 transition-all duration-300">Attendance Manager</a></li>
+              <li><a href="/planner/todos" className="hover:text-teal-400 hover:pl-1 transition-all duration-300">Tasks Manager</a></li> */}
               <li><a href="/about" className="hover:text-teal-400 hover:pl-1 transition-all duration-300">About Us</a></li>
             </ul>
           </div>
@@ -32,8 +32,8 @@ const Footer = () => {
             <ul className="space-y-3">
               <li><a href="/calculations/tools/cgpa" className="hover:text-teal-400 hover:pl-1 transition-all duration-300">CGPA Calculator</a></li>
               <li><a href="/calculations/tools/sgpa" className="hover:text-teal-400 hover:pl-1 transition-all duration-300">SGPA Calculator</a></li>
-              <li><a href="/calculations/tools/attendance" className="hover:text-teal-400 hover:pl-1 transition-all duration-300">Attendance Calculator</a></li>
-              <li><a href="/calculations/tools/scientific" className="hover:text-teal-400 hover:pl-1 transition-all duration-300">Scientific Calculator</a></li>
+              {/* <li><a href="/calculations/tools/attendance" className="hover:text-teal-400 hover:pl-1 transition-all duration-300">Attendance Calculator</a></li>
+              <li><a href="/calculations/tools/scientific" className="hover:text-teal-400 hover:pl-1 transition-all duration-300">Scientific Calculator</a></li> */}
             </ul>
           </div>
         </div>

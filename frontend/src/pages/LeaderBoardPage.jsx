@@ -501,6 +501,10 @@ const LeaderboardPage = () => {
     );
 
     useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }, []);
+
+    useEffect(() => {
         if (viewMode === "users") {
             const fetchLeaderboard = async () => {
                 setIsLoading(true);

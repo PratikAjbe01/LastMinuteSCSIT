@@ -82,8 +82,8 @@ const FilterDropdown = ({
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         className={`flex w-full items-center justify-between gap-2 rounded-xl border border-gray-600 bg-gray-700/50 px-4 py-2 text-white transition-all duration-200 ${disabled
-            ? "cursor-not-allowed opacity-50"
-            : "hover:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+          ? "cursor-not-allowed opacity-50"
+          : "hover:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
           }`}
       >
         <div className="flex items-center gap-2 truncate">
@@ -169,6 +169,9 @@ const ManageTestimonials = () => {
   const [profileUploadUrl, setProfileUploadUrl] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   useEffect(() => {
     if (isViewModalOpen || isConfirmModalOpen || isDeleteModalOpen || isUploadModalOpen) {
@@ -716,8 +719,8 @@ const ManageTestimonials = () => {
                         </div>
                         <span
                           className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${testimonial.show === "yes"
-                              ? "bg-green-500/20 text-green-300"
-                              : "bg-orange-500/20 text-orange-300"
+                            ? "bg-green-500/20 text-green-300"
+                            : "bg-orange-500/20 text-orange-300"
                             }`}
                         >
                           {testimonial.show === "yes" ? (
@@ -737,8 +740,8 @@ const ManageTestimonials = () => {
                         type="button"
                         onClick={() => openModal("confirm", testimonial)}
                         className={`flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-bold transition-colors ${testimonial.show === "yes"
-                            ? "bg-orange-500/20 text-orange-300 hover:bg-orange-500/30"
-                            : "bg-green-500/20 text-green-300 hover:bg-green-500/30"
+                          ? "bg-orange-500/20 text-orange-300 hover:bg-orange-500/30"
+                          : "bg-green-500/20 text-green-300 hover:bg-green-500/30"
                           }`}
                       >
                         {testimonial.show === "yes" ? (

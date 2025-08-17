@@ -311,164 +311,6 @@ const TimelineItem = ({ year, title, description, index }) => (
   </div>
 );
 
-const TestimonialCard = ({ testimonial, onEdit, onDelete, currentUser }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.5 }}
-    className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-6 border border-slate-700 flex flex-col"
-  >
-    <p className="text-gray-300 flex-grow">"{testimonial.text}"</p>
-    <div className="mt-4 pt-4 border-t border-slate-700 flex items-center justify-between">
-      <div>
-        <p className="font-bold text-white">{testimonial.username}</p>
-        <p className="text-sm text-green-400">{testimonial.rating}</p>
-      </div>
-      {(currentUser?.role === "admin" ||
-        currentUser?._id === testimonial.userId) && (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onEdit}
-              className="p-2 text-gray-400 hover:text-white transition-colors"
-            >
-              <Edit size={16} />
-            </button>
-            <button
-              onClick={onDelete}
-              className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-            >
-              <Trash2 size={16} />
-            </button>
-          </div>
-        )}
-    </div>
-  </motion.div>
-);
-
-const EditModal = ({ isOpen, onClose, testimonial, onUpdate, user }) => {
-  const [editedText, setEditedText] = useState(testimonial?.text || "");
-  const [editedRating, setEditedRating] = useState(testimonial?.rating || "");
-  const [profileLink, setProfileLink] = useState(testimonial?.userProfile || "");
-
-  useEffect(() => {
-    if (testimonial) {
-      setEditedText(testimonial.text);
-      setEditedRating(testimonial.rating);
-      setProfileLink(testimonial?.userProfile);
-    }
-  }, [testimonial]);
-
-  if (!isOpen) return null;
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onUpdate(testimonial._id, { text: editedText, rating: editedRating, userProfile: profileLink });
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-slate-800 rounded-2xl p-8 border border-slate-700 w-full max-w-lg relative"
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white"
-        >
-          <X />
-        </button>
-        <h3 className="text-2xl font-bold mb-6 text-white">Edit Testimonial</h3>
-        <form onSubmit={handleSubmit}>
-          <label className="block font-bold text-gray-100 mb-2">Review </label>
-          <textarea
-            value={editedText}
-            onChange={(e) => setEditedText(e.target.value)}
-            className="w-full h-32 p-4 bg-slate-700/50 rounded-lg border border-slate-600 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            required
-          />
-          <label className="block font-bold text-gray-100 mt-2">Rating </label>
-          <div className="mt-4 flex items-center gap-6">
-            {["Good", "Outstanding"].map((r) => (
-              <label
-                key={r}
-                className="flex items-center gap-2 cursor-pointer text-gray-300"
-              >
-                <input
-                  type="radio"
-                  name="rating"
-                  value={r}
-                  checked={editedRating === r}
-                  onChange={(e) => setEditedRating(e.target.value)}
-                  className="hidden"
-                />
-                <div
-                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${editedRating === r ? "border-green-500 bg-green-500" : "border-slate-600"}`}
-                >
-                  {editedRating === r && <CheckCircle2 size={12} />}
-                </div>
-                {r}
-              </label>
-            ))}
-          </div>
-          <div className="mt-4">
-            <label className="block font-bold text-gray-100">Profile Picture (Optional)</label>
-            <div className="flex rounded-lg bg-gray-800 p-1">
-            </div>
-            <div className="mt-3">
-              <input type="url" value={profileLink} onChange={(e) => setProfileLink(e.target.value)} placeholder="https://example.com/profile.jpg" className="w-full rounded-lg border border-gray-600 bg-gray-800 p-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500" />
-            </div>
-          </div>
-          <div className="mt-6 flex justify-end">
-            <button
-              type="submit"
-              className="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
-            >
-              Save Changes
-            </button>
-          </div>
-        </form>
-      </motion.div>
-    </div>
-  );
-};
-
-const DeleteModal = ({ isOpen, onClose, onConfirm }) => {
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-slate-800 rounded-2xl p-8 border border-slate-700 w-full max-w-md text-center"
-      >
-        <h3 className="text-2xl font-bold mb-4 text-white">Confirm Deletion</h3>
-        <p className="text-gray-400 mb-8">
-          Are you sure you want to delete this testimonial? This action cannot
-          be undone.
-        </p>
-        <div className="flex justify-center gap-4">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 bg-slate-700 text-white font-semibold rounded-lg hover:bg-slate-600 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
-          >
-            Delete
-          </button>
-        </div>
-      </motion.div>
-    </div>
-  );
-};
-
 const AboutPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -703,7 +545,7 @@ const AboutPage = () => {
         const filesCount = filesResult.success ? filesResult.data.length : 0;
 
         const allTestimonials = await fetch(
-          `${API_URL}/api/testimonials/getalltestimonials`,
+          `${API_URL}/api/testimonials/getalltestimonialsapproved`,
         );
         const testimonialsResult = await allTestimonials.json();
         const testimonialsCount = testimonialsResult.success
@@ -774,55 +616,6 @@ const AboutPage = () => {
         message: "Server error. Please try again later.",
         type: "error",
       });
-    }
-  };
-
-  const handleUpdateTestimonial = async (id, data) => {
-    try {
-      const response = await fetch(
-        `${API_URL}/api/testimonials/updatetestimonial/${id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...data,
-            course: user?.course || "Unknown",
-            semester: user?.semester || "Unknown",
-          }),
-        },
-      );
-      const result = await response.json();
-      if (result.success) {
-        toast.success("Testimonial updated successfully!");
-        fetchTestimonials();
-        setModalState({ type: null, data: null });
-      } else {
-        console.error("Failed to update testimonial:", result.message);
-      }
-    } catch (error) {
-      console.error("Error updating testimonial:", error);
-    }
-  };
-
-  const handleDeleteTestimonial = async (id) => {
-    try {
-      const response = await fetch(
-        `${API_URL}/api/testimonials/deletetestimonial/${id}`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user }),
-        },
-      );
-      const result = await response.json();
-      if (result.success) {
-        setTestimonials(testimonials.filter((t) => t._id !== id));
-        setModalState({ type: null, data: null });
-      } else {
-        console.error("Failed to delete testimonial:", result.message);
-      }
-    } catch (error) {
-      console.error("Error deleting testimonial:", error);
     }
   };
 
@@ -1063,41 +856,6 @@ const AboutPage = () => {
             </div>
           </Section>
 
-          <Section title="My Testimonials" subtitle="Your feedback matters!">
-            <div className="max-w-5xl mx-auto">
-              {isLoadingTestimonials ? (
-                <div className="text-center text-gray-400">
-                  Loading testimonials...
-                </div>
-              ) : testimonials.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {testimonials.map((testimonial) => (
-                    <TestimonialCard
-                      key={testimonial._id}
-                      testimonial={testimonial}
-                      currentUser={user}
-                      onEdit={() =>
-                        setModalState({ type: "edit", data: testimonial })
-                      }
-                      onDelete={() =>
-                        setModalState({ type: "delete", data: testimonial })
-                      }
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center bg-slate-800/50 backdrop-blur-xl rounded-2xl p-12 border border-slate-700">
-                  <h3 className="text-2xl font-bold text-white mb-4">
-                    No Testimonials Yet
-                  </h3>
-                  <p className="text-gray-400">
-                    Be the first to share your experience. Post a review above!
-                  </p>
-                </div>
-              )}
-            </div>
-          </Section>
-
           <Section
             title="Technology Stack"
             subtitle="Built with modern tools for optimal performance"
@@ -1158,18 +916,6 @@ const AboutPage = () => {
           </Section>
         </div>
       </div>
-      <EditModal
-        isOpen={modalState.type === "edit"}
-        onClose={() => setModalState({ type: null, data: null })}
-        testimonial={modalState.data}
-        onUpdate={handleUpdateTestimonial}
-        user={user}
-      />
-      <DeleteModal
-        isOpen={modalState.type === "delete"}
-        onClose={() => setModalState({ type: null, data: null })}
-        onConfirm={() => handleDeleteTestimonial(modalState.data._id)}
-      />
     </div>
   );
 };

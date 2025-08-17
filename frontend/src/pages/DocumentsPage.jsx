@@ -616,7 +616,11 @@ const DocumentsPage = () => {
                                 <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                                 <span>{paper.year || "Unknown"}</span>
                                 <span className="text-gray-500">•</span>
-                                <span className="uppercase">{paper.type}</span>
+                                {paper?.resourceType ? (
+                                  <span className="uppercase">{paper.resourceType}</span>
+                                ) : (
+                                  <span className="uppercase">{paper.type || "Unknown"}</span>
+                                )}
                               </div>
                             </div>
                           </div>

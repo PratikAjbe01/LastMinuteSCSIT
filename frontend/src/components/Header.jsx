@@ -30,22 +30,22 @@ const Header = () => {
     };
   }, [isSidebarOpen, editModalOpen]);
 
-  useEffect(()=>{
+  useEffect(() => {
     const fetchUserData = async () => {
-               try {
-                   const response = await fetch(
-                       `${API_URL}/api/auth/fetchuser/${user._id}`,
-                   );
-                   if (!response.ok) throw new Error("Failed to fetch user data.");
-                   const data = await response?.json();
-                   if (data.success) setFetchedUser(data?.user);
-                   else throw new Error(data.message || "Could not retrieve user.");
-               } catch (error) {
-                   console.error(error.message);
-               }
-           };
-     if(user?._id) fetchUserData();
-     console.log(fetchedUser);
+      try {
+        const response = await fetch(
+          `${API_URL}/api/auth/fetchuser/${user._id}`,
+        );
+        if (!response.ok) throw new Error("Failed to fetch user data.");
+        const data = await response?.json();
+        if (data.success) setFetchedUser(data?.user);
+        else throw new Error(data.message || "Could not retrieve user.");
+      } catch (error) {
+        console.error(error.message);
+      }
+    };
+    if (user?._id) fetchUserData();
+    console.log(fetchedUser);
   }, user?._id)
 
   const initials = user?.name
@@ -69,12 +69,12 @@ const Header = () => {
     const items = [
       { href: "/", label: "Home", icon: Home },
       { href: "/scsit/courses", label: "Courses", icon: GraduationCap },
-      { href: "/upload", label: "Upload", icon: Upload },
+      // { href: "/upload", label: "Upload", icon: Upload },
       { href: "/allfiles", label: "All Files", icon: Files },
       { href: "/calculations/tools/cgpa", label: "Tools", icon: PanelTopClose },
-      { href: `/attendance/manager/user/${user?.id}`, label: "Attendance Manager", icon: BookMarked },
-      { href: "/planner/todos", label: "Task Planner", icon: Workflow },
-      { href: "/admins/leaderboard", label: "LeaderBoard", icon: Trophy },
+      // { href: `/attendance/manager/user/${user?.id}`, label: "Attendance Manager", icon: BookMarked },
+      // { href: "/planner/todos", label: "Task Planner", icon: Workflow },
+      // { href: "/admins/leaderboard", label: "LeaderBoard", icon: Trophy },
     ]
 
     if (user) {
@@ -82,9 +82,13 @@ const Header = () => {
     }
 
     if (user?.isAdmin === "admin") {
+      items.push({ href: "/upload", label: "Upload", icon: Upload })
+      items.push({ href: "/admins/leaderboard", label: "LeaderBoard", icon: Trophy })
       items.push({ href: "/profile/files", label: "My Files", icon: File })
       items.push({ href: "/admin/allfiles", label: "Admin Uploads", icon: FileChartPie })
       items.push({ href: "/allusers", label: "All Users", icon: Users })
+    }
+    if (user?.email === "bdhakad886@gmail.com" || user?.email === "pratikajbe40@gmail.com") {
       items.push({ href: "/admins/testimonials", label: "Manage Testimonials", icon: Edit2 })
     }
 
@@ -234,7 +238,7 @@ const Header = () => {
             <div className="p-6 border-t border-slate-700 bg-slate-900 flex-shrink-0">
               {user ? (
                 <div className="space-y-6">
-                  <div className="flex items-center space-x-4 cursor-pointer" onClick={()=>{
+                  <div className="flex items-center space-x-4 cursor-pointer" onClick={() => {
                     closeSidebar();
                     navigate('/user/profile');
                   }}>
@@ -286,17 +290,17 @@ const Header = () => {
                   </div>
                 </div>
               ) : (
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`);
-                  closeSidebar();
-                }}
-                className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg shadow-md hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
-              >
-                Login
-              </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`);
+                    closeSidebar();
+                  }}
+                  className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg shadow-md hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
+                >
+                  Login
+                </motion.button>
               )}
             </div>
           </motion.div>

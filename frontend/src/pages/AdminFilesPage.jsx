@@ -168,6 +168,10 @@ const AdminFilesPage = () => {
     );
 
     useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }, []);
+
+    useEffect(() => {
         if (!user || user.isAdmin !== "admin") {
             toast.error("You must be an Admin to access this page.");
             navigate("/");

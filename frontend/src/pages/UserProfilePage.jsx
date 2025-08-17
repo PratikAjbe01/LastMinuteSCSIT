@@ -437,6 +437,10 @@ const ProfilePage = () => {
     const [selectedTestimonial, setSelectedTestimonial] = useState(null);
 
     useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }, []);
+
+    useEffect(() => {
         if (
             selectedFile ||
             isEditModalOpen ||
@@ -770,7 +774,7 @@ const ProfilePage = () => {
                                                     label="Uploads"
                                                     color="blue"
                                                 />
-                                        )}
+                                            )}
                                         {user?.isAdmin === "admin" && (
                                             <StatCard
                                                 icon={Eye}
