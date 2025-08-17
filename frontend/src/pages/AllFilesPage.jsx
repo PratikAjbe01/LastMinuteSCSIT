@@ -22,6 +22,7 @@ import {
     TrendingUp,
     TrendingDown,
     Clock,
+    Share2Icon,
 } from "lucide-react";
 import FileViewer from "../fileComponents/FileViewer";
 import { API_URL } from "../utils/urls";
@@ -46,6 +47,8 @@ const sortOptions = [
     { value: "oldest", label: "Oldest First" },
     { value: "views_desc", label: "Most Viewed" },
     { value: "views_asc", label: "Least Viewed" },
+    { value: "shares_desc", label: "Most Shared" },
+    { value: "shares_asc", label: "Least Shared" },
     { value: "name_asc", label: "Name (A-Z)" },
     { value: "name_desc", label: "Name (Z-A)" },
 ];
@@ -190,17 +193,7 @@ const AllFilesPage = () => {
             setError(null);
 
             try {
-                let url = `${API_URL}/api/files/allfiles`;
-                const isViewSort =
-                    filters.sortBy &&
-                    (filters.sortBy.value === "views_desc" ||
-                        filters.sortBy.value === "views_asc");
-
-                if (isViewSort) {
-                    url = `${API_URL}/api/files/allfilesbyviews`;
-                }
-
-                const response = await fetch(url);
+                const response = await fetch(`${API_URL}/api/files/allfiles`);
                 const result = await response.json();
 
                 if (!response.ok || !result.success) {
@@ -257,9 +250,16 @@ const AllFilesPage = () => {
                             );
                             break;
                         case "views_desc":
+                            filesToFilter.sort((a, b) => (b.views || 0) - (a.views || 0));
                             break;
                         case "views_asc":
-                            filesToFilter.reverse();
+                            filesToFilter.sort((a, b) => (a.views || 0) - (b.views || 0));
+                            break;
+                        case "shares_desc":
+                            filesToFilter.sort((a, b) => (b.shares || 0) - (a.shares || 0));
+                            break;
+                        case "shares_asc":
+                            filesToFilter.sort((a, b) => (a.shares || 0) - (b.shares || 0));
                             break;
                         case "name_asc":
                             filesToFilter.sort((a, b) => {
@@ -335,17 +335,18 @@ const AllFilesPage = () => {
                 totalFiles: 0,
                 totalCourses: 0,
                 totalSubjects: 0,
-                filteredCount: 0,
+                totalViews: 0,
             };
 
         const uniqueCourses = new Set(allFiles.map((f) => f.course));
         const uniqueSubjects = new Set(allFiles.map((f) => f.subject));
+        const totalViews = allFiles.reduce((sum, file) => sum + (file.views || 0), 0);
 
         return {
             totalFiles: allFiles.length,
             totalCourses: uniqueCourses.size,
             totalSubjects: uniqueSubjects.size,
-            filteredCount: filteredFiles.length,
+            totalViews: totalViews,
         };
     }, [allFiles, filteredFiles]);
 
@@ -463,12 +464,12 @@ const AllFilesPage = () => {
                             <div className="bg-gradient-to-r from-amber-600/20 to-amber-800/20 p-4 rounded-xl border border-amber-700/30">
                                 <div className="flex items-center gap-3">
                                     <div className="bg-amber-500/20 p-2 rounded-lg">
-                                        <Filter className="w-6 h-6 text-amber-400" />
+                                        <Eye className="w-6 h-6 text-amber-400" />
                                     </div>
                                     <div>
-                                        <p className="text-gray-400 text-sm">Filtered</p>
+                                        <p className="text-gray-400 text-sm">Total Views</p>
                                         <p className="text-2xl font-bold text-white">
-                                            {stats.filteredCount}
+                                            {stats.totalViews}
                                         </p>
                                     </div>
                                 </div>
@@ -691,7 +692,7 @@ const AllFilesPage = () => {
                                                     </p>
                                                 )}
                                                 <p className="flex items-center gap-2.5">
-                                                    {file.views > 100 ? (
+                                                    {file.views > 50 ? (
                                                         <TrendingUp
                                                             size={15}
                                                             className="text-green-400 flex-shrink-0"
@@ -707,6 +708,24 @@ const AllFilesPage = () => {
                                                         className="text-blue-400 flex-shrink-0"
                                                     />
                                                     {file.views || 0} views
+                                                </p>
+                                                <p className="flex items-center gap-2.5">
+                                                    {file.views > 20 ? (
+                                                        <TrendingUp
+                                                            size={15}
+                                                            className="text-green-400 flex-shrink-0"
+                                                        />
+                                                    ) : (
+                                                        <TrendingDown
+                                                            size={15}
+                                                            className="text-amber-400 flex-shrink-0"
+                                                        />
+                                                    )}
+                                                    <Share2Icon
+                                                        size={15}
+                                                        className="text-blue-400 flex-shrink-0"
+                                                    />
+                                                    {file.shares || 0} shares
                                                 </p>
                                             </div>
                                         </div>

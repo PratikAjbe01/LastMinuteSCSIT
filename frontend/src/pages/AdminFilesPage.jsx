@@ -488,222 +488,224 @@ const AdminFilesPage = () => {
 
             <div
                 {...swipeHandlers}
-                className="min-h-screen  w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center p-0 pb-8 pt-24"
-            >
-                <Helmet>
-                    <title>Admin Files - Creator Panel</title>
-                    <meta name="description" content="Manage all available files." />
-                </Helmet>
+                className="min-h-screen  w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center p-0 pb-8 pt-24" >
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <Helmet>
+                        <title>Admin Files - Creator Panel</title>
+                        <meta name="description" content="Manage all available files." />
+                    </Helmet>
 
-                <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className="mb-8"
-                    >
-                        <div className="bg-gray-800/50 backdrop-filter backdrop-blur-xl rounded-2xl border border-gray-700 p-6 mb-8">
-                            <h2 className="text-3xl font-bold text-white mb-4">
-                                File Management Dashboard
-                            </h2>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                <div className="bg-blue-600/10 p-5 rounded-xl border border-blue-700/30">
-                                    <h3 className="text-lg font-semibold text-blue-300">
-                                        Total Files
-                                    </h3>
-                                    <p className="text-3xl font-bold text-white">
-                                        {stats.totalFiles}
-                                    </p>
-                                </div>
-                                <div className="bg-green-600/10 p-5 rounded-xl border border-green-700/30">
-                                    <h3 className="text-lg font-semibold text-green-300">
-                                        Courses
-                                    </h3>
-                                    <p className="text-3xl font-bold text-white">
-                                        {stats.courses}
-                                    </p>
-                                </div>
-                                <div className="bg-purple-600/10 p-5 rounded-xl border border-purple-700/30">
-                                    <h3 className="text-lg font-semibold text-purple-300">
-                                        Categories
-                                    </h3>
-                                    <p className="text-3xl font-bold text-white">
-                                        {stats.categories}
-                                    </p>
-                                </div>
-                                <div className="bg-amber-600/10 p-5 rounded-xl border border-amber-700/30">
-                                    <h3 className="text-lg font-semibold text-amber-300">
-                                        Uploaders
-                                    </h3>
-                                    <p className="text-3xl font-bold text-white">
-                                        {stats.uploaders}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="relative z-20 flex flex-wrap items-center justify-between gap-4 mb-8 bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700 p-4">
-                            <div className="flex flex-wrap items-center gap-4">
-                                <FilterDropdown
-                                    options={uniqueUploaders}
-                                    value={uploaderFilter}
-                                    onChange={setUploaderFilter}
-                                    allLabel="All Uploaders"
-                                />
-                                <FilterDropdown
-                                    options={categories}
-                                    value={categoryFilter}
-                                    onChange={setCategoryFilter}
-                                    allLabel="All Categories"
-                                />
-                                <FilterDropdown
-                                    options={coursesList}
-                                    value={courseFilter}
-                                    onChange={setCourseFilter}
-                                    allLabel="All Courses"
-                                />
-                                <FilterDropdown
-                                    options={subjectsList}
-                                    value={subjectFilter}
-                                    onChange={setSubjectFilter}
-                                    allLabel="All Subjects"
-                                />
-                            </div>
-                            <ToggleSwitch
-                                enabled={includeCreators}
-                                setEnabled={setIncludeCreators}
-                                label="Include Creators"
-                            />
-                        </div>
-                    </motion.div>
-                    {isLoading ? (
-                        <div className="flex justify-center items-center h-64">
-                            <Loader className="w-12 h-12 text-green-400 animate-spin" />
-                        </div>
-                    ) : error ? (
-                        <div className="text-center text-red-400 bg-red-500/10 p-6 rounded-2xl flex items-center justify-center gap-3">
-                            <AlertCircle size={24} />
-                            <span className="text-lg">{error}</span>
-                        </div>
-                    ) : filteredFiles.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {filteredFiles.map((file, index) => (
-                                <motion.div
-                                    key={file._id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.5, delay: index * 0.05 }}
-                                    className="bg-gray-800/60 backdrop-blur-xl rounded-2xl border border-gray-700 overflow-hidden flex flex-col h-full"
-                                >
-                                    <div className="p-5 flex-grow">
-                                        <h3 className="text-lg md:text-xl font-bold text-white mb-3 line-clamp-2">
-                                            {file.name || "Untitled File"}
-                                        </h3>
-                                        <div className="space-y-2 text-gray-300 text-sm">
-                                            <p className="flex items-start gap-2">
-                                                <BookDashed
-                                                    size={16}
-                                                    className="text-green-400 mt-0.5 flex-shrink-0"
-                                                />
-                                                <span className="truncate">{file.course || "N/A"}</span>
-                                            </p>
-                                            <p className="flex items-start gap-2">
-                                                <Book
-                                                    size={16}
-                                                    className="text-green-400 mt-0.5 flex-shrink-0"
-                                                />
-                                                <span className="truncate">
-                                                    {file.subject || "N/A"}
-                                                </span>
-                                            </p>
-                                            <p className="flex items-start gap-2">
-                                                <GraduationCap
-                                                    size={16}
-                                                    className="text-green-400 mt-0.5 flex-shrink-0"
-                                                />
-                                                <span>
-                                                    {file.course
-                                                        ? `${file.course} - Sem ${file.semester || "N/A"}`
-                                                        : "N/A"}
-                                                </span>
-                                            </p>
-                                            <p className="flex items-start gap-2">
-                                                <Calendar
-                                                    size={16}
-                                                    className="text-green-400 mt-0.5 flex-shrink-0"
-                                                />
-                                                <span>Year: {file.year || "N/A"}</span>
-                                            </p>
-                                            <p className="flex items-start gap-2">
-                                                <Tag
-                                                    size={16}
-                                                    className="text-green-400 mt-0.5 flex-shrink-0"
-                                                />
-                                                <span className="font-semibold capitalize">
-                                                    Category: {file.category || "N/A"}
-                                                </span>
-                                            </p>
-                                            <p className="flex items-center gap-2 flex-wrap">
-                                                <User size={16} className="text-green-400 shrink-0" />
-                                                <span className="font-semibold truncate">
-                                                    {file.uploadedBy?.name}
-                                                </span>
-                                                {(file?.uploadedBy?.email === "bdhakad886@gmail.com" ||
-                                                    file?.uploadedBy?.email === "pratikajbe40@gmail.com") && (
-                                                        <span className="text-green-500 bg-gray-900 rounded-full px-3 py-1 text-xs font-bold whitespace-nowrap">
-                                                            Creator
-                                                        </span>
-                                                    )}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="bg-gray-900/50 p-3 grid grid-cols-3 gap-2">
-                                        <motion.button
-                                            onClick={() => setSelectedViewFile(file)}
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
-                                        >
-                                            <View size={14} /> View
-                                        </motion.button>
-                                        <motion.button
-                                            onClick={() => openEditModal(file)}
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                                        >
-                                            <Edit size={14} /> Edit
-                                        </motion.button>
-                                        <motion.button
-                                            onClick={() => openDeleteModal(file)}
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
-                                        >
-                                            <Trash2 size={14} /> Delete
-                                        </motion.button>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
-                    ) : (
+                    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <motion.div
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: -20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="text-center py-16 bg-gray-800/30 rounded-2xl border border-gray-700"
+                            transition={{ duration: 0.5 }}
+                            className="mb-8"
                         >
-                            <div className="mx-auto bg-gray-800/50 w-24 h-24 rounded-full flex items-center justify-center border border-gray-700">
-                                <FileX className="w-12 h-12 text-gray-500" />
+                            <div className="bg-gray-800/50 backdrop-filter backdrop-blur-xl rounded-2xl border border-gray-700 p-6 mb-8">
+                                <h2 className="text-3xl font-bold text-white mb-4">
+                                    File Management Dashboard
+                                </h2>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                    <div className="bg-blue-600/10 p-5 rounded-xl border border-blue-700/30">
+                                        <h3 className="text-lg font-semibold text-blue-300">
+                                            Total Files
+                                        </h3>
+                                        <p className="text-3xl font-bold text-white">
+                                            {stats.totalFiles}
+                                        </p>
+                                    </div>
+                                    <div className="bg-green-600/10 p-5 rounded-xl border border-green-700/30">
+                                        <h3 className="text-lg font-semibold text-green-300">
+                                            Courses
+                                        </h3>
+                                        <p className="text-3xl font-bold text-white">
+                                            {stats.courses}
+                                        </p>
+                                    </div>
+                                    <div className="bg-purple-600/10 p-5 rounded-xl border border-purple-700/30">
+                                        <h3 className="text-lg font-semibold text-purple-300">
+                                            Categories
+                                        </h3>
+                                        <p className="text-3xl font-bold text-white">
+                                            {stats.categories}
+                                        </p>
+                                    </div>
+                                    <div className="bg-amber-600/10 p-5 rounded-xl border border-amber-700/30">
+                                        <h3 className="text-lg font-semibold text-amber-300">
+                                            Uploaders
+                                        </h3>
+                                        <p className="text-3xl font-bold text-white">
+                                            {stats.uploaders}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                            <h3 className="mt-6 text-2xl font-bold text-white">
-                                No Files Found
-                            </h3>
-                            <p className="mt-2 text-gray-400 max-w-md mx-auto">
-                                No files match the selected filters.
-                            </p>
+                            <div className="relative z-20 flex flex-wrap items-center justify-between gap-4 mb-8 bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700 p-4">
+                                <div className="flex flex-wrap items-center gap-4">
+                                    <FilterDropdown
+                                        options={uniqueUploaders}
+                                        value={uploaderFilter}
+                                        onChange={setUploaderFilter}
+                                        allLabel="All Uploaders"
+                                    />
+                                    <FilterDropdown
+                                        options={categories}
+                                        value={categoryFilter}
+                                        onChange={setCategoryFilter}
+                                        allLabel="All Categories"
+                                    />
+                                    <FilterDropdown
+                                        options={coursesList}
+                                        value={courseFilter}
+                                        onChange={setCourseFilter}
+                                        allLabel="All Courses"
+                                    />
+                                    <FilterDropdown
+                                        options={subjectsList}
+                                        value={subjectFilter}
+                                        onChange={setSubjectFilter}
+                                        allLabel="All Subjects"
+                                    />
+                                </div>
+                                <ToggleSwitch
+                                    enabled={includeCreators}
+                                    setEnabled={setIncludeCreators}
+                                    label="Include Creators"
+                                />
+                            </div>
                         </motion.div>
-                    )}
+                        {isLoading ? (
+                            <div className="flex justify-center items-center h-64">
+                                <Loader className="w-12 h-12 text-green-400 animate-spin" />
+                            </div>
+                        ) : error ? (
+                            <div className="text-center text-red-400 bg-red-500/10 p-6 rounded-2xl flex items-center justify-center gap-3">
+                                <AlertCircle size={24} />
+                                <span className="text-lg">{error}</span>
+                            </div>
+                        ) : filteredFiles.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {filteredFiles.map((file, index) => (
+                                    <motion.div
+                                        key={file._id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.5, delay: index * 0.05 }}
+                                        className="bg-gray-800/60 backdrop-blur-xl rounded-2xl border border-gray-700 overflow-hidden flex flex-col h-full"
+                                    >
+                                        <div className="p-5 flex-grow">
+                                            <h3 className="text-lg md:text-xl font-bold text-white mb-3 line-clamp-2">
+                                                {file.name || "Untitled File"}
+                                            </h3>
+                                            <div className="space-y-2 text-gray-300 text-sm">
+                                                <p className="flex items-start gap-2">
+                                                    <BookDashed
+                                                        size={16}
+                                                        className="text-green-400 mt-0.5 flex-shrink-0"
+                                                    />
+                                                    <span className="truncate">{file.course || "N/A"}</span>
+                                                </p>
+                                                <p className="flex items-start gap-2">
+                                                    <Book
+                                                        size={16}
+                                                        className="text-green-400 mt-0.5 flex-shrink-0"
+                                                    />
+                                                    <span className="truncate">
+                                                        {file.subject || "N/A"}
+                                                    </span>
+                                                </p>
+                                                <p className="flex items-start gap-2">
+                                                    <GraduationCap
+                                                        size={16}
+                                                        className="text-green-400 mt-0.5 flex-shrink-0"
+                                                    />
+                                                    <span>
+                                                        {file.course
+                                                            ? `${file.course} - Sem ${file.semester || "N/A"}`
+                                                            : "N/A"}
+                                                    </span>
+                                                </p>
+                                                <p className="flex items-start gap-2">
+                                                    <Calendar
+                                                        size={16}
+                                                        className="text-green-400 mt-0.5 flex-shrink-0"
+                                                    />
+                                                    <span>Year: {file.year || "N/A"}</span>
+                                                </p>
+                                                <p className="flex items-start gap-2">
+                                                    <Tag
+                                                        size={16}
+                                                        className="text-green-400 mt-0.5 flex-shrink-0"
+                                                    />
+                                                    <span className="font-semibold capitalize">
+                                                        Category: {file.category || "N/A"}
+                                                    </span>
+                                                </p>
+                                                <p className="flex items-center gap-2 flex-wrap">
+                                                    <User size={16} className="text-green-400 shrink-0" />
+                                                    <span className="font-semibold truncate">
+                                                        {file.uploadedBy?.name}
+                                                    </span>
+                                                    {(file?.uploadedBy?.email === "bdhakad886@gmail.com" ||
+                                                        file?.uploadedBy?.email === "pratikajbe40@gmail.com") && (
+                                                            <span className="text-green-500 bg-gray-900 rounded-full px-3 py-1 text-xs font-bold whitespace-nowrap">
+                                                                Creator
+                                                            </span>
+                                                        )}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="bg-gray-900/50 p-3 grid grid-cols-3 gap-2">
+                                            <motion.button
+                                                onClick={() => setSelectedViewFile(file)}
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+                                            >
+                                                <View size={14} /> View
+                                            </motion.button>
+                                            <motion.button
+                                                onClick={() => openEditModal(file)}
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                                            >
+                                                <Edit size={14} /> Edit
+                                            </motion.button>
+                                            <motion.button
+                                                onClick={() => openDeleteModal(file)}
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                                            >
+                                                <Trash2 size={14} /> Delete
+                                            </motion.button>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        ) : (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="text-center py-16 bg-gray-800/30 rounded-2xl border border-gray-700"
+                            >
+                                <div className="mx-auto bg-gray-800/50 w-24 h-24 rounded-full flex items-center justify-center border border-gray-700">
+                                    <FileX className="w-12 h-12 text-gray-500" />
+                                </div>
+                                <h3 className="mt-6 text-2xl font-bold text-white">
+                                    No Files Found
+                                </h3>
+                                <p className="mt-2 text-gray-400 max-w-md mx-auto">
+                                    No files match the selected filters.
+                                </p>
+                            </motion.div>
+                        )}
+                    </div>
                 </div>
             </div>
+
             <AnimatePresence>
                 {isEditModalOpen && (
                     <motion.div

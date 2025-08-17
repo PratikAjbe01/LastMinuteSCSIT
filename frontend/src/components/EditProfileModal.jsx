@@ -1,22 +1,21 @@
 import { useState, useMemo, useEffect } from "react";
-import { User, Mail, ShieldCheck, BookOpen, GraduationCap, Save, X, RotateCw } from "lucide-react";
+import { User, Mail, ShieldCheck, BookOpen, GraduationCap, Save, X, RotateCw, User2Icon } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import { API_URL } from "../utils/urls";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { courses, semestersByCourse, subjectsByCourseAndSemester } from "../utils/Data";
 
 const Modal = ({ children, onClose, title }) => (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 z-50" onClick={onClose}>
-        <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl border border-gray-600/50 shadow-2xl shadow-teal-500/10 overflow-hidden w-full max-w-2xl transform transition-all duration-200 scale-100" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center p-6 border-b border-gray-700/50 bg-gradient-to-r from-gray-800 to-gray-900">
+        <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl border border-gray-600/50 shadow-2xl shadow-teal-500/10 overflow-hidden w-full max-w-2xl transform transition-all duration-200 scale-100 max-h-[80vh] md:max-h-[95vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center p-6 border-b border-gray-700/50 bg-gradient-to-r from-gray-800 to-gray-900 flex-shrink-0">
                 <h3 className="text-2xl font-bold text-white flex items-center gap-3"><User /> {title}</h3>
                 <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors rounded-full p-2 hover:bg-gray-700/50" aria-label={`Close ${title} modal`}>
                     <X size={24} />
                 </button>
             </div>
-            <div className="p-8">{children}</div>
+            <div className="p-8 overflow-y-auto flex-grow">{children}</div>
         </div>
     </div>
 );
@@ -73,7 +72,7 @@ const CustomSelect = ({ options, value, onChange, placeholder, disabled, icon: I
     );
 };
 
-export const EditProfileModal = ({ onClose }) => {
+export const EditProfileModal = ({ onClose, setIsUserEdited }) => {
     const { checkAuth, setUser, user } = useAuthStore();
     const [userSemester, setUserSemester] = useState(null);
     const navigate = useNavigate();
@@ -98,6 +97,7 @@ export const EditProfileModal = ({ onClose }) => {
         username: user?.username || user?.name || '',
         course: user?.course || null,
         semester: user?.semester || null,
+        profileurl: user?.profileUrl || '',
     });
     const [isSaving, setIsSaving] = useState(false);
 
@@ -117,6 +117,7 @@ export const EditProfileModal = ({ onClose }) => {
                 checkAuth();
                 onClose();
                 setUser(data.user);
+                setIsUserEdited((prev)=>!prev);
                 toast.success("Profile updated successfully!");
             } else {
                 console.error("Error updating profile:", data.message);
@@ -175,11 +176,11 @@ export const EditProfileModal = ({ onClose }) => {
     const handleProfileLoad = async () => {
         setLoadLoading(true);
           try {
-            const response = await axios.get(`${API_URL}/api/auth/fetchuser/${user._id}`);
-            console.log("Fetched user:", response.data.user);
-            if (response?.data?.user) {
-                localStorage.setItem("user", JSON.stringify(response.data.user));
-                setUser(response.data.user);
+            const response = await fetch(`${API_URL}/api/auth/fetchuser/${user._id}`);
+            const data = await response.json();
+            console.log("Fetched user:", data.user);
+            if (data?.user) {
+                setUser(data.user);
             }
             setLoadLoading(false);
         } catch (error) {
@@ -191,8 +192,8 @@ export const EditProfileModal = ({ onClose }) => {
 
     return (
         <Modal title="Edit Profile" onClose={onClose}>
-            <div className="space-y-8">
-                <div className="space-y-6 opacity-100">
+            <div className="space-y-8 h-full flex flex-col">
+                <div className="space-y-6 opacity-100 flex-grow">
                     <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 w-full justify-between">
                         <div className="w-full opacity-100">
                             <label htmlFor="course" className="text-sm font-semibold text-gray-300 mb-2 block">Course</label>
@@ -229,9 +230,22 @@ export const EditProfileModal = ({ onClose }) => {
                                 placeholder="Enter your full name"
                             />
                         </div>
+
+                        <label htmlFor="profileurl" className="text-sm font-semibold text-gray-300 mb-2 block mt-6">Profile URL</label>
+                        <div className="relative">
+                            <User2Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                            <input
+                                id="profileurl"
+                                type="text"
+                                value={profileData.profileurl}
+                                onChange={(e) => setProfileData({ ...profileData, profileurl: e.target.value })}
+                                className="w-full pl-12 pr-4 py-4 bg-gray-700/50 rounded-xl border border-gray-600/50 text-white placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                                placeholder="Ex- https://yourprofileurl.com"
+                            />
+                        </div>
                     </div>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-2xl border border-gray-700/50 flex-col sm:flex-row gap-4">
+                <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-2xl border border-gray-700/50 flex-col sm:flex-row gap-4 flex-shrink-0">
                     <div className="flex items-center gap-4">
                         <Mail size={20} className="text-teal-400" />
                         <span className="font-medium text-gray-200">{user?.email}</span>
@@ -243,7 +257,7 @@ export const EditProfileModal = ({ onClose }) => {
                         </div>
                     )}
                 </div>
-                <div className="flex flex-col sm:flex-row justify-end gap-4 pt-6 border-t border-gray-700/50">
+                <div className="flex flex-col sm:flex-row justify-end gap-4 pt-6 border-t border-gray-700/50 flex-shrink-0">
                   <button
                             onClick={() => {
                                 handleProfileLoad();

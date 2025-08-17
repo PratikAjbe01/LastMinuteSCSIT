@@ -7,6 +7,7 @@ import { Navigate } from "react-router-dom"
 import { RWebShare } from "react-web-share"
 import Img from "../components/lazyLoadImage/Img"
 import { API_URL, CLIENT_URL } from "../utils/urls"
+import { useAuthStore } from './../store/authStore';
 
 const Watermark = () => {
   const watermarkText = "© LastMinute SCSIT";
@@ -33,6 +34,7 @@ const Watermark = () => {
 };
 
 const FileViewer = ({ file, onClose }) => {
+  const { user } = useAuthStore();
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [pdfUrl, setPdfUrl] = useState(null);
@@ -66,10 +68,55 @@ const FileViewer = ({ file, onClose }) => {
       }
     };
 
+    const addFileToUserOpenedArray = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/auth/add-opened-file`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ fileId: file._id, userId: user?._id }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('View count increased:', result);
+      } catch (error) {
+        console.error('Error increasing file views:', error);
+      }
+    };
+
     if (file && file._id) {
       increaseViews();
     }
+    if (user?._id) {
+      addFileToUserOpenedArray();
+    }
   }, [file]);
+
+  const increaseFileShares = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/files/increasefileshares`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: file._id }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Share count increased:', result);
+    } catch (error) {
+      console.error('Error increasing file shares:', error);
+    }
+  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -203,17 +250,17 @@ const FileViewer = ({ file, onClose }) => {
           </div>
         </div>
         <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
-            <motion.div
-              whileHover={{ scale: 1.1, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              title={`${file?.views || 0} Views`}
-              className="group flex cursor-pointer items-center justify-center gap-x-1.5 rounded-full border border-white/10 bg-black/20 backdrop-blur-sm px-3 py-2 text-sm font-medium shadow-lg shadow-black/20 transition-all duration-300 ease-out hover:border-green-400/40 hover:bg-green-500/15 hover:shadow-xl hover:shadow-green-500/20 active:shadow-md min-w-[70px]"
-            >
-              <Eye className="h-4 w-4 text-green-400 transition-all duration-300 group-hover:text-green-300 group-hover:drop-shadow-sm flex-shrink-0" />
-              <span className="font-semibold tracking-wider text-green-300 transition-all duration-300 group-hover:text-green-200 group-hover:drop-shadow-sm leading-none tabular-nums">
-                {file?.views || 0}
-              </span>
-            </motion.div>
+          <motion.div
+            whileHover={{ scale: 1.1, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            title={`${file?.views || 0} Views`}
+            className="group flex cursor-pointer items-center justify-center gap-x-1.5 rounded-full border border-white/10 bg-black/20 backdrop-blur-sm px-3 py-2 text-sm font-medium shadow-lg shadow-black/20 transition-all duration-300 ease-out hover:border-green-400/40 hover:bg-green-500/15 hover:shadow-xl hover:shadow-green-500/20 active:shadow-md min-w-[70px]"
+          >
+            <Eye className="h-4 w-4 text-green-400 transition-all duration-300 group-hover:text-green-300 group-hover:drop-shadow-sm flex-shrink-0" />
+            <span className="font-semibold tracking-wider text-green-300 transition-all duration-300 group-hover:text-green-200 group-hover:drop-shadow-sm leading-none tabular-nums">
+              {file?.views || 0}
+            </span>
+          </motion.div>
           <div className="hidden sm:flex items-center space-x-1 bg-gray-700 rounded-lg p-1">
             <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleZoomOut} className="p-2 text-gray-300 hover:text-white hover:bg-gray-600 rounded transition-colors" disabled={zoom <= 0.5}>
               <ZoomOut className="w-4 h-4" />
@@ -230,11 +277,20 @@ const FileViewer = ({ file, onClose }) => {
             <RefreshCcw className="w-4 h-4" />
             Reset
           </motion.button>
-          <RWebShare data={{ text: `Check out this file from SCSIT: ${file?.name || file?.title}`, url: `${CLIENT_URL}/share/file/${file?._id}`, title: `LastMinute SCSIT Shared you a file - ${file?.name || file?.title}` }}>
-            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="p-2 sm:p-3 text-gray-300 hover:text-white hover:bg-gray-600 transition-colors bg-gray-700 rounded-lg">
-              <Share2 className="w-4 h-4" />
-            </motion.button>
-          </RWebShare>
+          <motion.button onClick={() => increaseFileShares()}>
+            <RWebShare data={{ text: `Check out this file from SCSIT: ${file?.name || file?.title}`, url: `${CLIENT_URL}/share/file/${file?._id}`, title: `LastMinute SCSIT Shared you a file - ${file?.name || file?.title}` }}>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-x-1.5 sm:gap-x-2 px-2 py-1 sm:py-2 sm:px-2.5 md:px-3 text-gray-300 hover:text-white hover:bg-gray-600 transition-all duration-200 bg-gray-700 rounded-lg"
+              >
+                <span className="text-xs sm:text-base">
+                  {file?.shares || 0}
+                </span>
+                <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+              </motion.button>
+            </RWebShare>
+          </motion.button>
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={onClose} className="p-2 sm:p-3 bg-red-600 text-white hover:bg-red-700 rounded-lg transition-colors">
             <X className="w-4 h-4" />
           </motion.button>

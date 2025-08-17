@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useContext, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { BookOpen, User, LogOut, Menu, X, Home, Upload, GraduationCap, File, Files, PanelTopClose, BookMarked, Workflow, Edit, FileChartPie, Users, Trophy, Edit2 } from "lucide-react"
+import { BookOpen, User, LogOut, Menu, X, Home, Upload, GraduationCap, File, Files, PanelTopClose, BookMarked, Workflow, Edit, FileChartPie, Users, Trophy, Edit2, User2 } from "lucide-react"
 import { useMatch, useNavigate, useLocation } from "react-router-dom" // Added useLocation
 import { useAuthStore } from "../store/authStore"
 import { ValuesContext } from "../context/ValuesContext"
@@ -12,13 +12,13 @@ import toast from "react-hot-toast"
 
 const Header = () => {
   const navigate = useNavigate()
-  const location = useLocation() // Get current location
+  const location = useLocation() 
   const { user, logout } = useAuthStore()
   const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
   const [editModalOpen, setEditModalOpen] = useState(false);
 
   useEffect(() => {
-    if (isSidebarOpen) {
+    if (isSidebarOpen || editModalOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'auto';
@@ -26,7 +26,7 @@ const Header = () => {
     return () => {
       document.body.style.overflow = 'auto';
     };
-  }, [isSidebarOpen]);
+  }, [isSidebarOpen, editModalOpen]);
 
   const initials = user?.name
     ? user.name
@@ -57,6 +57,10 @@ const Header = () => {
       { href: "/admins/leaderboard", label: "LeaderBoard", icon: Trophy },
     ]
 
+    if(user){
+      items.push({ href: "/user/profile", label: "Profile", icon: User2 })
+    }
+
     if (user?.isAdmin==="admin") {
       items.push({ href: "/profile/files", label: "My Files", icon: File })
       items.push({ href: "/admin/allfiles", label: "Admin Uploads", icon: FileChartPie })
@@ -78,7 +82,7 @@ const Header = () => {
     await logout()
     closeSidebar()
     localStorage.removeItem("user");
-    navigate("/login")
+    navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`);
   }
 
   const isSemestersPage = useMatch('/scsit/:course/semesters');
@@ -253,8 +257,8 @@ const Header = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => {
-                    navigate("/login")
-                    closeSidebar()
+                    navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`);
+                    closeSidebar();
                   }}
                   className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg shadow-md hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
                 >
@@ -267,7 +271,8 @@ const Header = () => {
       </AnimatePresence>
       {editModalOpen && (
         <EditProfileModal
-          isOpen={editModalOpen}
+          isOpen={editModalOpen} 
+          setIsOpen={setEditModalOpen}
           onClose={() => setEditModalOpen(false)}
         />
       )}

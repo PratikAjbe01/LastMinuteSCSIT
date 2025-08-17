@@ -184,6 +184,7 @@ export const getAllTestimonialsWithUserInfo = async (req, res) => {
                     status: 1,
                     show: 1,
                     rating: 1,
+                    userProfile: 1,
                     createdAt: 1,
                     updatedAt: 1,
                     isUserAdmin: 1,

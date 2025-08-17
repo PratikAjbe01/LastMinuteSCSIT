@@ -14,6 +14,7 @@ import {
 	updateUser,
 	deleteUser,
 	sendVerifyEmail,
+	addOpenedFile,
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -37,5 +38,7 @@ router.post("/update-profile", updateProfile);
 router.post("/delete-user", deleteUser);
 router.post("/update-user", updateUser);
 router.post("/sendverifyemail", sendVerifyEmail);
+
+router.put("/add-opened-file", addOpenedFile);
 
 export default router;

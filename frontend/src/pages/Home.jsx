@@ -230,7 +230,7 @@ const HomePage = () => {
     <>
       <div
         {...swipeHandlers}
-        className="min-h-screen w-full relative pt-20 bg-gradient-to-br from-gray-900 via-blue-900 to-slate-900 z-0"
+        className="min-h-screen w-full relative pt-20 bg-gradient-to-br from-gray-900 via-blue-900 to-slate-900 z-0 overflow-x-auto"
       >
         <Helmet>
           <title>lastMinuteSCSIT - Home</title>

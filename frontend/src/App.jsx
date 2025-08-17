@@ -33,16 +33,23 @@ import UsersPage from "./pages/AllUsersPage";
 import VerifyUserEmail from "./pages/VerifyEmailPage";
 import LeaderboardPage from "./pages/LeaderBoardPage";
 import ManageTestimonials from "./pages/ManageTestimonials";
+import ProfilePage from "./pages/UserProfilePage";
 
 const ProtectedRoute = ({ children }) => {
 	const { user } = useAuthStore();
 	if (!user) return <Navigate to='/login' replace />;
 	return children;
 };
-
 const RedirectAuthenticatedUser = ({ children }) => {
 	const { user } = useAuthStore();
-	if (user) return <Navigate to='/' replace />;
+	const location = useLocation();
+
+	if (user) {
+		const searchParams = new URLSearchParams(location.search);
+		const redirectPath = searchParams.get('redirect') || '/';
+		return <Navigate to={redirectPath} replace />;
+	}
+
 	return children;
 };
 
@@ -283,6 +290,14 @@ function App() {
 						element={
 							<ProtectedRoute>
 								<ManageTestimonials />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path='/user/profile'
+						element={
+							<ProtectedRoute>
+								<ProfilePage />
 							</ProtectedRoute>
 						}
 					/>

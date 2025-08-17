@@ -26,7 +26,7 @@ const ViewTestimonialModal = ({ testimonial, onClose }) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/70 backdrop-blur-3xl flex items-center justify-center z-50 p-4"
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
@@ -38,26 +38,26 @@ const ViewTestimonialModal = ({ testimonial, onClose }) => {
       >
         <div className="p-8 flex flex-col items-center justify-center text-center bg-slate-900/50 border-r border-slate-700">
           {testimonial?.userProfile ? (
-                          <img
-                            src={testimonial.userProfile}
-                            alt={testimonial.username}
-                            className="w-24 h-24 mb-4 rounded-full flex items-center justify-center font-bold text-white text-4xl shrink-0"
-                          />
-                        ) : (
-                          <div className="w-24 h-24 mb-4 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center font-bold text-white text-4xl shrink-0">
-                            {testimonial.username
-                              .split(" ")
-                              .map((n) => n[0])
-                              .slice(0, 2)
-                              .join("")}
-                          </div>
-                        )}
+            <img
+              src={testimonial.userProfile}
+              alt={testimonial.username}
+              className="w-24 h-24 mb-4 rounded-full flex items-center justify-center font-bold text-white text-4xl shrink-0"
+            />
+          ) : (
+            <div className="w-24 h-24 mb-4 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center font-bold text-white text-4xl shrink-0">
+              {testimonial.username
+                .split(" ")
+                .map((n) => n[0])
+                .slice(0, 2)
+                .join("")}
+            </div>
+          )}
           <h3 className="text-xl font-bold text-white">
             {testimonial.username}
           </h3>
           <p className="text-sm text-gray-400 mb-4">{testimonial.userEmail}</p>
-           {testimonial?.isUserAdmin && (
-                      <p className="text-sm text-gray-400 mb-4 bg-slate-900/80 rounded-xl p-2 px-3">Important Figure</p>
+          {testimonial?.isUserAdmin && (
+            <p className="text-sm text-gray-400 mb-4 bg-slate-900/80 rounded-xl p-2 px-3">Important Figure</p>
           )}
 
           <div className="text-left w-full space-y-3 text-sm">
@@ -349,7 +349,7 @@ const Testimonials = () => {
                   >
                     <div>
                       <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-                       {testimonial?.userProfile ? (
+                        {testimonial?.userProfile ? (
                           <img
                             src={testimonial.userProfile}
                             alt={testimonial.username}

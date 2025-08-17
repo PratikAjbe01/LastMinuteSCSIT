@@ -160,7 +160,7 @@ export const fetchFilesCourseAndSemester = async (req, res) => {
     }
 
     const files = await File.find({ course, semester: semesterNum })
-      .select('name type course subject semester year fileUrl category contentType format views resourceType uploadedBy')
+      .select('name type course subject semester year fileUrl category contentType format views shares resourceType uploadedBy')
       .lean();
 
     if (!files.length) {
@@ -285,6 +285,7 @@ export const fetchAllFilesByViews = async (req, res) => {
           category: 1,
           resourceType: 1,
           views: 1,
+          shares: 1,
           createdAt: 1,
           updatedAt: 1,
           uploadedBy: {
@@ -672,6 +673,36 @@ export const increaseFileViews = async (req, res) => {
   }
 };
 
+export const increaseFileShares = async (req, res) => {
+  try {
+    const { id } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ success: false, message: 'Invalid file ID' });
+    }
+
+    const file = await File.findById(id);
+
+    if (!file) {
+      return res.status(404).json({ success: false, message: 'File not found' });
+    }
+
+    file.shares = (file.shares || 0) + 1;
+
+    await file.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'File shares updated successfully',
+      data: file,
+    });
+
+  } catch (err) {
+    console.error('Increase file shares error:', err);
+    res.status(500).json({ success: false, message: 'Server error: Failed to increase file shares.', error: err.message });
+  }
+};
+
 export const getLeaderboard = async (req, res) => {
   try {
     const { timeFilter } = req.query;
@@ -742,6 +773,19 @@ export const getLeaderboard = async (req, res) => {
           uploadCount: 1,
           lastUpload: 1,
           firstUpload: 1,
+          name: 1,
+          type: 1,
+          course: 1,
+          subject: 1,
+          year: 1,
+          semester: 1,
+          isFree: 1,
+          fileUrl: 1,
+          contentType: 1,
+          category: 1,
+          resourceType: 1,
+          views: 1,
+          shares: 1,
           user: {
             _id: "$userDetails._id",
             name: "$userDetails.name",
