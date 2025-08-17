@@ -37,9 +37,14 @@ import ProfilePage from "./pages/UserProfilePage";
 
 const ProtectedRoute = ({ children }) => {
 	const { user } = useAuthStore();
-	if (!user) return <Navigate to='/login' replace />;
+	if (!user) {
+		const searchParams = new URLSearchParams(location.search);
+		const redirectPath = searchParams.get('redirect') || '/';
+		return <Navigate to={redirectPath} replace />;
+	};
 	return children;
 };
+
 const RedirectAuthenticatedUser = ({ children }) => {
 	const { user } = useAuthStore();
 	const location = useLocation();

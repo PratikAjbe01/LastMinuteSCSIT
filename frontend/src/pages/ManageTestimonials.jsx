@@ -522,7 +522,7 @@ const ManageTestimonials = () => {
       </div>
       <div
         {...swipeHandlers}
-        className="relative min-h-screen w-full overflow-hidden flex items-center justify-cente pt-24 pb-12 sm:px-14 lg:px-8"
+        className="relative min-h-screen w-full overflow-hidden flex items-center justify-center pt-24 pb-12 sm:px-14 lg:px-8 bg-gradient-to-br from-gray-900 via-slate-900 to-black"
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <Helmet>
