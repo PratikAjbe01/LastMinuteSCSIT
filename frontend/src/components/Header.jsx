@@ -74,7 +74,7 @@ const Header = () => {
       { href: "/calculations/tools/cgpa", label: "Tools", icon: PanelTopClose },
       // { href: `/attendance/manager/user/${user?.id}`, label: "Attendance Manager", icon: BookMarked },
       // { href: "/planner/todos", label: "Task Planner", icon: Workflow },
-      { href: "/admins/leaderboard", label: "LeaderBoard", icon: Trophy },
+      // { href: "/admins/leaderboard", label: "LeaderBoard", icon: Trophy },
     ]
 
     if (user) {
