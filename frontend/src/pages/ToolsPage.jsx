@@ -67,10 +67,10 @@ const Toast = ({ message, type, onClose }) => (
     animate={{ opacity: 1, y: 0, scale: 1 }}
     exit={{ opacity: 0, y: 50, scale: 0.9 }}
     className={`fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 p-4 sm:px-6 sm:py-4 rounded-2xl shadow-2xl text-white backdrop-blur-xl z-50 ${type === "error"
-        ? "bg-red-500/90 shadow-red-500/30"
-        : type === "warning"
-          ? "bg-orange-500/90 shadow-orange-500/30"
-          : "bg-green-500/90 shadow-green-500/30"
+      ? "bg-red-500/90 shadow-red-500/30"
+      : type === "warning"
+        ? "bg-orange-500/90 shadow-orange-500/30"
+        : "bg-green-500/90 shadow-green-500/30"
       }`}
     role="alert"
   >
@@ -1408,8 +1408,8 @@ const AttendanceCalculator = ({ showToast }) => {
                           <div className="flex-1 bg-gray-700/50 rounded-full h-6 overflow-hidden">
                             <motion.div
                               className={`h-full flex items-center justify-end px-3 ${isLow
-                                  ? "bg-gradient-to-r from-red-500 to-red-400"
-                                  : "bg-gradient-to-r from-purple-500 to-purple-400"
+                                ? "bg-gradient-to-r from-red-500 to-red-400"
+                                : "bg-gradient-to-r from-purple-500 to-purple-400"
                                 }`}
                               initial={{ width: 0 }}
                               animate={{ width: `${percentage}%` }}
@@ -1724,16 +1724,16 @@ const ScientificCalculator = ({ showToast, showSCSIT, setShowSCSIT }) => {
             whileTap={{ scale: 0.95 }}
             onClick={() => handleButtonClick(button)}
             className={`p-2 h-12 sm:h-14 rounded-xl text-white font-semibold text-xs sm:text-sm transition-all flex items-center justify-center ${["C", "CE"].includes(button)
-                ? "bg-red-500/20 hover:bg-red-500/30 text-red-400"
-                : ["MC", "MR", "M+", "M-"].includes(button)
-                  ? "bg-gray-700/50 hover:bg-gray-700/70 text-gray-300"
-                  : ["sin", "cos", "tan", "sin⁻¹", "cos⁻¹", "tan⁻¹", "√", "nCr", "nPr", "!", "log", "exp", "x²", "xʸ", "ln", "abs", "rand", "mod", "round"].includes(button)
-                    ? "bg-blue-500/20 hover:bg-blue-500/30 text-blue-400"
-                    : button === "="
-                      ? "bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white"
-                      : ["÷", "×", "-", "+"].includes(button)
-                        ? "bg-orange-500/20 hover:bg-orange-500/30 text-orange-400"
-                        : "bg-gray-800/50 hover:bg-gray-800/70"
+              ? "bg-red-500/20 hover:bg-red-500/30 text-red-400"
+              : ["MC", "MR", "M+", "M-"].includes(button)
+                ? "bg-gray-700/50 hover:bg-gray-700/70 text-gray-300"
+                : ["sin", "cos", "tan", "sin⁻¹", "cos⁻¹", "tan⁻¹", "√", "nCr", "nPr", "!", "log", "exp", "x²", "xʸ", "ln", "abs", "rand", "mod", "round"].includes(button)
+                  ? "bg-blue-500/20 hover:bg-blue-500/30 text-blue-400"
+                  : button === "="
+                    ? "bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white"
+                    : ["÷", "×", "-", "+"].includes(button)
+                      ? "bg-orange-500/20 hover:bg-orange-500/30 text-orange-400"
+                      : "bg-gray-800/50 hover:bg-gray-800/70"
               }`}
             title={button}
             aria-label={`Calculator button ${button}`}
@@ -2090,11 +2090,6 @@ const CalculatorPage = () => {
     onSwipedLeft: () => {
       if (isMobile && !isExcludedRoute) {
         setIsSidebarOpen(true);
-      }
-    },
-    onSwipedRight: () => {
-      if (isMobile && !isExcludedRoute && isSidebarOpen) {
-        setIsSidebarOpen(false);
       }
     },
     preventDefaultTouchmoveEvent: false,

@@ -29,12 +29,18 @@ const userSchema = new mongoose.Schema(
 			type: Boolean,
 			default: false,
 		},
-		isAdmin:{
-        type: String,
-        enum: ['user','admin'],
-        default: 'user'
-         },
-
+		isAdmin: {
+			type: String,
+			enum: ['user', 'admin'],
+			default: 'user'
+		},
+		profileUrl: {
+			type: String,
+		},
+		openedFiles: {
+			type: [String],
+			default: [],
+		},
 		resetPasswordToken: String,
 		resetPasswordExpiresAt: Date,
 		verificationToken: String,

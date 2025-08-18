@@ -9,7 +9,7 @@ import { useSwipeable } from "react-swipeable"
 import { ValuesContext } from "../context/ValuesContext"
 
 const Courses = () => {
-  
+
   const courses = [
     {
       id: 1,
@@ -117,37 +117,31 @@ const Courses = () => {
     },
   ]
 
-   useEffect(() => {
+  useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }, [])
 
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
 
-   const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
-  
-    const isExcludedRoute = location.pathname.startsWith("/login") || location.pathname === "/signup";
-    const isMobile = window.innerWidth <= 768;
-    const swipeHandlers = useSwipeable({
-      onSwipedLeft: () => {
-        if (isMobile && !isExcludedRoute) {
-          setIsSidebarOpen(true);
-          console.log("Swiped left - opening sidebar");
-        }
-      },
-      onSwipedRight: () => {
-        if (isMobile && !isExcludedRoute && isSidebarOpen) {
-          setIsSidebarOpen(false);
-          console.log("Swiped right - closing sidebar");
-        }
-      },
-      preventDefaultTouchmoveEvent: false,
-      trackMouse: false,
-      delta: 30,
-    });
+  const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
+
+  const isExcludedRoute = location.pathname.startsWith("/login") || location.pathname === "/signup";
+  const isMobile = window.innerWidth <= 768;
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => {
+      if (isMobile && !isExcludedRoute) {
+        setIsSidebarOpen(true);
+        console.log("Swiped left - opening sidebar");
+      }
+    },
+    preventDefaultTouchmoveEvent: false,
+    trackMouse: false,
+    delta: 30,
+  });
 
   return (
     <div {...swipeHandlers} className="min-h-full w-full h-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center justify-center p-0 pb-8 pt-16">
-     <Helmet>
+      <Helmet>
         <title>Courses - LastMinute SCSIT</title>
         <meta name="description" content="Explore the diverse range of courses offered at LastMinute SCSIT." />
       </Helmet>
@@ -183,7 +177,7 @@ const Courses = () => {
                 whileHover={{ scale: 1.05, y: -5 }}
                 whileTap={{ scale: 0.95 }}
                 className="bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl overflow-hidden cursor-pointer border border-gray-700 hover:border-green-500 transition-all duration-300 h-full flex flex-col justify-between"
-                onClick={() => {navigate(`/scsit/${course.slug}/semesters`)}}
+                onClick={() => { navigate(`/scsit/${course.slug}/semesters`) }}
               >
                 <div className="p-8 text-center">
                   <div className="mb-6">
@@ -202,9 +196,9 @@ const Courses = () => {
                 </div>
 
                 <div className="px-8 py-4 bg-gray-900 bg-opacity-50">
-                    <div className="w-full py-2 text-center text-green-400 font-semibold hover:text-green-300 transition-colors">
-                      See Semesters →
-                    </div>
+                  <div className="w-full py-2 text-center text-green-400 font-semibold hover:text-green-300 transition-colors">
+                    See Semesters →
+                  </div>
                 </div>
               </motion.div>
             )

@@ -289,7 +289,7 @@ export const checkAuth = async (req, res) => {
 export const updateProfile = async (req, res) => {
 	try {
 		const userId = req.userId || req.body.userId;
-		const { username, course, semester } = req.body;
+		const { username, course, semester, profileurl } = req.body;
 
 		if (!userId) {
 			return res.status(401).json({ success: false, message: "Unauthorized. User ID is missing." });
@@ -304,6 +304,7 @@ export const updateProfile = async (req, res) => {
 		user.name = username || user.name;
 		user.course = course || user.course;
 		user.semester = semester || user.semester;
+		if(profileurl) user.profileUrl = profileurl;
 
 		await user.save({ validateModifiedOnly: true });
 
@@ -407,4 +408,40 @@ export const updateUser = async (req, res) => {
 		console.error('Update user error:', err);
 		res.status(500).json({ success: false, message: 'Failed to update user', error: err.message });
 	}
+};
+
+export const addOpenedFile = async (req, res) => {
+    try {
+        const { fileId, userId } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({ success: false, message: "User ID is required." });
+        }
+
+        if (!fileId || typeof fileId !== 'string') {
+            return res.status(400).json({ success: false, message: "A valid file ID is required." });
+        }
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found." });
+        }
+
+        const updatedOpenedFiles = user.openedFiles.filter(id => id !== fileId);
+        updatedOpenedFiles.unshift(fileId);
+
+        user.openedFiles = updatedOpenedFiles;
+
+        await user.save({ validateModifiedOnly: true });
+
+        return res.status(200).json({
+            success: true,
+            message: "File added to recent files successfully.",
+        });
+
+    } catch (error) {
+        console.error("Error in addOpenedFile controller: ", error);
+        return res.status(500).json({ success: false, message: "Server error while updating recent files." });
+    }
 };

@@ -2,7 +2,7 @@
 
 import { useContext, useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import { AlertCircle, BookOpen, Code, FileText, GraduationCap, Briefcase, School, Shield } from "lucide-react"
+import { AlertCircle, BookOpen, Code, FileText, GraduationCap, Briefcase, School, Shield, Calendar, Filter, ChevronDown, X } from "lucide-react"
 import FileViewer from "../fileComponents/FileViewer"
 import UploadPage from "../fileComponents/UploadPage"
 import { useNavigate, useParams } from "react-router-dom"
@@ -11,6 +11,7 @@ import { API_URL } from "../utils/urls"
 import { useSwipeable } from "react-swipeable"
 import { ValuesContext } from "../context/ValuesContext"
 import toast from "react-hot-toast"
+import { AnimatePresence } from "framer-motion"
 
 const semestersByCourse = {
   "BCA": ["1", "2", "3", "4", "5", "6"],
@@ -56,6 +57,11 @@ const SemestersPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFile, setSelectedFile] = useState(null);
   const [showUploadPage, setShowUploadPage] = useState(false);
+  const [commonFiles, setCommonFiles] = useState([]);
+  const [commonFilesLoading, setCommonFilesLoading] = useState(true);
+  const [selectedYear, setSelectedYear] = useState(null);
+  const [isYearOptionsOpen, setIsYearOptionsOpen] = useState(false);
+  const [uniqueYears, setUniqueYears] = useState([]);
 
   useEffect(() => {
     const fetchPaperCounts = async () => {
@@ -110,6 +116,41 @@ const SemestersPage = () => {
     fetchPaperCounts();
   }, [course]);
 
+  useEffect(() => {
+    const fetchCommonFiles = async () => {
+      if (!course) return;
+
+      setCommonFilesLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/api/files/fetchCourseAndSemester`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ course: course.toUpperCase(), semester: "0" }),
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          setCommonFiles(result.data);
+          
+          const years = [...new Set(result.data.map(file => file.year).filter(Boolean))];
+          setUniqueYears(years.sort((a, b) => b - a));
+        }
+      } catch (error) {
+        console.error("Error fetching common files:", error);
+        setCommonFiles([]);
+      } finally {
+        setCommonFilesLoading(false);
+      }
+    };
+
+    fetchCommonFiles();
+  }, []);
+
+  const handleFileClick = (file) => {
+    setSelectedFile(file);
+  };
 
   const handleSemesterClick = (semesterId) => {
     if (!localStorage.getItem("user")) {
@@ -132,6 +173,10 @@ const SemestersPage = () => {
     setSelectedFile(null);
   };
 
+  const setSubjectYearFilter = (year) => {
+    setSelectedYear(year === 'all' ? null : year);
+  };
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }, [])
@@ -147,16 +192,14 @@ const SemestersPage = () => {
         console.log("Swiped left - opening sidebar");
       }
     },
-    onSwipedRight: () => {
-      if (isMobile && !isExcludedRoute && isSidebarOpen) {
-        setIsSidebarOpen(false);
-        console.log("Swiped right - closing sidebar");
-      }
-    },
     preventDefaultTouchmoveEvent: false,
     trackMouse: false,
     delta: 30,
   });
+
+  const filteredCommonFiles = selectedYear
+    ? commonFiles.filter(file => file.year == selectedYear)
+    : commonFiles;
 
   if (!isLoading && semesterData.length === 0) {
     return (
@@ -274,6 +317,166 @@ const SemestersPage = () => {
               )
             })
           )}
+        </div>
+
+        <div className="w-full px-8 mt-12 mb-8">
+            <motion.h1
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 text-transparent bg-clip-text mb-8"
+          >
+            {course?.toUpperCase().replace(/_/g, ' ')} Common Files 
+          </motion.h1>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl overflow-hidden border border-gray-700"
+          >
+            <div className="p-6 border-b border-gray-700">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-1">Files Common for {course?.toUpperCase().replace(/_/g, ' ')} Semesters</h2>
+                  <p className="text-gray-300">
+                    Shared resources and documents for the entire {course?.toUpperCase().replace(/_/g, ' ')} program
+                  </p>
+                </div>
+
+                {uniqueYears.length > 0 && (
+                  <div className="relative">
+                    <div className="relative w-full sm:w-48">
+                      <button
+                        onClick={() => setIsYearOptionsOpen(!isYearOptionsOpen)}
+                        className="flex w-full items-center justify-between gap-2 bg-gray-800/50 backdrop-filter backdrop-blur-xl rounded-xl border border-gray-700 px-4 py-2 text-white hover:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all duration-200"
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          {selectedYear ? (
+                            <X size={20} className="text-gray-400 cursor-pointer" onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setSubjectYearFilter('all');
+                            }} />
+                          ) : (
+                            <Filter size={20} className="text-gray-400" />
+                          )}
+                          <span className="capitalize truncate">
+                            {selectedYear || 'all years'}
+                          </span>
+                        </div>
+                        <ChevronDown
+                          size={16}
+                          className={`text-gray-400 transition-transform duration-300 ${isYearOptionsOpen ? 'rotate-180' : ''}`}
+                        />
+                      </button>
+
+                      <AnimatePresence>
+                        {isYearOptionsOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute z-10 mt-2 w-full origin-top-right rounded-xl border border-gray-700 bg-gray-900/80 shadow-lg backdrop-blur-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                          >
+                            <ul className="p-1 max-h-36 overflow-y-auto">
+                              <li>
+                                <a
+                                  href="#"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    setSubjectYearFilter('all');
+                                    setIsYearOptionsOpen(false);
+                                  }}
+                                  className="block rounded-lg px-4 py-2 text-white hover:bg-green-500/10 transition-colors"
+                                >
+                                  All Years
+                                </a>
+                              </li>
+                              {uniqueYears.map((year) => (
+                                <li key={year}>
+                                  <a
+                                    href="#"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      setSubjectYearFilter(year);
+                                      setIsYearOptionsOpen(false);
+                                    }}
+                                    className="block rounded-lg px-4 py-2 text-white capitalize hover:bg-green-500/10 transition-colors truncate"
+                                  >
+                                    {year}
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-6">
+              {commonFilesLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="h-8 w-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : filteredCommonFiles.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredCommonFiles.map((file, index) => (
+                    <motion.div
+                      key={file._id || index}
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleFileClick(file)}
+                      className="bg-gray-700 bg-opacity-50 rounded-xl p-4 cursor-pointer border border-gray-600 hover:border-green-500 transition-all duration-300"
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0">
+                          <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                            <FileText className="w-5 h-5 text-white" />
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-white font-semibold text-sm md:text-base mb-1 truncate">
+                            {file.name}
+                          </h3>
+                          <div className="flex items-center space-x-2 text-xs text-gray-400">
+                            <Calendar className="w-4 h-4 flex-shrink-0" />
+                            <span>{file.year || "Unknown"}</span>
+                            <span className="text-gray-500">•</span>
+                            <span className="uppercase">{file.type}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="mx-auto w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-4">
+                    <FileText className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-2">No Common Files Found</h3>
+                  <p className="text-gray-400 mb-6">
+                    {selectedYear 
+                      ? `No files available for year ${selectedYear}` 
+                      : `No common files have been uploaded for this course yet`}
+                  </p>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => navigate(`/upload`)}
+                    className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-lg shadow hover:from-green-600 hover:to-emerald-700 transition-all duration-200"
+                  >
+                    Upload Common Files
+                  </motion.button>
+                </div>
+              )}
+            </div>
+          </motion.div>
         </div>
       </div>
     </div>

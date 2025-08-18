@@ -681,11 +681,6 @@ const AttendanceManager = () => {
         setIsSidebarOpen(true);
       }
     },
-    onSwipedRight: () => {
-      if (isMobile && !isExcludedRoute && isSidebarOpen) {
-        setIsSidebarOpen(false);
-      }
-    },
     preventDefaultTouchmoveEvent: false,
     trackMouse: false,
     delta: 30,

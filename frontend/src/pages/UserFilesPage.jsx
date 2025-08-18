@@ -1,33 +1,184 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useContext } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Helmet } from "react-helmet-async"
-import { useAuthStore } from "../store/authStore"
-import { useNavigate } from "react-router-dom"
-import { User, Mail, Calendar, Book, Tag, Edit, Trash2, X, Loader, AlertCircle, ShieldCheck, GraduationCap, FileX, Upload, View, BookDashed } from "lucide-react"
-import FileViewer from "../fileComponents/FileViewer"
-import { API_URL } from "../utils/urls"
-import { useSwipeable } from "react-swipeable"
-import { ValuesContext } from "../context/ValuesContext"
+import { useState, useEffect, useContext, useMemo, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Helmet } from "react-helmet-async";
+import { useAuthStore } from "../store/authStore";
+import { useNavigate } from "react-router-dom";
+import {
+    User,
+    Mail,
+    FileText,
+    Calendar,
+    Book,
+    Tag,
+    Edit,
+    Trash2,
+    X,
+    Loader,
+    AlertCircle,
+    ShieldCheck,
+    GraduationCap,
+    FileX,
+    Upload,
+    View,
+    BookDashed,
+    FolderOpen,
+    BookOpen,
+    Filter,
+    ChevronDown,
+    Check,
+    Clock,
+} from "lucide-react";
+import FileViewer from "../fileComponents/FileViewer";
+import { API_URL } from "../utils/urls";
+import { useSwipeable } from "react-swipeable";
+import { ValuesContext } from "../context/ValuesContext";
+import { toast } from "react-hot-toast";
+import Select from "react-select";
+import {
+    NotesResourceTypes,
+    ResourceTypes,
+    courses as courseOptions,
+    semestersByCourse,
+    subjectsByCourseAndSemester,
+} from "../utils/Data";
 
-const MyFilesPage = () => {
+const useOnClickOutside = (ref, handler) => {
+    useEffect(() => {
+        const listener = (event) => {
+            if (!ref.current || ref.current.contains(event.target)) return;
+            handler(event);
+        };
+        document.addEventListener("mousedown", listener);
+        document.addEventListener("touchstart", listener);
+        return () => {
+            document.removeEventListener("mousedown", listener);
+            document.removeEventListener("touchstart", listener);
+        };
+    }, [ref, handler]);
+};
+
+const FilterDropdown = ({ options, value, onChange, allLabel }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const ref = useRef();
+    useOnClickOutside(ref, () => setIsOpen(false));
+    const selectedOption = options.find((opt) => opt.value === value);
+    const displayLabel =
+        value === "all" ? allLabel : selectedOption?.label || allLabel;
+    return (
+        <div ref={ref} className="relative w-full sm:w-auto">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex w-full items-center justify-between gap-2 bg-gray-700/50 rounded-xl border border-gray-600 px-4 py-2 text-white hover:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all duration-200"
+            >
+                <div className="flex items-center gap-2 truncate">
+                    <Filter size={16} />
+                    <span className="capitalize truncate text-sm">{displayLabel}</span>
+                </div>
+                <ChevronDown
+                    size={16}
+                    className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+                />
+            </button>
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="absolute z-30 mt-2 w-56 origin-top-left rounded-xl border border-gray-700 bg-gray-900/90 shadow-lg backdrop-blur-lg"
+                    >
+                        <ul className="p-1 max-h-60 overflow-y-auto">
+                            <li>
+                                <button
+                                    onClick={() => {
+                                        onChange("all");
+                                        setIsOpen(false);
+                                    }}
+                                    className="w-full text-left block rounded-lg px-4 py-2 text-white hover:bg-green-500/10"
+                                >
+                                    {allLabel}
+                                </button>
+                            </li>
+                            {options.map((opt) => (
+                                <li key={opt.value}>
+                                    <button
+                                        onClick={() => {
+                                            onChange(opt.value);
+                                            setIsOpen(false);
+                                        }}
+                                        className="w-full text-left block rounded-lg px-4 py-2 text-white capitalize hover:bg-green-500/10 truncate"
+                                    >
+                                        {opt.label}
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
+
+const UserFilesPage = () => {
     const { user } = useAuthStore();
     const navigate = useNavigate();
 
     const [files, setFiles] = useState([]);
+    const [filteredFiles, setFilteredFiles] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
-    const [editFormData, setEditFormData] = useState({});
     const [selectedViewFile, setSelectedViewFile] = useState(null);
 
-    
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [modalError, setModalError] = useState('');
+
+    const [categoryFilter, setCategoryFilter] = useState("all");
+    const [courseFilter, setCourseFilter] = useState("all");
+    const [subjectFilter, setSubjectFilter] = useState("all");
+
+    const [fileName, setFileName] = useState("");
+    const [selectedCourse, setSelectedCourse] = useState("");
+    const [selectedSemester, setSelectedSemester] = useState("");
+    const [selectedSubject, setSelectedSubject] = useState("");
+    const [selectedTypes, setSelectedTypes] = useState(null);
+    const [selectedResourceType, setSelectedResourceType] = useState(null);
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [selectedYear, setSelectedYear] = useState("");
+    const [selectedTextContent, setSelectedTextContent] = useState("");
+
+    const customSelectStyles = {
+        control: (provided, state) => ({
+            ...provided,
+            backgroundColor: '#37415180',
+            borderColor: state.isFocused ? '#22c55e' : '#4b5563',
+            borderRadius: '0.5rem',
+            padding: '0.35rem',
+            boxShadow: 'none',
+            '&:hover': { borderColor: '#22c55e' }
+        }),
+        menu: (provided) => ({
+            ...provided,
+            backgroundColor: '#1f2937',
+            borderColor: '#4b5563',
+            borderRadius: '0.5rem'
+        }),
+        option: (provided, state) => ({
+            ...provided,
+            backgroundColor: state.isSelected ? '#16a34a' : state.isFocused ? '#22c55e33' : 'transparent',
+            color: 'white',
+            '&:active': { backgroundColor: '#15803d' }
+        }),
+        singleValue: (provided) => ({ ...provided, color: 'white' }),
+        input: (provided) => ({ ...provided, color: 'white' }),
+        placeholder: (provided) => ({ ...provided, color: '#9ca3af' })
+    };
 
     useEffect(() => {
         if (!user || !user.isAdmin) {
@@ -53,7 +204,7 @@ const MyFilesPage = () => {
                 if (!response.ok || !result.success) {
                     throw new Error(result.message || 'Failed to fetch files.');
                 }
-                
+
                 setFiles(result.data);
 
             } catch (err) {
@@ -66,9 +217,54 @@ const MyFilesPage = () => {
         fetchFiles();
     }, [user, navigate]);
 
+    useEffect(() => {
+        let tempFiles = [...files];
+        if (categoryFilter !== "all") {
+            tempFiles = tempFiles.filter((file) => file.category === categoryFilter);
+        }
+        if (courseFilter !== "all") {
+            tempFiles = tempFiles.filter((file) => file.course === courseFilter);
+        }
+        if (subjectFilter !== "all") {
+            tempFiles = tempFiles.filter((file) => file.subject === subjectFilter);
+        }
+        setFilteredFiles(tempFiles);
+    }, [categoryFilter, courseFilter, subjectFilter, files]);
+
+    const subjectsList = useMemo(() => {
+        const uniqueSubjects = [...new Set(files.map((file) => file.subject))].filter(Boolean);
+        return uniqueSubjects.map((subject) => ({ value: subject, label: subject }));
+    }, [files]);
+
+    const { stats, coursesList, categories } = useMemo(() => {
+        const courseList = [...new Set(files.map((file) => file.course))].filter(
+            Boolean,
+        );
+        const categoryList = [
+            ...new Set(files.map((file) => file.category)),
+        ].filter(Boolean);
+        return {
+            stats: {
+                totalFiles: files.length,
+                courses: courseList.length,
+                categories: categoryList.length,
+            },
+            coursesList: courseList.map((c) => ({ value: c, label: c })),
+            categories: categoryList.map((c) => ({ value: c, label: c })),
+        };
+    }, [files]);
+
     const openEditModal = (file) => {
         setSelectedFile(file);
-        setEditFormData({ name: file.name, year: file.year });
+        setFileName(file.name ?? "");
+        setSelectedCourse(file.course ?? "");
+        setSelectedSemester(file.semester ?? "");
+        setSelectedSubject(file.subject ?? (file.semester === "0" ? "Whole Semester" : ""));
+        setSelectedCategory(file.category ?? null);
+        setSelectedYear(file.year ?? "");
+        setSelectedResourceType(file?.resourceType || "");
+        setSelectedTypes(file?.type ?? null);
+        setSelectedTextContent(file?.text ?? "");
         setModalError('');
         setIsEditModalOpen(true);
     };
@@ -91,9 +287,17 @@ const MyFilesPage = () => {
         setSelectedFile(null);
     };
 
-    const handleEditFormChange = (e) => {
-        const { name, value } = e.target;
-        setEditFormData(prev => ({ ...prev, [name]: value }));
+    const handleCategoryChange = (category) => {
+        setSelectedCategory(prev => prev === category ? null : category);
+    };
+    const handleTypeChange = (type) => {
+        setSelectedTypes(prev => prev === type ? null : type);
+    };
+    const handleYearChange = (e) => {
+        const value = e.target.value;
+        if (/^\d{0,4}$/.test(value)) {
+            setSelectedYear(value);
+        }
     };
 
     const handleUpdateFile = async (e) => {
@@ -101,18 +305,27 @@ const MyFilesPage = () => {
         setIsSubmitting(true);
         setModalError('');
         try {
+            const payload = {
+                id: selectedFile?._id,
+                name: fileName.trim(),
+                course: selectedCourse,
+                semester: selectedSemester,
+                subject: selectedSubject,
+                year: selectedYear,
+                category: selectedCategory,
+                userId: user?._id,
+                type: selectedTypes,
+                resourceType: selectedResourceType,
+                text: selectedTextContent,
+            };
+
             const response = await fetch(`${API_URL}/api/files/update`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${user.token}`,
                 },
-                body: JSON.stringify({
-                    id: selectedFile._id,
-                    name: editFormData.name,
-                    year: editFormData.year,
-                    userId: user._id,
-                }),
+                body: JSON.stringify(payload),
             });
 
             const result = await response.json();
@@ -122,6 +335,7 @@ const MyFilesPage = () => {
 
             setFiles(files.map(f => f._id === selectedFile._id ? result.data : f));
             closeEditModal();
+            toast.success("File updated successfully!");
 
         } catch (err) {
             setModalError(err.message || "An error occurred.");
@@ -138,9 +352,9 @@ const MyFilesPage = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization':`Bearer ${user.token}`,
+                    'Authorization': `Bearer ${user.token}`,
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     id: selectedFile._id,
                     userId: user._id,
                 }),
@@ -149,174 +363,673 @@ const MyFilesPage = () => {
             if (response.status === 204) {
                 setFiles(files.filter(f => f._id !== selectedFile._id));
                 closeDeleteModal();
+                toast.success("File deleted successfully!");
                 return;
             }
 
             const result = await response.json();
-            
+
             if (!response.ok || !result.success) {
                 throw new Error(result.message || 'Failed to delete file.');
             }
-            
+
             setFiles(files.filter(f => f._id !== selectedFile._id));
             closeDeleteModal();
+            toast.success("File deleted successfully!");
 
-        }catch (err) {
+        } catch (err) {
             setModalError(err.message || "An error occurred.");
         } finally {
             setIsSubmitting(false);
         }
     };
 
-       const handleCloseViewer = () => {
+    const handleCloseViewer = () => {
         setSelectedViewFile(null);
     };
 
-     const handleFileClick = (file) => {
+    const handleFileClick = (file, subject) => {
         setSelectedViewFile(file);
     };
 
-     useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }, [])
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" })
+    }, [])
 
-     const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
-    
-      const isExcludedRoute = location.pathname.startsWith("/login") || location.pathname === "/signup";
-      const isMobile = window.innerWidth <= 768;
-      const swipeHandlers = useSwipeable({
+    const { setIsSidebarOpen } = useContext(ValuesContext);
+
+    const isExcludedRoute = location.pathname.startsWith("/login") || location.pathname === "/signup";
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+    const swipeHandlers = useSwipeable({
         onSwipedLeft: () => {
-          if (isMobile && !isExcludedRoute) {
-            setIsSidebarOpen(true);
-            console.log("Swiped left - opening sidebar");
-          }
-        },
-        onSwipedRight: () => {
-          if (isMobile && !isExcludedRoute && isSidebarOpen) {
-            setIsSidebarOpen(false);
-            console.log("Swiped right - closing sidebar");
-          }
+            if (isMobile && !isExcludedRoute) {
+                setIsSidebarOpen(true);
+            }
         },
         preventDefaultTouchmoveEvent: false,
         trackMouse: false,
         delta: 30,
-      });
+    });
+
+    const getOrdinalSuffix = (n) => {
+        const s = ["th", "st", "nd", "rd"],
+            v = n % 100;
+        return s[(v - 20) % 10] || s[v] || s[0];
+    };
+
+    const availableSemesters = selectedCourse
+        ? (semestersByCourse?.[selectedCourse]?.map((sem) => ({
+            value: sem,
+            label: sem === "0" ? "All Semesters" : `${sem}${getOrdinalSuffix(parseInt(sem, 10))} Semester`,
+        })) ?? [])
+        : [];
+
+    const getSubjectsForCourseAndSemester = (course, semester) => {
+        const semesterData = subjectsByCourseAndSemester?.[course]?.[semester];
+        if (Array.isArray(semesterData)) return semesterData;
+        if (semesterData?.subjects)
+            return semesterData.subjects.map((sub) => sub.name || sub);
+        return [];
+    };
+
+    const availableSubjects =
+        selectedCourse && selectedSemester
+            ? getSubjectsForCourseAndSemester(selectedCourse, selectedSemester).map(
+                (sub) => ({ value: sub, label: sub }),
+            )
+            : [];
+
+    useEffect(() => {
+        if (selectedSemester === "0") {
+            setSelectedSubject("Whole Semester");
+        }
+    }, [selectedSemester]);
 
     return (
         <>
-            <div {...swipeHandlers} className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center p-0 pb-8 pt-24">
-                <Helmet>
-                    <title>My Uploaded Files - SCSIT</title>
-                    <meta name="description" content="Manage your uploaded files." />
-                </Helmet>
-
-                <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                        <div className="bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl border border-gray-700 p-6 mb-8 flex items-center space-x-4">
-                            <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-2xl">
-                                {user?.name?.split(" ").map(n => n[0]).join("").toUpperCase() || <User size={32} />}
-                            </div>
-                            <div>
-                                <h1 className="text-2xl font-bold text-white">{user?.name}</h1>
-                                <p className="text-green-400 flex items-center gap-2"><Mail size={16} /> {user?.email}</p>
-                                {user?.isAdmin === 'admin' && <p className="text-amber-400 flex items-center gap-2 mt-1 font-semibold"><ShieldCheck size={16} /> Admin Account</p>}
-                            </div>
-                        </div>
-                        <h2 className="text-4xl font-extrabold text-white text-center mb-10">Your Uploaded Files</h2>
-                    </motion.div>
-
-                    {isLoading ? (
-                        <div className="flex justify-center items-center h-64">
-                            <Loader className="w-12 h-12 text-green-400 animate-spin" />
-                        </div>
-                    ) : error ? (
-                        <div className="text-center text-red-400 bg-red-500/10 p-4 rounded-lg flex items-center justify-center gap-2">
-                             <AlertCircle /> {error}
-                        </div>
-                    ) : files.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {files.map((file, index) => (
-                                <motion.div
-                                    key={file._id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                                    className="bg-gray-800 bg-opacity-60 backdrop-filter backdrop-blur-xl rounded-2xl border border-gray-700 overflow-hidden flex flex-col"
-                                >
-                                    <div className="p-6 flex-grow">
-                                        <h3 className="text-xl font-bold text-white mb-2">{file.name}</h3>
-                                        <div className="space-y-2 text-gray-300 text-sm">
-                                             <p className="flex items-center gap-2"><BookDashed size={14} className="text-green-400" /> {file.course}</p>
-                                            <p className="flex items-center gap-2"><Book size={14} className="text-green-400" /> {file.subject}</p>
-                                            <p className="flex items-center gap-2"><GraduationCap size={14} className="text-green-400" /> {file.course} - Sem {file.semester}</p>
-                                            <p className="flex items-center gap-2"><Calendar size={14} className="text-green-400" /> Year: {file.year}</p>
-                                            <p className="flex items-center gap-2"><Tag size={14} className="text-green-400" /> Category: <span className="font-semibold capitalize">{file.category}</span></p>
-                                        </div>
-                                    </div>
-                                    <div className="bg-gray-900/50 p-4 flex justify-end space-x-3">
-                                      <motion.button onClick={() => handleFileClick(file)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors">
-                                            <View size={14} /> View
-                                        </motion.button>
-                                        <motion.button onClick={() => openEditModal(file)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">
-                                            <Edit size={14} /> Edit
-                                        </motion.button>
-                                        <motion.button onClick={() => openDeleteModal(file)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors">
-                                            <Trash2 size={14} /> Delete
-                                        </motion.button>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
-                    ) : (
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="text-center py-16 bg-gray-800/30 rounded-2xl border border-gray-700"
+            <div className="fixed top-1/2 -translate-y-1/2 right-2 md:right-4 z-10 pointer-events-none">
+                <div
+                    className="flex flex-col items-center rounded-full border border-blue-400/30 bg-black/30 backdrop-blur-lg px-1.5 py-4 md:px-2 md:py-5"
+                >
+                    <ShieldCheck className="h-5 w-5 text-blue-400 md:h-6 md:w-6 mb-2" />
+                    {"ADMINS".split("").map((char, index) => (
+                        <span
+                            key={index}
+                            className="font-mono text-xs font-bold uppercase text-blue-300/80 md:text-xl"
                         >
-                            <div className="mx-auto bg-gray-800/50 w-24 h-24 rounded-full flex items-center justify-center border border-gray-700">
-                                <FileX className="w-12 h-12 text-gray-500" />
+                            {char}
+                        </span>
+                    ))}
+                </div>
+            </div>
+            <div {...swipeHandlers} className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-900 to-slate-500 flex flex-col items-center p-0 pb-8 pt-24 relative">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <Helmet>
+                        <title>My Uploaded Files - SCSIT</title>
+                        <meta name="description" content="Manage your uploaded files." />
+                    </Helmet>
+
+                    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}
+                            className="mb-8"
+                        >
+                            <div className="bg-gray-800/50 backdrop-filter backdrop-blur-xl rounded-2xl border border-gray-700 p-6 mb-8">
+                                <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6 mb-6">
+                                    <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-3xl">
+                                        {user?.name?.split(" ").map(n => n[0]).join("").toUpperCase() || <User size={32} />}
+                                    </div>
+                                    <div className="flex-grow text-center md:text-left">
+                                        <h1 className="text-2xl font-bold text-white">{user?.name}</h1>
+                                        <p className="text-green-400 flex items-center justify-center md:justify-start gap-2 mt-1"><Mail size={16} /> {user?.email}</p>
+                                        {user?.isAdmin === 'admin' && <p className="text-amber-400 flex items-center justify-center md:justify-start gap-2 mt-1 font-semibold"><ShieldCheck size={16} /> Admin Account</p>}
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                    <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-700 flex flex-col items-center">
+                                        <FolderOpen className="text-green-400 mb-1" size={24} />
+                                        <span className="text-xs text-gray-400">Files</span>
+                                        <span className="text-2xl font-bold text-white">{stats.totalFiles}</span>
+                                    </div>
+                                    <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-700 flex flex-col items-center">
+                                        <BookOpen className="text-blue-400 mb-1" size={24} />
+                                        <span className="text-xs text-gray-400">Courses</span>
+                                        <span className="text-2xl font-bold text-white">{stats.courses}</span>
+                                    </div>
+                                    <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-700 flex flex-col items-center">
+                                        <GraduationCap className="text-amber-400 mb-1" size={24} />
+                                        <span className="text-xs text-gray-400">Categories</span>
+                                        <span className="text-2xl font-bold text-white">{stats.categories}</span>
+                                    </div>
+                                    <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-700 flex flex-col items-center">
+                                        <Book className="text-purple-400 mb-1" size={24} />
+                                        <span className="text-xs text-gray-400">Subjects</span>
+                                        <span className="text-2xl font-bold text-white">{subjectsList.length}</span>
+                                    </div>
+                                </div>
                             </div>
-                            <h3 className="mt-6 text-2xl font-bold text-white">No Files Found</h3>
-                            <p className="mt-2 text-gray-400 max-w-md mx-auto">It looks like you haven't uploaded any files yet. Click the button below to start contributing.</p>
-                            <motion.button
-                                onClick={() => navigate('/upload')}
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="mt-8 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 transition-all"
-                            >
-                                <Upload size={18} />
-                                Upload Your First File
-                            </motion.button>
+                            <h2 className="text-3xl font-bold text-white mb-6 text-center">Your Uploaded Files</h2>
+                            <div className="relative z-20 flex flex-wrap items-center justify-between gap-4 mb-8 bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700 p-4">
+                                <div className="flex flex-wrap items-center gap-4">
+                                    <FilterDropdown
+                                        options={categories}
+                                        value={categoryFilter}
+                                        onChange={setCategoryFilter}
+                                        allLabel="All Categories"
+                                    />
+                                    <FilterDropdown
+                                        options={coursesList}
+                                        value={courseFilter}
+                                        onChange={setCourseFilter}
+                                        allLabel="All Courses"
+                                    />
+                                    <FilterDropdown
+                                        options={subjectsList}
+                                        value={subjectFilter}
+                                        onChange={setSubjectFilter}
+                                        allLabel="All Subjects"
+                                    />
+                                </div>
+                            </div>
                         </motion.div>
-                    )}
+
+                        {isLoading ? (
+                            <div className="flex justify-center items-center h-64">
+                                <Loader className="w-12 h-12 text-green-400 animate-spin" />
+                            </div>
+                        ) : error ? (
+                            <div className="text-center text-red-400 bg-red-500/10 p-6 rounded-2xl flex items-center justify-center gap-3">
+                                <AlertCircle size={24} />
+                                <span className="text-lg">{error}</span>
+                            </div>
+                        ) : filteredFiles.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {filteredFiles.map((file, index) => (
+                                    <motion.div
+                                        key={file._id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.5, delay: index * 0.05 }}
+                                        className="bg-gray-800/60 backdrop-blur-xl rounded-2xl border border-gray-700 overflow-hidden flex flex-col h-full"
+                                    >
+                                        <div className="p-5 flex-grow">
+                                            <h3 className="text-lg md:text-xl font-bold text-white mb-3 line-clamp-2">
+                                                {file.name || "Untitled File"}
+                                            </h3>
+                                            <div className="space-y-2 text-gray-300 text-sm">
+                                                <p className="flex items-start gap-2">
+                                                    <BookDashed
+                                                        size={16}
+                                                        className="text-green-400 mt-0.5 flex-shrink-0"
+                                                    />
+                                                    <span className="truncate">{file.course || "N/A"}</span>
+                                                </p>
+                                                <p className="flex items-start gap-2">
+                                                    <Book
+                                                        size={16}
+                                                        className="text-green-400 mt-0.5 flex-shrink-0"
+                                                    />
+                                                    <span className="truncate">
+                                                        {file.subject || "N/A"}
+                                                    </span>
+                                                </p>
+                                                <p className="flex items-start gap-2">
+                                                    <GraduationCap
+                                                        size={16}
+                                                        className="text-green-400 mt-0.5 flex-shrink-0"
+                                                    />
+                                                    <span>
+                                                        {file.course
+                                                            ? `${file.course} - Sem ${file.semester || "N/A"}`
+                                                            : "N/A"}
+                                                    </span>
+                                                </p>
+                                                <p className="flex items-start gap-2">
+                                                    <Calendar
+                                                        size={16}
+                                                        className="text-green-400 mt-0.5 flex-shrink-0"
+                                                    />
+                                                    <span>Year: {file.year || "N/A"}</span>
+                                                </p>
+                                                <p className="flex items-start gap-2">
+                                                    <Tag
+                                                        size={16}
+                                                        className="text-green-400 mt-0.5 flex-shrink-0"
+                                                    />
+                                                    <span className="font-semibold capitalize">
+                                                        Category: {file.category || "N/A"}
+                                                    </span>
+                                                </p>
+                                                {file.resourceType && (
+                                                    <p className="flex items-center gap-2.5">
+                                                        <Clock
+                                                            size={15}
+                                                            className="text-green-400 flex-shrink-0"
+                                                        />
+                                                        Resource:{" "}
+                                                        <span className="font-semibold capitalize">
+                                                            {ResourceTypes[file.resourceType]?.label
+                                                                || NotesResourceTypes[file.resourceType]?.label
+                                                                || file.resourceType || "Unknown"}
+                                                        </span>
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="bg-gray-900/50 p-3 grid grid-cols-3 gap-2">
+                                            <motion.button
+                                                onClick={() => handleFileClick(file)}
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+                                            >
+                                                <View size={14} /> View
+                                            </motion.button>
+                                            <motion.button
+                                                onClick={() => openEditModal(file)}
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                                            >
+                                                <Edit size={14} /> Edit
+                                            </motion.button>
+                                            <motion.button
+                                                onClick={() => openDeleteModal(file)}
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                                            >
+                                                <Trash2 size={14} /> Delete
+                                            </motion.button>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        ) : (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="text-center py-16 bg-gray-800/30 rounded-2xl border border-gray-700"
+                            >
+                                <div className="mx-auto bg-gray-800/50 w-24 h-24 rounded-full flex items-center justify-center border border-gray-700">
+                                    <FileX className="w-12 h-12 text-gray-500" />
+                                </div>
+                                <h3 className="mt-6 text-2xl font-bold text-white">
+                                    No Files Found
+                                </h3>
+                                <p className="mt-2 text-gray-400 max-w-md mx-auto">
+                                    No files match the selected filters.
+                                </p>
+                                <motion.button
+                                    onClick={() => navigate('/upload')}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="mt-8 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 transition-all"
+                                >
+                                    <Upload size={18} />
+                                    Upload Your First File
+                                </motion.button>
+                            </motion.div>
+                        )}
+                    </div>
                 </div>
             </div>
 
             <AnimatePresence>
                 {isEditModalOpen && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-                        <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-slate-800 rounded-2xl w-full max-w-lg border border-slate-700 shadow-2xl">
-                            <div className="flex justify-between items-center p-6 border-b border-slate-700">
-                                <h3 className="text-xl font-bold text-white">Edit File Details</h3>
-                                <button onClick={closeEditModal} className="text-gray-400 hover:text-white disabled:opacity-50" disabled={isSubmitting}><X /></button>
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 overflow-y-auto"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="bg-gray-800/90 backdrop-blur-xl rounded-2xl border border-gray-700 w-full max-w-4xl my-8"
+                        >
+                            <div className="flex justify-between items-center p-6 border-b border-gray-700">
+                                <h3 className="text-xl font-bold text-white">
+                                    Edit File Details
+                                </h3>
+                                <button
+                                    onClick={closeEditModal}
+                                    className="text-gray-400 hover:text-white disabled:opacity-50"
+                                    disabled={isSubmitting}
+                                >
+                                    <X />
+                                </button>
                             </div>
-                            <form onSubmit={handleUpdateFile} className="p-6 space-y-4">
+                            <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">Paper Name</label>
-                                    <input type="text" name="name" value={editFormData.name || ''} onChange={handleEditFormChange} className="w-full px-3 py-2 bg-gray-700/50 rounded-lg border border-gray-600 text-white focus:border-green-500 focus:ring-green-500 transition" />
+                                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                                        Paper Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={fileName}
+                                        onChange={(e) => setFileName(e.target?.value ?? "")}
+                                        placeholder="Enter paper name"
+                                        className="w-full px-4 py-3 bg-gray-700/50 rounded-lg border border-gray-600 focus:border-green-500 text-white placeholder-gray-400"
+                                    />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">Year</label>
-                                    <input type="text" name="year" value={editFormData.year || ''} onChange={handleEditFormChange} className="w-full px-3 py-2 bg-gray-700/50 rounded-lg border border-gray-600 text-white focus:border-green-500 focus:ring-green-500 transition" />
+                                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                                        Course
+                                    </label>
+                                    <Select
+                                        options={courseOptions}
+                                        value={courseOptions?.find(
+                                            (c) => c.value === selectedCourse,
+                                        )}
+                                        onChange={(o) => {
+                                            setSelectedCourse(o.value);
+                                            setSelectedSemester("");
+                                            setSelectedSubject("");
+                                        }}
+                                        placeholder="Select Course"
+                                        styles={customSelectStyles}
+                                        isSearchable
+                                    />
                                 </div>
-                                {modalError && <p className="text-red-400 text-sm">{modalError}</p>}
-                                <div className="pt-4 flex justify-end space-x-3">
-                                    <motion.button type="button" onClick={closeEditModal} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} disabled={isSubmitting} className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">Cancel</motion.button>
-                                    <motion.button type="submit" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} disabled={isSubmitting} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg flex items-center justify-center w-32 disabled:opacity-50 disabled:cursor-not-allowed">
-                                        {isSubmitting ? <Loader className="w-5 h-5 animate-spin" /> : 'Update File'}
-                                    </motion.button>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                                        Semester
+                                    </label>
+                                    <Select
+                                        options={availableSemesters}
+                                        value={availableSemesters?.find(
+                                            (s) => s.value === selectedSemester,
+                                        )}
+                                        onChange={(o) => {
+                                            setSelectedSemester(o.value);
+                                            setSelectedSubject("");
+                                        }}
+                                        placeholder="Select Semester"
+                                        isDisabled={!selectedCourse}
+                                        styles={customSelectStyles}
+                                        isSearchable
+                                    />
                                 </div>
-                            </form>
+                                {selectedSemester !== "0" && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Subject
+                                        </label>
+                                        <Select
+                                            options={availableSubjects}
+                                            value={availableSubjects?.find(
+                                                (s) => s.value === selectedSubject,
+                                            )}
+                                            onChange={(o) => setSelectedSubject(o.value)}
+                                            placeholder="Select Subject"
+                                            isDisabled={
+                                                !selectedCourse ||
+                                                !selectedSemester ||
+                                                selectedSemester === "0"
+                                            }
+                                            styles={customSelectStyles}
+                                            isSearchable
+                                        />
+                                    </div>
+                                )}
+                                <div className="flex flex-col sm:flex-row sm:space-x-4">
+                                    <div className="flex-1 mb-4 sm:mb-0">
+                                        <label className="block text-sm font-medium text-gray-300">
+                                            Category
+                                        </label>
+                                        <div className="flex flex-wrap gap-3 pt-3">
+                                            <label className="flex items-center space-x-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedCategory === "paper"}
+                                                    onChange={() => handleCategoryChange("paper")}
+                                                    className="hidden peer"
+                                                />
+                                                <span className="w-6 h-6 bg-gray-700 border border-gray-600 rounded-md flex items-center justify-center peer-checked:bg-green-500 peer-checked:border-green-500">
+                                                    <AnimatePresence>
+                                                        {selectedCategory === "paper" && (
+                                                            <motion.div
+                                                                initial={{ scale: 0 }}
+                                                                animate={{ scale: 1 }}
+                                                            >
+                                                                <Check className="w-4 h-4 text-white" />
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </span>
+                                                <span className="text-gray-300">Paper</span>
+                                            </label>
+                                            <label className="flex items-center space-x-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedCategory === "notes"}
+                                                    onChange={() => handleCategoryChange("notes")}
+                                                    className="hidden peer"
+                                                />
+                                                <span className="w-6 h-6 bg-gray-700 border border-gray-600 rounded-md flex items-center justify-center peer-checked:bg-green-500 peer-checked:border-green-500">
+                                                    <AnimatePresence>
+                                                        {selectedCategory === "notes" && (
+                                                            <motion.div
+                                                                initial={{ scale: 0 }}
+                                                                animate={{ scale: 1 }}
+                                                            >
+                                                                <Check className="w-4 h-4 text-white" />
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </span>
+                                                <span className="text-gray-300">Notes</span>
+                                            </label>
+                                            <label className="flex items-center space-x-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedCategory === "syllabus"}
+                                                    onChange={() => handleCategoryChange("syllabus")}
+                                                    className="hidden peer"
+                                                />
+                                                <span className="w-6 h-6 bg-gray-700 border border-gray-600 rounded-md flex items-center justify-center peer-checked:bg-green-500 peer-checked:border-green-500">
+                                                    <AnimatePresence>
+                                                        {selectedCategory === "syllabus" && (
+                                                            <motion.div
+                                                                initial={{ scale: 0 }}
+                                                                animate={{ scale: 1 }}
+                                                            >
+                                                                <Check className="w-4 h-4 text-white" />
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </span>
+                                                <span className="text-gray-300">Syllabus</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Year
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={selectedYear}
+                                            onChange={handleYearChange}
+                                            placeholder="e.g., 2023"
+                                            className="w-full px-4 py-3 bg-gray-700/50 rounded-lg border border-gray-600 focus:border-green-500 text-white placeholder-gray-400"
+                                        />
+                                    </div>
+                                </div>
+                                {selectedCategory === "paper" && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Resource Type
+                                        </label>
+                                        <Select
+                                            options={Object.values(ResourceTypes)}
+                                            value={Object.values(ResourceTypes)?.find(
+                                                (type) => type.value === selectedResourceType,
+                                            )}
+                                            onChange={(o) => setSelectedResourceType(o.value)}
+                                            placeholder="Select Resource Type"
+                                            styles={customSelectStyles}
+                                            isSearchable
+                                        />
+                                    </div>
+                                )}
+                                {selectedCategory === "notes" && (
+                                    <div>
+                                        <label className="block text-sm sm:text-base font-medium text-gray-300 mb-2">
+                                            Resource Type
+                                        </label>
+                                        <Select
+                                            options={Object.values(NotesResourceTypes)}
+                                            value={Object.values(NotesResourceTypes)?.find(type => type?.value === selectedResourceType)}
+                                            onChange={(option) => {
+                                                setSelectedResourceType(option?.value ?? "")
+                                            }}
+                                            placeholder="Select Resource Type"
+                                            styles={customSelectStyles}
+                                            isSearchable
+                                        />
+                                    </div>
+                                )}
+                                {selectedCategory !== "paper" && (
+                                    <div className="flex-1 w-full">
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            File Type
+                                        </label>
+                                        <div className="flex flex-wrap gap-3 pt-3">
+                                            <label className="flex items-center space-x-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedTypes === "image"}
+                                                    onChange={() => handleTypeChange("image")}
+                                                    className="hidden peer"
+                                                />
+                                                <span className="w-6 h-6 bg-gray-700 border border-gray-600 rounded-md flex items-center justify-center peer-checked:bg-green-500 peer-checked:border-green-500">
+                                                    <AnimatePresence>
+                                                        {selectedTypes === "image" && (
+                                                            <motion.div
+                                                                initial={{ scale: 0 }}
+                                                                animate={{ scale: 1 }}
+                                                            >
+                                                                <Check className="w-4 h-4 text-white" />
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </span>
+                                                <span className="text-gray-300">Image</span>
+                                            </label>
+                                            <label className="flex items-center space-x-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedTypes === "document"}
+                                                    onChange={() => handleTypeChange("document")}
+                                                    className="hidden peer"
+                                                />
+                                                <span className="w-6 h-6 bg-gray-700 border border-gray-600 rounded-md flex items-center justify-center peer-checked:bg-green-500 peer-checked:border-green-500">
+                                                    <AnimatePresence>
+                                                        {selectedTypes === "document" && (
+                                                            <motion.div
+                                                                initial={{ scale: 0 }}
+                                                                animate={{ scale: 1 }}
+                                                            >
+                                                                <Check className="w-4 h-4 text-white" />
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </span>
+                                                <span className="text-gray-300">Document</span>
+                                            </label>
+                                            <label className="flex items-center space-x-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedTypes === "text"}
+                                                    onChange={() => handleTypeChange("text")}
+                                                    className="hidden peer"
+                                                />
+                                                <span className="w-6 h-6 bg-gray-700 border border-gray-600 rounded-md flex items-center justify-center peer-checked:bg-green-500 peer-checked:border-green-500">
+                                                    <AnimatePresence>
+                                                        {selectedTypes === "text" && (
+                                                            <motion.div
+                                                                initial={{ scale: 0 }}
+                                                                animate={{ scale: 1 }}
+                                                            >
+                                                                <Check className="w-4 h-4 text-white" />
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </span>
+                                                <span className="text-gray-300">Text</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                )}
+                                {
+                                    selectedTypes === "text" && (
+                                        <div>
+                                            <label className="block text-sm sm:text-base font-medium text-gray-300 mb-2">
+                                                Text Content
+                                            </label>
+                                            <textarea
+                                                value={selectedTextContent}
+                                                onChange={(e) => {
+                                                    setSelectedTextContent(e.target?.value ?? "");
+                                                    setUploadMessage("");
+                                                }}
+                                                placeholder="Enter text content, in a formatted format ..."
+                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-700 bg-opacity-50 rounded-lg border border-gray-600 focus:border-green-500 focus:bg-opacity-75 text-white placeholder-gray-400 transition duration-200 text-sm sm:text-base"
+                                            />
+                                        </div>
+                                    )
+                                }
+                                {modalError && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="flex items-center space-x-2 p-4 rounded-lg bg-red-600/20 border border-red-500"
+                                    >
+                                        <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+                                        <span className="text-red-300 text-sm">{modalError}</span>
+                                    </motion.div>
+                                )}
+                            </div>
+                            <div className="p-6 border-t border-gray-700 flex flex-col sm:flex-row justify-end gap-3">
+                                <motion.button
+                                    type="button"
+                                    onClick={closeEditModal}
+                                    whileHover={{ scale: 1.03 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    disabled={isSubmitting}
+                                    className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg disabled:opacity-50"
+                                >
+                                    Cancel
+                                </motion.button>
+                                <motion.button
+                                    type="submit"
+                                    onClick={handleUpdateFile}
+                                    whileHover={{ scale: 1.03 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    disabled={
+                                        isSubmitting ||
+                                        !fileName ||
+                                        !selectedCourse ||
+                                        !selectedSemester ||
+                                        !selectedSubject ||
+                                        !selectedCategory ||
+                                        !/^\d{4}$/.test(selectedYear) ||
+                                        (selectedCategory !== "paper" && !selectedTypes)
+                                    }
+                                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg flex items-center justify-center disabled:opacity-50"
+                                >
+                                    {isSubmitting ? (
+                                        <Loader className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        "Update File"
+                                    )}
+                                </motion.button>
+                            </div>
                         </motion.div>
                     </motion.div>
                 )}
@@ -324,27 +1037,66 @@ const MyFilesPage = () => {
 
             <AnimatePresence>
                 {isDeleteModalOpen && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-                        <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-slate-800 rounded-2xl w-full max-w-md border border-slate-700 shadow-2xl p-8 text-center">
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="bg-slate-800 rounded-2xl w-full max-w-md border border-slate-700 shadow-2xl p-8 text-center"
+                        >
                             <div className="mx-auto bg-red-500/10 w-16 h-16 rounded-full flex items-center justify-center">
                                 <Trash2 className="w-8 h-8 text-red-500" />
                             </div>
-                            <h3 className="text-2xl font-bold text-white mt-4">Delete File?</h3>
-                            <p className="text-gray-300 mt-2">Are you sure you want to delete <strong className="text-white">"{selectedFile?.name}"</strong>? This action cannot be undone.</p>
-                            {modalError && <p className="text-red-400 text-sm mt-4">{modalError}</p>}
-                            <div className="mt-6 flex justify-center space-x-4">
-                                <motion.button onClick={closeDeleteModal} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} disabled={isSubmitting} className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">Cancel</motion.button>
-                                <motion.button onClick={handleDeleteFile} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} disabled={isSubmitting} className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg flex items-center justify-center w-32 disabled:opacity-50 disabled:cursor-not-allowed">
-                                    {isSubmitting ? <Loader className="w-5 h-5 animate-spin" /> : 'Delete'}
+                            <h3 className="text-2xl font-bold text-white mt-4">
+                                Delete File?
+                            </h3>
+                            <p className="text-gray-300 mt-2">
+                                Are you sure you want to delete{" "}
+                                <strong className="text-white">
+                                    "{selectedFile?.name || "this file"}"
+                                </strong>
+                                ? This action cannot be undone.
+                            </p>
+                            {modalError && (
+                                <p className="text-red-400 text-sm mt-4">{modalError}</p>
+                            )}
+                            <div className="mt-6 flex flex-col sm:flex-row justify-center gap-4">
+                                <motion.button
+                                    type="button"
+                                    onClick={closeDeleteModal}
+                                    whileHover={{ scale: 1.03 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    disabled={isSubmitting}
+                                    className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg disabled:opacity-50"
+                                >
+                                    Cancel
+                                </motion.button>
+                                <motion.button
+                                    onClick={handleDeleteFile}
+                                    whileHover={{ scale: 1.03 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    disabled={isSubmitting}
+                                    className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg flex items-center justify-center disabled:opacity-50"
+                                >
+                                    {isSubmitting ? (
+                                        <Loader className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        "Delete"
+                                    )}
                                 </motion.button>
                             </div>
                         </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
-            {selectedViewFile && <FileViewer file={selectedViewFile} onClose={handleCloseViewer} isAllFiles={true}/>}
+            {selectedViewFile && <FileViewer file={selectedViewFile} onClose={handleCloseViewer} isAllFiles={true} />}
         </>
     );
 };
 
-export default MyFilesPage;
+export default UserFilesPage;

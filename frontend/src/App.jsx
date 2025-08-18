@@ -31,16 +31,30 @@ import PlannerPage from "./pages/PlannerPage";
 import AdminFilesPage from "./pages/AdminFilesPage";
 import UsersPage from "./pages/AllUsersPage";
 import VerifyUserEmail from "./pages/VerifyEmailPage";
+import LeaderboardPage from "./pages/LeaderBoardPage";
+import ManageTestimonials from "./pages/ManageTestimonials";
+import ProfilePage from "./pages/UserProfilePage";
 
 const ProtectedRoute = ({ children }) => {
 	const { user } = useAuthStore();
-	if (!user) return <Navigate to='/login' replace />;
+	if (!user) {
+		const searchParams = new URLSearchParams(location.search);
+		const redirectPath = searchParams.get('redirect') || '/';
+		return <Navigate to={redirectPath} replace />;
+	};
 	return children;
 };
 
 const RedirectAuthenticatedUser = ({ children }) => {
 	const { user } = useAuthStore();
-	if (user) return <Navigate to='/' replace />;
+	const location = useLocation();
+
+	if (user) {
+		const searchParams = new URLSearchParams(location.search);
+		const redirectPath = searchParams.get('redirect') || '/';
+		return <Navigate to={redirectPath} replace />;
+	}
+
 	return children;
 };
 
@@ -67,11 +81,15 @@ function App() {
 						e.preventDefault();
 						navigate('/scsit/courses');
 						break;
+					case 'u':
+						e.preventDefault();
+						navigate('/upload');
+						break;
 					case 'a':
 						e.preventDefault();
 						navigate('/allfiles');
 						break;
-					case 'c':
+					case 'q':
 						e.preventDefault();
 						navigate('/calculations/tools/cgpa');
 						break;
@@ -79,16 +97,20 @@ function App() {
 						e.preventDefault();
 						navigate('/home');
 						break;
-					case 'm':
+					case 'd':
 						if (user?._id) {
 							e.preventDefault();
-							navigate(`/scsit/mca/semesters/3`);
+							if (user?.course && user?.semester) {
+								navigate(`/scsit/${user.course}/semesters/${user.semester}`);
+							} else {
+								navigate(`/scsit/mca/semesters/3`);
+							}
 						}
 						break;
-					case 'b':
+					case 'l':
 						if (user?._id) {
 							e.preventDefault();
-							navigate(`/scsit/bca/semesters/1`);
+							navigate(`/admins/leaderboard`);
 						}
 						break;
 					default:
@@ -245,7 +267,7 @@ function App() {
 						}
 					/>
 					<Route
-						path='/allfiles/admin'
+						path='/admin/allfiles'
 						element={
 							<ProtectedRoute>
 								<AdminFilesPage />
@@ -265,6 +287,30 @@ function App() {
 						element={
 							<ProtectedRoute>
 								<VerifyUserEmail />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path='/admins/testimonials'
+						element={
+							<ProtectedRoute>
+								<ManageTestimonials />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path='/user/profile'
+						element={
+							<ProtectedRoute>
+								<ProfilePage />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path='/admins/leaderboard'
+						element={
+							<ProtectedRoute>
+								<LeaderboardPage />
 							</ProtectedRoute>
 						}
 					/>

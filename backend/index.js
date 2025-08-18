@@ -10,6 +10,7 @@ import authRoutes from "./routes/auth.route.js";
 import fileRoutes from "./routes/file.route.js";
 import attendanceRoutes from "./routes/attendance.route.js";
 import todoRoutes from "./routes/todo.routes.js";
+import testimonialRoutes from "./routes/testimonials.route.js";
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -39,6 +40,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/files", fileRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/todos", todoRoutes);
+app.use("/api/testimonials", testimonialRoutes);
 
 app.listen(PORT, () => {
 	console.log("Server is running on port: ", PORT);
