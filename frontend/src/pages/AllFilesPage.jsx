@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useContext } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import Select from "react-select";
 import {
@@ -34,6 +34,7 @@ import {
     semestersByCourse,
     subjectsByCourseAndSemester,
     ResourceTypes,
+    NotesResourceTypes,
 } from "../utils/Data";
 
 const getOrdinalSuffix = (n) => {
@@ -52,6 +53,21 @@ const sortOptions = [
     { value: "name_asc", label: "Name (A-Z)" },
     { value: "name_desc", label: "Name (Z-A)" },
 ];
+
+const AnimatedStat = ({ value }) => {
+    const spring = useSpring(0, { mass: 0.8, stiffness: 75, damping: 15 });
+    const display = useTransform(spring, (current) =>
+        Math.round(current).toLocaleString(),
+    );
+
+    useEffect(() => {
+        spring.set(value);
+    }, [spring, value]);
+
+    return (
+        <motion.p className="text-2xl font-bold text-white">{display}</motion.p>
+    );
+};
 
 const customSelectStyles = {
     control: (provided) => ({
@@ -127,11 +143,23 @@ const AllFilesPage = () => {
     }, [filters.course, filters.semester]);
 
     const dropdownOptions = useMemo(() => {
-        if (!allFiles.length)
+        if (!allFiles.length) {
             return { years: [], categories: [], types: [], resourceTypes: [] };
+        }
+
         const uniqueYears = [...new Set(allFiles.map((f) => f.year))].sort(
             (a, b) => b - a,
         );
+
+        const selectedResourceTypeObject =
+            filters.category?.value === "notes"
+                ? NotesResourceTypes
+                : ResourceTypes;
+
+        const resourceTypeOptions = selectedResourceTypeObject
+            ? Object.values(selectedResourceTypeObject)
+            : [];
+
         return {
             years: uniqueYears.map((y) => ({ value: y, label: y })),
             categories: [
@@ -142,10 +170,11 @@ const AllFilesPage = () => {
             types: [
                 { value: "image", label: "Image" },
                 { value: "document", label: "Document" },
+                { value: "text", label: "Text" },
             ],
-            resourceTypes: Object.values(ResourceTypes),
+            resourceTypes: resourceTypeOptions,
         };
-    }, [allFiles]);
+    }, [allFiles, filters.category]);
 
     useEffect(() => {
         const fetchAllFiles = async () => {
@@ -426,9 +455,7 @@ const AllFilesPage = () => {
                                     </div>
                                     <div>
                                         <p className="text-gray-400 text-sm">Total Files</p>
-                                        <p className="text-2xl font-bold text-white">
-                                            {stats.totalFiles}
-                                        </p>
+                                        <AnimatedStat value={stats.totalFiles} />
                                     </div>
                                 </div>
                             </div>
@@ -440,9 +467,7 @@ const AllFilesPage = () => {
                                     </div>
                                     <div>
                                         <p className="text-gray-400 text-sm">Courses</p>
-                                        <p className="text-2xl font-bold text-white">
-                                            {stats.totalCourses}
-                                        </p>
+                                        <AnimatedStat value={stats.totalCourses} />
                                     </div>
                                 </div>
                             </div>
@@ -454,9 +479,7 @@ const AllFilesPage = () => {
                                     </div>
                                     <div>
                                         <p className="text-gray-400 text-sm">Subjects</p>
-                                        <p className="text-2xl font-bold text-white">
-                                            {stats.totalSubjects}
-                                        </p>
+                                        <AnimatedStat value={stats.totalSubjects} />
                                     </div>
                                 </div>
                             </div>
@@ -468,9 +491,7 @@ const AllFilesPage = () => {
                                     </div>
                                     <div>
                                         <p className="text-gray-400 text-sm">Total Views</p>
-                                        <p className="text-2xl font-bold text-white">
-                                            {stats.totalViews}
-                                        </p>
+                                        <AnimatedStat value={stats.totalViews} />
                                     </div>
                                 </div>
                             </div>
@@ -678,7 +699,7 @@ const AllFilesPage = () => {
                                                         {file.category}
                                                     </span>
                                                 </p>
-                                                {file.resourceType && (
+                                                {file?.category !== "syllabus" && (
                                                     <p className="flex items-center gap-2.5">
                                                         <Clock
                                                             size={15}
@@ -686,8 +707,9 @@ const AllFilesPage = () => {
                                                         />
                                                         Resource:{" "}
                                                         <span className="font-semibold capitalize">
-                                                            {ResourceTypes[file.resourceType]?.label ||
-                                                                file.resourceType}
+                                                            {ResourceTypes[file.resourceType]?.label
+                                                                || NotesResourceTypes[file.resourceType]?.label
+                                                                || file.resourceType || "Unknown"}
                                                         </span>
                                                     </p>
                                                 )}

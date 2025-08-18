@@ -133,3 +133,9 @@ export const ResourceTypes = {
     "practical": { value: "practical", label: "Practical" },
     "quiz": { value: "quiz", label: "Quiz" },
 }
+
+export const NotesResourceTypes = {
+    "written": { value: "written", label: "Hand Written" },
+    "teacher": { value: "teacher", label: "Teacher Provided" },
+    "sourced": { value: "sourced", label: "Internet Sourced" },
+}

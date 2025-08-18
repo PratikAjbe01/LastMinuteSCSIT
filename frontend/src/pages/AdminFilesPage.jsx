@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useContext, useRef, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import { useAuthStore } from "../store/authStore";
 import { useNavigate } from "react-router-dom";
@@ -25,6 +25,7 @@ import {
     ChevronDown,
     BookDashed,
     Crown,
+    Clock,
 } from "lucide-react";
 import FileViewer from "../fileComponents/FileViewer";
 import { API_URL } from "../utils/urls";
@@ -34,10 +35,26 @@ import { toast } from "react-hot-toast";
 import Select from "react-select";
 import {
     courses as courseOptions,
+    NotesResourceTypes,
     ResourceTypes,
     semestersByCourse,
     subjectsByCourseAndSemester,
 } from "../utils/Data";
+
+const AnimatedStat = ({ value }) => {
+    const spring = useSpring(0, { mass: 0.8, stiffness: 75, damping: 15 });
+    const display = useTransform(spring, (current) =>
+        Math.round(current).toLocaleString(),
+    );
+
+    useEffect(() => {
+        spring.set(value);
+    }, [spring, value]);
+
+    return (
+        <motion.p className="text-2xl font-bold text-white">{display}</motion.p>
+    );
+};
 
 const useOnClickOutside = (ref, handler) => {
     useEffect(() => {
@@ -109,7 +126,7 @@ const FilterDropdown = ({ options, value, onChange, allLabel }) => {
                                         onChange("all");
                                         setIsOpen(false);
                                     }}
-                                    className="w-full text-left block rounded-lg px-4 py-2 text-white hover:bg-green-500/10"
+                                    className="w-full text-left block rounded-lg px-4 py-2 text-white hover:bg-green-500/10 truncate"
                                 >
                                     {allLabel}
                                 </button>
@@ -157,6 +174,7 @@ const AdminFilesPage = () => {
     const [selectedSubject, setSelectedSubject] = useState("");
     const [selectedTypes, setSelectedTypes] = useState(null);
     const [selectedResourceType, setSelectedResourceType] = useState(null);
+    const [selectedTextContent, setSelectedTextContent] = useState("");
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedYear, setSelectedYear] = useState("");
     const [includeCreators, setIncludeCreators] = useState(false);
@@ -211,7 +229,7 @@ const AdminFilesPage = () => {
         setSelectedTypes(file.type ?? null);
         setSelectedCategory(file.category ?? null);
         setSelectedYear(file.year ?? "");
-        setSelectedResourceType(file.resourceType ?? "none");
+        setSelectedResourceType(file.resourceType);
         setModalError("");
         setIsEditModalOpen(true);
     };
@@ -273,6 +291,7 @@ const AdminFilesPage = () => {
                 year: selectedYear,
                 category: selectedCategory,
                 resourceType: selectedResourceType,
+                text: selectedTextContent,
             };
             const response = await fetch(`${API_URL}/api/files/updateAdminFile`, {
                 method: "PUT",
@@ -516,7 +535,7 @@ const AdminFilesPage = () => {
                                             Total Files
                                         </h3>
                                         <p className="text-3xl font-bold text-white">
-                                            {stats.totalFiles}
+                                             <AnimatedStat value={stats.totalFiles} />
                                         </p>
                                     </div>
                                     <div className="bg-green-600/10 p-5 rounded-xl border border-green-700/30">
@@ -524,7 +543,7 @@ const AdminFilesPage = () => {
                                             Courses
                                         </h3>
                                         <p className="text-3xl font-bold text-white">
-                                            {stats.courses}
+                                            <AnimatedStat value={stats.courses} />
                                         </p>
                                     </div>
                                     <div className="bg-purple-600/10 p-5 rounded-xl border border-purple-700/30">
@@ -532,7 +551,7 @@ const AdminFilesPage = () => {
                                             Categories
                                         </h3>
                                         <p className="text-3xl font-bold text-white">
-                                            {stats.categories}
+                                            <AnimatedStat value={stats.categories} />
                                         </p>
                                     </div>
                                     <div className="bg-amber-600/10 p-5 rounded-xl border border-amber-700/30">
@@ -540,7 +559,7 @@ const AdminFilesPage = () => {
                                             Uploaders
                                         </h3>
                                         <p className="text-3xl font-bold text-white">
-                                            {stats.uploaders}
+                                            <AnimatedStat value={stats.uploaders} />
                                         </p>
                                     </div>
                                 </div>
@@ -646,6 +665,20 @@ const AdminFilesPage = () => {
                                                         Category: {file.category || "N/A"}
                                                     </span>
                                                 </p>
+                                                   {file.resourceType && (
+                                                    <p className="flex items-center gap-2.5">
+                                                        <Clock
+                                                            size={15}
+                                                            className="text-green-400 flex-shrink-0"
+                                                        />
+                                                        Resource:{" "}
+                                                        <span className="font-semibold capitalize">
+                                                            {ResourceTypes[file.resourceType]?.label
+                                                                || NotesResourceTypes[file.resourceType]?.label
+                                                                || file.resourceType || "Unknown"}
+                                                        </span>
+                                                    </p>
+                                                )}
                                                 <p className="flex items-center gap-2 flex-wrap">
                                                     <User size={16} className="text-green-400 shrink-0" />
                                                     <span className="font-semibold truncate">
@@ -910,6 +943,23 @@ const AdminFilesPage = () => {
                                         />
                                     </div>
                                 )}
+                                {selectedCategory === "notes" && (
+                                    <div>
+                                        <label className="block text-sm sm:text-base font-medium text-gray-300 mb-2">
+                                            Resource Type
+                                        </label>
+                                        <Select
+                                            options={Object.values(NotesResourceTypes)}
+                                            value={Object.values(NotesResourceTypes)?.find(type => type?.value === selectedResourceType)}
+                                            onChange={(option) => {
+                                                setSelectedResourceType(option?.value ?? "")
+                                            }}
+                                            placeholder="Select Resource Type"
+                                            styles={customSelectStyles}
+                                            isSearchable
+                                        />
+                                    </div>
+                                )}
                                 {selectedCategory !== "paper" && (
                                     <div className="flex-1 w-full">
                                         <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -958,9 +1008,48 @@ const AdminFilesPage = () => {
                                                 </span>
                                                 <span className="text-gray-300">Document</span>
                                             </label>
+                                            <label className="flex items-center space-x-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedTypes === "text"}
+                                                    onChange={() => handleTypeChange("text")}
+                                                    className="hidden peer"
+                                                />
+                                                <span className="w-6 h-6 bg-gray-700 border border-gray-600 rounded-md flex items-center justify-center peer-checked:bg-green-500 peer-checked:border-green-500">
+                                                    <AnimatePresence>
+                                                        {selectedTypes === "text" && (
+                                                            <motion.div
+                                                                initial={{ scale: 0 }}
+                                                                animate={{ scale: 1 }}
+                                                            >
+                                                                <Check className="w-4 h-4 text-white" />
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </span>
+                                                <span className="text-gray-300">Text</span>
+                                            </label>
                                         </div>
                                     </div>
                                 )}
+                                {
+                                    selectedTypes === "text" && (
+                                        <div>
+                                            <label className="block text-sm sm:text-base font-medium text-gray-300 mb-2">
+                                                Text Content
+                                            </label>
+                                            <textarea
+                                                value={selectedTextContent}
+                                                onChange={(e) => {
+                                                    setSelectedTextContent(e.target?.value ?? "");
+                                                    setUploadMessage("");
+                                                }}
+                                                placeholder="Enter text content, in a formatted format ..."
+                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-700 bg-opacity-50 rounded-lg border border-gray-600 focus:border-green-500 focus:bg-opacity-75 text-white placeholder-gray-400 transition duration-200 text-sm sm:text-base"
+                                            />
+                                        </div>
+                                    )
+                                }
                                 {modalError && (
                                     <motion.div
                                         initial={{ opacity: 0, y: 10 }}
@@ -1010,7 +1099,6 @@ const AdminFilesPage = () => {
                         </motion.div>
                     </motion.div>
                 )}
-                )
             </AnimatePresence>
             <AnimatePresence>
                 {isDeleteModalOpen && (

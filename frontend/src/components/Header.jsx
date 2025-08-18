@@ -74,7 +74,7 @@ const Header = () => {
       { href: "/calculations/tools/cgpa", label: "Tools", icon: PanelTopClose },
       // { href: `/attendance/manager/user/${user?.id}`, label: "Attendance Manager", icon: BookMarked },
       // { href: "/planner/todos", label: "Task Planner", icon: Workflow },
-      // { href: "/admins/leaderboard", label: "LeaderBoard", icon: Trophy },
+      { href: "/admins/leaderboard", label: "LeaderBoard", icon: Trophy },
     ]
 
     if (user) {
@@ -83,13 +83,8 @@ const Header = () => {
 
     if (user?.isAdmin === "admin") {
       items.push({ href: "/upload", label: "Upload", icon: Upload })
-      items.push({ href: "/admins/leaderboard", label: "LeaderBoard", icon: Trophy })
       items.push({ href: "/profile/files", label: "My Files", icon: File })
       items.push({ href: "/admin/allfiles", label: "Admin Uploads", icon: FileChartPie })
-      items.push({ href: "/allusers", label: "All Users", icon: Users })
-    }
-    if (user?.email === "bdhakad886@gmail.com" || user?.email === "pratikajbe40@gmail.com") {
-      items.push({ href: "/admins/testimonials", label: "Manage Testimonials", icon: Edit2 })
     }
 
     return items

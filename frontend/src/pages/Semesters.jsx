@@ -320,7 +320,6 @@ const SemestersPage = () => {
         </div>
 
         <div className="w-full px-8 mt-12 mb-8">
-
             <motion.h1
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -380,7 +379,7 @@ const SemestersPage = () => {
                             transition={{ duration: 0.2 }}
                             className="absolute z-10 mt-2 w-full origin-top-right rounded-xl border border-gray-700 bg-gray-900/80 shadow-lg backdrop-blur-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
                           >
-                            <ul className="p-1">
+                            <ul className="p-1 max-h-36 overflow-y-auto">
                               <li>
                                 <a
                                   href="#"

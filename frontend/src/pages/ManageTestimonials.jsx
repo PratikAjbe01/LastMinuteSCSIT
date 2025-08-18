@@ -927,8 +927,8 @@ const ManageTestimonials = () => {
                       </button>
                       <button
                         type="button"
-                        onClick={() => setProfileInputType("upload")}
-                        className={`w-1/2 rounded-md py-2 text-sm font-semibold flex items-center justify-center gap-2 transition-colors ${profileInputType === "upload" ? "bg-green-600 text-white" : "text-gray-300 hover:bg-gray-700"}`}
+                        disabled={true}
+                        className={`w-1/2 rounded-md py-2 text-sm font-semibold flex items-center justify-center gap-2 transition-colors ${profileInputType === "upload" ? "bg-green-600 text-white" : "text-gray-300 opacity-20"}`}
                       >
                         <UploadCloud size={16} /> Upload
                       </button>

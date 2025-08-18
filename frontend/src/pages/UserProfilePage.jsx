@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
     motion,
     AnimatePresence,
     useSpring,
     useTransform,
+    animate,
 } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import toast, { Toaster } from "react-hot-toast";
@@ -40,6 +41,8 @@ import {
     CheckCircle,
     MessageCircle,
     UserCheck,
+    ChevronLeft,
+    ChevronRight,
 } from "lucide-react";
 import { API_URL } from "../utils/urls";
 import { useAuthStore } from "../store/authStore";
@@ -65,7 +68,7 @@ const ProfileSkeleton = () => (
 );
 
 const FileCardSkeleton = () => (
-    <div className="bg-black/20 rounded-xl border border-white/10 p-5 animate-pulse">
+    <div className="bg-black/20 rounded-xl border border-white/10 p-5 animate-pulse w-80 flex-shrink-0">
         <div className="flex items-start gap-4 mb-3">
             <div className="w-8 h-8 rounded-lg bg-white/10"></div>
             <div className="flex-1">
@@ -151,7 +154,7 @@ const FileCard = ({ file, index, setSelectedFile }) => (
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: index * 0.05 }}
-        className="group relative bg-black/20 backdrop-blur-lg rounded-xl border border-white/10 p-5 flex flex-col justify-between transition-all duration-300 hover:border-yellow-500/50 hover:bg-black/30 hover:-translate-y-1.5"
+        className="group relative bg-black/20 backdrop-blur-lg rounded-xl border border-white/10 p-5 flex flex-col justify-between transition-all duration-300 hover:border-yellow-500/50 hover:bg-black/30 hover:-translate-y-1.5 h-full"
     >
         <div className="absolute top-0 left-0 w-full h-full rounded-xl bg-gradient-to-br from-yellow-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         <div className="flex flex-col h-full">
@@ -436,6 +439,61 @@ const ProfilePage = () => {
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [selectedTestimonial, setSelectedTestimonial] = useState(null);
 
+    const recentContainerRef = useRef(null);
+    const uploadsContainerRef = useRef(null);
+    const [showRecentButtons, setShowRecentButtons] = useState(false);
+    const [showUploadsButtons, setShowUploadsButtons] = useState(false);
+
+    const handleScroll = (ref, direction) => {
+        if (ref.current && ref.current.children.length > 0) {
+            const cardElement = ref.current.children[0];
+            const cardWidth = cardElement.offsetWidth;
+            const gap = 24;
+            const scrollAmount = cardWidth + gap;
+
+            const newScrollPosition =
+                ref.current.scrollLeft + (direction === "left" ? -scrollAmount : scrollAmount);
+
+            animate(ref.current.scrollLeft, newScrollPosition, {
+                type: "spring",
+                stiffness: 170,
+                damping: 25,
+                mass: 0.5,
+                onUpdate: (latest) => {
+                    if (ref.current) {
+                        ref.current.scrollLeft = latest;
+                    }
+                },
+            });
+        }
+    };
+
+    const filesToShow = isUploadsExpanded
+        ? uploadedFiles
+        : uploadedFiles.slice(0, 4);
+
+    useEffect(() => {
+        const checkOverflow = (ref, setter) => {
+            setTimeout(() => {
+                if (ref.current) {
+                    const hasOverflow =
+                        ref.current.scrollWidth > ref.current.clientWidth;
+                    setter(hasOverflow);
+                }
+            }, 150);
+        };
+
+        const handleResize = () => {
+            checkOverflow(recentContainerRef, setShowRecentButtons);
+            checkOverflow(uploadsContainerRef, setShowUploadsButtons);
+        };
+
+        handleResize();
+        window.addEventListener("resize", handleResize);
+
+        return () => window.removeEventListener("resize", handleResize);
+    }, [isUserLoading, recentlyViewed.length, filesToShow.length]);
+
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     }, []);
@@ -649,9 +707,6 @@ const ProfilePage = () => {
         return name.substring(0, 2).toUpperCase();
     };
 
-    const filesToShow = isUploadsExpanded
-        ? uploadedFiles
-        : uploadedFiles.slice(0, 4);
 
     return (
         <>
@@ -802,7 +857,7 @@ const ProfilePage = () => {
                         >
                             <SectionHeader icon={Clock} title="Recently Viewed Files" />
                             {isRecentLoading ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="flex space-x-6 pb-4">
                                     {[...Array(3)].map((_, i) => (
                                         <FileCardSkeleton key={i} />
                                     ))}
@@ -810,15 +865,37 @@ const ProfilePage = () => {
                             ) : recentError ? (
                                 <ErrorDisplay message={recentError} />
                             ) : recentlyViewed.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {recentlyViewed.map((file, index) => (
-                                        <FileCard
-                                            key={file._id}
-                                            file={file}
-                                            index={index}
-                                            setSelectedFile={setSelectedFile}
-                                        />
-                                    ))}
+                                <div className="relative">
+                                    {showRecentButtons && (
+                                        <>
+                                            <button
+                                                onClick={() => handleScroll(recentContainerRef, "left")}
+                                                className="absolute top-1/2 -translate-y-1/2 left-0 md:-left-5 z-20 p-2 bg-black/50 backdrop-blur-sm rounded-full text-white transition-all duration-300 hover:bg-white/20 hover:scale-110 disabled:opacity-0 disabled:cursor-not-allowed"
+                                            >
+                                                <ChevronLeft size={24} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleScroll(recentContainerRef, "right")}
+                                                className="absolute top-1/2 -translate-y-1/2 right-0 md:-right-5 z-20 p-2 bg-black/50 backdrop-blur-sm rounded-full text-white transition-all duration-300 hover:bg-white/20 hover:scale-110 disabled:opacity-0 disabled:cursor-not-allowed"
+                                            >
+                                                <ChevronRight size={24} />
+                                            </button>
+                                        </>
+                                    )}
+                                    <div
+                                        ref={recentContainerRef}
+                                        className="flex overflow-x-auto space-x-6 py-2 scroll-smooth scrollbar-hide"
+                                    >
+                                        {recentlyViewed.map((file, index) => (
+                                            <div key={file._id} className="w-80 flex-shrink-0">
+                                                <FileCard
+                                                    file={file}
+                                                    index={index}
+                                                    setSelectedFile={setSelectedFile}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="text-center py-12 bg-black/20 backdrop-blur-sm rounded-xl border-2 border-dashed border-white/10">
@@ -910,7 +987,7 @@ const ProfilePage = () => {
                                         )}
                                     </SectionHeader>
                                     {isUploadsLoading ? (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                        <div className="flex space-x-6 pb-4">
                                             {[...Array(4)].map((_, i) => (
                                                 <FileCardSkeleton key={i} />
                                             ))}
@@ -918,21 +995,41 @@ const ProfilePage = () => {
                                     ) : uploadsError ? (
                                         <ErrorDisplay message={uploadsError} />
                                     ) : uploadedFiles.length > 0 ? (
-                                        <motion.div
-                                            layout
-                                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-                                        >
-                                            <AnimatePresence>
-                                                {filesToShow.map((file, index) => (
-                                                    <FileCard
-                                                        key={file._id}
-                                                        file={file}
-                                                        index={index}
-                                                        setSelectedFile={setSelectedFile}
-                                                    />
-                                                ))}
-                                            </AnimatePresence>
-                                        </motion.div>
+                                        <div className="relative">
+                                            {showUploadsButtons && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleScroll(uploadsContainerRef, "left")}
+                                                        className="absolute top-1/2 -translate-y-1/2 left-0 md:-left-5 z-20 p-2 bg-black/50 backdrop-blur-sm rounded-full text-white transition-all duration-300 hover:bg-white/20 hover:scale-110 disabled:opacity-0 disabled:cursor-not-allowed"
+                                                    >
+                                                        <ChevronLeft size={24} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleScroll(uploadsContainerRef, "right")}
+                                                        className="absolute top-1/2 -translate-y-1/2 right-0 md:-right-5 z-20 p-2 bg-black/50 backdrop-blur-sm rounded-full text-white transition-all duration-300 hover:bg-white/20 hover:scale-110 disabled:opacity-0 disabled:cursor-not-allowed"
+                                                    >
+                                                        <ChevronRight size={24} />
+                                                    </button>
+                                                </>
+                                            )}
+                                            <motion.div
+                                                layout
+                                                ref={uploadsContainerRef}
+                                                className="flex overflow-x-auto space-x-6 py-2 scroll-smooth scrollbar-hide"
+                                            >
+                                                <AnimatePresence>
+                                                    {filesToShow.map((file, index) => (
+                                                        <motion.div layout key={file._id} className="w-80 flex-shrink-0">
+                                                            <FileCard
+                                                                file={file}
+                                                                index={index}
+                                                                setSelectedFile={setSelectedFile}
+                                                            />
+                                                        </motion.div>
+                                                    ))}
+                                                </AnimatePresence>
+                                            </motion.div>
+                                        </div>
                                     ) : (
                                         <div className="text-center py-12 bg-black/20 backdrop-blur-sm rounded-xl border-2 border-dashed border-white/10">
                                             <UploadCloud className="mx-auto w-12 h-12 text-gray-500" />

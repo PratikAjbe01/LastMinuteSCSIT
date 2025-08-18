@@ -28,6 +28,7 @@ import {
     Filter,
     ChevronDown,
     Check,
+    Clock,
 } from "lucide-react";
 import FileViewer from "../fileComponents/FileViewer";
 import { API_URL } from "../utils/urls";
@@ -36,6 +37,7 @@ import { ValuesContext } from "../context/ValuesContext";
 import { toast } from "react-hot-toast";
 import Select from "react-select";
 import {
+    NotesResourceTypes,
     ResourceTypes,
     courses as courseOptions,
     semestersByCourse,
@@ -149,6 +151,7 @@ const UserFilesPage = () => {
     const [selectedResourceType, setSelectedResourceType] = useState(null);
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedYear, setSelectedYear] = useState("");
+    const [selectedTextContent, setSelectedTextContent] = useState("");
 
     const customSelectStyles = {
         control: (provided, state) => ({
@@ -261,6 +264,7 @@ const UserFilesPage = () => {
         setSelectedYear(file.year ?? "");
         setSelectedResourceType(file?.resourceType || "");
         setSelectedTypes(file?.type ?? null);
+        setSelectedTextContent(file?.text ?? "");
         setModalError('');
         setIsEditModalOpen(true);
     };
@@ -312,6 +316,7 @@ const UserFilesPage = () => {
                 userId: user?._id,
                 type: selectedTypes,
                 resourceType: selectedResourceType,
+                text: selectedTextContent,
             };
 
             const response = await fetch(`${API_URL}/api/files/update`, {
@@ -597,6 +602,20 @@ const UserFilesPage = () => {
                                                         Category: {file.category || "N/A"}
                                                     </span>
                                                 </p>
+                                                {file.resourceType && (
+                                                    <p className="flex items-center gap-2.5">
+                                                        <Clock
+                                                            size={15}
+                                                            className="text-green-400 flex-shrink-0"
+                                                        />
+                                                        Resource:{" "}
+                                                        <span className="font-semibold capitalize">
+                                                            {ResourceTypes[file.resourceType]?.label
+                                                                || NotesResourceTypes[file.resourceType]?.label
+                                                                || file.resourceType || "Unknown"}
+                                                        </span>
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="bg-gray-900/50 p-3 grid grid-cols-3 gap-2">
@@ -858,6 +877,23 @@ const UserFilesPage = () => {
                                         />
                                     </div>
                                 )}
+                                {selectedCategory === "notes" && (
+                                    <div>
+                                        <label className="block text-sm sm:text-base font-medium text-gray-300 mb-2">
+                                            Resource Type
+                                        </label>
+                                        <Select
+                                            options={Object.values(NotesResourceTypes)}
+                                            value={Object.values(NotesResourceTypes)?.find(type => type?.value === selectedResourceType)}
+                                            onChange={(option) => {
+                                                setSelectedResourceType(option?.value ?? "")
+                                            }}
+                                            placeholder="Select Resource Type"
+                                            styles={customSelectStyles}
+                                            isSearchable
+                                        />
+                                    </div>
+                                )}
                                 {selectedCategory !== "paper" && (
                                     <div className="flex-1 w-full">
                                         <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -906,9 +942,48 @@ const UserFilesPage = () => {
                                                 </span>
                                                 <span className="text-gray-300">Document</span>
                                             </label>
+                                            <label className="flex items-center space-x-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedTypes === "text"}
+                                                    onChange={() => handleTypeChange("text")}
+                                                    className="hidden peer"
+                                                />
+                                                <span className="w-6 h-6 bg-gray-700 border border-gray-600 rounded-md flex items-center justify-center peer-checked:bg-green-500 peer-checked:border-green-500">
+                                                    <AnimatePresence>
+                                                        {selectedTypes === "text" && (
+                                                            <motion.div
+                                                                initial={{ scale: 0 }}
+                                                                animate={{ scale: 1 }}
+                                                            >
+                                                                <Check className="w-4 h-4 text-white" />
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </span>
+                                                <span className="text-gray-300">Text</span>
+                                            </label>
                                         </div>
                                     </div>
                                 )}
+                                {
+                                    selectedTypes === "text" && (
+                                        <div>
+                                            <label className="block text-sm sm:text-base font-medium text-gray-300 mb-2">
+                                                Text Content
+                                            </label>
+                                            <textarea
+                                                value={selectedTextContent}
+                                                onChange={(e) => {
+                                                    setSelectedTextContent(e.target?.value ?? "");
+                                                    setUploadMessage("");
+                                                }}
+                                                placeholder="Enter text content, in a formatted format ..."
+                                                className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-700 bg-opacity-50 rounded-lg border border-gray-600 focus:border-green-500 focus:bg-opacity-75 text-white placeholder-gray-400 transition duration-200 text-sm sm:text-base"
+                                            />
+                                        </div>
+                                    )
+                                }
                                 {modalError && (
                                     <motion.div
                                         initial={{ opacity: 0, y: 10 }}
@@ -932,7 +1007,7 @@ const UserFilesPage = () => {
                                     Cancel
                                 </motion.button>
                                 <motion.button
-                                    type="button"
+                                    type="submit"
                                     onClick={handleUpdateFile}
                                     whileHover={{ scale: 1.03 }}
                                     whileTap={{ scale: 0.98 }}

@@ -412,7 +412,7 @@ const AboutPage = () => {
       githubUrl: "https://github.com/PratikAjbe01",
       email: "pratikajbe40@gmail.com",
       imageUrl:
-        "https://media.licdn.com/dms/image/v2/D4D03AQEnC-bYyRf3gQ/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1697458598982?e=1756339200&v=beta&t=BzhNEaXfk1trIXNUPCGV6hYNkIjnKvGU5SmwBb6pAmU",
+        "https://res.cloudinary.com/dbf1lifdi/image/upload/v1751438203/user_profiles/wpy4rxqhlb7dch0qgo7j.jpg",
     },
     {
       name: "Balram Dhakad",

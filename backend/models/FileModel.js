@@ -10,7 +10,7 @@ const fileSchema = new mongoose.Schema(
         type: {
             type: String,
             required: true,
-            enum: ['image', 'document'],
+            enum: ['image', 'document', 'text'],
         },
         course: {
             type: String,
@@ -45,15 +45,13 @@ const fileSchema = new mongoose.Schema(
             required: true,
             enum: ['notes', 'paper', 'syllabus'],
         },
-        uploadedBy:{
+        uploadedBy: {
             type: String,
             ref: "users",
         },
         resourceType: {
             type: String,
-            required: true,
-            enum: ['endsem', 'test1', 'test2', 'test3', 'practical', 'quiz', 'none'],
-            default: 'none',
+            enum: ['endsem', 'test1', 'test2', 'test3', 'practical', 'quiz', 'written', 'sourced', 'teacher'],
         },
         views: {
             type: Number,
@@ -63,6 +61,9 @@ const fileSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+        text: {
+            type: String,
+        }
     },
     { timestamps: true }
 );

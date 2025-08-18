@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useMemo, useRef, useContext } from "react";
+import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import {
     Loader,
@@ -29,6 +29,8 @@ import {
 import { API_URL } from "../utils/urls";
 import FileViewer from "../fileComponents/FileViewer";
 import { Navigate } from "react-router-dom";
+import { ValuesContext } from "../context/ValuesContext";
+import { useSwipeable } from "react-swipeable";
 
 const useOnClickOutside = (ref, handler) => {
     useEffect(() => {
@@ -483,6 +485,21 @@ const FileLeaderboard = () => {
     );
 };
 
+const AnimatedStat = ({ value }) => {
+    const spring = useSpring(0, { mass: 0.8, stiffness: 75, damping: 15 });
+    const display = useTransform(spring, (current) =>
+        Math.round(current).toLocaleString(),
+    );
+
+    useEffect(() => {
+        spring.set(value);
+    }, [spring, value]);
+
+    return (
+        <motion.p className="text-2xl font-bold text-white">{display}</motion.p>
+    );
+};
+
 const LeaderboardPage = () => {
     const [leaderboardData, setLeaderboardData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -638,6 +655,12 @@ const LeaderboardPage = () => {
         { value: "files", label: "Top Files" },
     ];
 
+    const { setIsSidebarOpen } = useContext(ValuesContext);
+    const swipeHandlers = useSwipeable({
+        onSwipedLeft: () => setIsSidebarOpen(true),
+        preventDefaultTouchmoveEvent: true,
+    });
+
     const topThree = filteredLeaderboard.slice(0, 3);
     const restOfLeaderboard = filteredLeaderboard.slice(3);
 
@@ -716,7 +739,7 @@ const LeaderboardPage = () => {
     };
 
     return (
-        <div className="min-h-screen w-full bg-gray-900 text-white p-0 pb-32 pt-24">
+        <div {...swipeHandlers} className="min-h-screen w-full bg-gray-900 text-white p-0 pb-32 pt-24">
             <Helmet>
                 <title>Leaderboard - SCSIT</title>
                 <meta
@@ -820,7 +843,7 @@ const LeaderboardPage = () => {
                                             <div>
                                                 <p className="text-gray-400 text-sm">Total Contributors</p>
                                                 <p className="text-3xl font-bold text-white">
-                                                    {stats.totalUploaders}
+                                                    <AnimatedStat value={stats.totalUploaders} />
                                                 </p>
                                             </div>
                                         </div>
@@ -831,7 +854,7 @@ const LeaderboardPage = () => {
                                             <div>
                                                 <p className="text-gray-400 text-sm">Total Uploads</p>
                                                 <p className="text-3xl font-bold text-white">
-                                                    {stats.totalUploads}
+                                                    <AnimatedStat value={stats.totalUploads} />
                                                 </p>
                                             </div>
                                         </div>
@@ -842,7 +865,7 @@ const LeaderboardPage = () => {
                                             <div>
                                                 <p className="text-gray-400 text-sm">Top Contributor</p>
                                                 <p className="text-3xl font-bold text-white">
-                                                    {stats.topUploaderCount} uploads
+                                                    <AnimatedStat value={stats.topUploaderCount} /> uploads
                                                 </p>
                                             </div>
                                         </div>
@@ -853,7 +876,7 @@ const LeaderboardPage = () => {
                                             <div>
                                                 <p className="text-gray-400 text-sm">Average Uploads</p>
                                                 <p className="text-3xl font-bold text-white">
-                                                    {stats.avgUploads}
+                                                    <AnimatedStat value={stats.avgUploads} />
                                                 </p>
                                             </div>
                                         </div>
