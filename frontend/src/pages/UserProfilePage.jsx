@@ -930,9 +930,7 @@ const ProfilePage = () => {
                                     <Loader className="animate-spin" />
                                     Loading testimonials...
                                 </p>
-                            ) : testimonialsError ? (
-                                <ErrorDisplay message={testimonialsError} />
-                            ) : testimonials.length > 0 ? (
+                            )  : testimonials.length > 0 ? (
                                 <div className="space-y-4">
                                     {testimonials.map((item, index) => (
                                         <TestimonialCard
