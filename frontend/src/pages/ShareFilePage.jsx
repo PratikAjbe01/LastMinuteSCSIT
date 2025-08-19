@@ -253,7 +253,7 @@ const ShareFilePage = () => {
           style={contentStyle}
           className="relative flex items-center justify-center"
         >
-          <Watermark />
+{/*           <Watermark /> */}
           <div
             className="w-full h-full flex items-center justify-center"
             onContextMenu={(e) => e.preventDefault()}
