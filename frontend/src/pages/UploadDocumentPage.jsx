@@ -192,7 +192,7 @@ const UploadDocumentPage = () => {
   }, [selectedSemester, selectedSubject]);
 
   const handleUpload = async () => {
-    if (!user || !user.isAdmin || user.isAdmin !== "admin") {
+    if (user.isAdmin !== "admin") {
       setUploadStatus("error");
       setUploadMessage("Only admins are authorized to upload documents.");
       return;
