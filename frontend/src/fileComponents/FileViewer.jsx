@@ -375,7 +375,7 @@ const FileViewer = ({ file, onClose }) => {
           style={contentStyle}
           className="relative flex items-center justify-center"
         >
-          <Watermark file={file} />
+{/*           <Watermark file={file} /> */}
           <div
             className="w-full h-full flex items-center justify-center"
             onContextMenu={(e) => e.preventDefault()}
