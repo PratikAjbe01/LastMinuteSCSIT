@@ -432,7 +432,6 @@ const UploadDocumentPage = () => {
       };
     }
   }, [user]);
-  console.log("selectedTypes:", selectedTypes, "type:", typeof selectedTypes);
 
   return (
     <>

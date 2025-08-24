@@ -382,25 +382,19 @@ const AboutPage = () => {
         "Integrated tools for CGPA calculation and attendance management.",
       href: "/calculations/tools/cgpa",
     },
-    {
-      icon: BookOpen,
-      title: "Task Planner",
-      description:
-        "Organize your studies with built-in task and deadline management.",
-      href: "/planner/todos",
-    },
+    // {
+    //   icon: BookOpen,
+    //   title: "Task Planner",
+    //   description:
+    //     "Organize your studies with built-in task and deadline management.",
+    //   href: "/planner/todos",
+    // },
     {
       icon: Users,
       title: "User Management",
       description:
         "Personalized dashboard and profile management for each student.",
       href: "/profile",
-    },
-    {
-      icon: FileChartPie,
-      title: "Admin Dashboard",
-      description: "Comprehensive admin tools for content and user management.",
-      href: "/allfiles/admin",
     },
   ];
 
@@ -533,7 +527,7 @@ const AboutPage = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user"))._id : ""}`,
+            Authorization: `Bearer ${localStorage.getItem("lastLoginEmail") ? JSON.parse(localStorage.getItem("lastLoginEmail")) : ""}`,
           },
         });
 

@@ -17,8 +17,10 @@ import {
   Smartphone,
   MoveLeft,
   MoveRight,
+  Home,
+  Eye,
 } from "lucide-react";
-import { useContext, useEffect, useMemo } from "react";
+import { useContext, useEffect, useMemo, useCallback, memo } from "react";
 import { Helmet } from "react-helmet-async";
 import { useSwipeable } from "react-swipeable";
 import { ValuesContext } from "../context/ValuesContext";
@@ -27,6 +29,68 @@ import { useState } from "react";
 import Testimonials from "../components/Testimonials";
 import { useAuthStore } from "../store/authStore";
 
+const FloatingParticle = memo(({ style, animationProps }) => (
+  <motion.div
+    className="absolute w-1 h-1 bg-green-400/80 rounded-full"
+    style={style}
+    animate={animationProps.animate}
+    transition={animationProps.transition}
+  />
+));
+
+const FeatureCard = memo(({ feature, onNavigate }) => {
+  const IconComponent = feature.icon;
+
+  const handleClick = useCallback(() => {
+    onNavigate(feature.path);
+  }, [feature.path, onNavigate]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: feature.delay }}
+      viewport={{ once: true, margin: "-50px" }}
+      whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }}
+      className="group relative will-change-transform"
+    >
+      <div className="relative h-full bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden hover:border-white/20 transition-colors duration-200">
+        <div className="relative p-8">
+          <div
+            className={`w-16 h-16 bg-gradient-to-r ${feature.gradient} rounded-xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-200`}
+          >
+            <IconComponent className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="text-2xl font-bold text-white mb-3">
+            {feature.title}
+          </h3>
+          <p className="text-gray-400 mb-6 leading-relaxed">
+            {feature.description}
+          </p>
+          <button
+            onClick={handleClick}
+            className="inline-flex items-center gap-2 text-white font-semibold group-hover:gap-3 transition-all duration-200"
+          >
+            <span className={`bg-gradient-to-r ${feature.gradient} bg-clip-text text-transparent`}>
+              {feature.linkText}
+            </span>
+            <ArrowRight className="w-5 h-5 text-green-400" />
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
+
+const ShortcutItem = memo(({ shortcut }) => (
+  <div className="flex justify-between items-center p-3 bg-gray-500/10 rounded-lg transition-colors hover:bg-gray-500/20 duration-200">
+    <span className="text-gray-300">{shortcut.action}</span>
+    <kbd className="px-2 py-1.5 text-xs font-sans font-semibold text-gray-300 bg-gray-500/20 border border-gray-500/30 rounded-md">
+      {shortcut.keys}
+    </kbd>
+  </div>
+));
+
 const HomePage = () => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
@@ -34,64 +98,21 @@ const HomePage = () => {
   const { isSidebarOpen, setIsSidebarOpen } = useContext(ValuesContext);
   const [editModalOpen, setEditModalOpen] = useState(false);
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const handleNavigate = useCallback((path) => {
+    navigate(path);
+  }, [navigate]);
+
+  const handleEditModalClose = useCallback(() => {
+    setEditModalOpen(false);
+  }, []);
+
+  const handleEditModalOpen = useCallback(() => {
+    setEditModalOpen(true);
   }, []);
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.ctrlKey) {
-        switch (e.key.toLowerCase()) {
-          case "s":
-            e.preventDefault();
-            setIsSidebarOpen((prev) => !prev);
-            break;
-          case "p":
-            e.preventDefault();
-            navigate("/scsit/courses");
-            break;
-          case "u":
-            if (user?.role === "admin") {
-              e.preventDefault();
-              navigate("/upload");
-            }
-            break;
-          case "a":
-            e.preventDefault();
-            navigate("/allfiles");
-            break;
-          case "q":
-            e.preventDefault();
-            navigate("/calculations/tools/cgpa");
-            break;
-          case "h":
-            e.preventDefault();
-            navigate("/home");
-            break;
-          case "d":
-            if (user?.course && user?.semester) {
-              e.preventDefault();
-              navigate(`/scsit/${user.course}/semesters/${user.semester}`);
-            }
-            break;
-          case "l":
-            if (user?._id) {
-              e.preventDefault();
-              navigate(`/admins/leaderboard`);
-            }
-            break;
-          default:
-            break;
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [navigate, setIsSidebarOpen, user]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   const features = useMemo(
     () => [
@@ -190,47 +211,60 @@ const HomePage = () => {
 
   const floatingParticles = useMemo(
     () =>
-      [...Array(25)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1 h-1 bg-green-400/30 rounded-full"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-          }}
-          animate={{
-            y: [0, -50, 0],
-            opacity: [0, 0.7, 0],
+      [...Array(85)].map((_, i) => {
+        const animationProps = {
+          animate: {
+            y: [0, -30, 0],
+            opacity: [0, 0.8, 0],
             scale: [0, 1, 0],
-          }}
-          transition={{
-            duration: Math.random() * 6 + 4,
+          },
+          transition: {
+            duration: Math.random() * 4 + 3,
             repeat: Infinity,
-            delay: Math.random() * 5,
-          }}
-        />
-      )),
+            delay: Math.random() * 3,
+            ease: "easeInOut",
+          }
+        };
+
+        return (
+          <FloatingParticle
+            key={i}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animationProps={animationProps}
+          />
+        );
+      }),
     [],
   );
 
-  const desktopShortcuts = [
+  const desktopShortcuts = useMemo(() => [
     { keys: "Ctrl + S", action: "Toggle Sidebar" },
-    { keys: "Ctrl + P", action: "View All Papers" },
+    { keys: "Ctrl + P", action: "View All Programs" },
     { keys: "Ctrl + U", action: "Upload a File", admin: true },
-    { keys: "Ctrl + A", action: "See All Files" },
+    { keys: "Ctrl + A", action: "Explore All Files" },
     {
       keys: "Ctrl + Q",
       action: "Open tools page with CGPA Calculator as default",
     },
     { keys: "Ctrl + H", action: "Return to Home" },
     { keys: "Ctrl + L", action: "View Leaderboard" },
-  ];
+  ], []);
+
+  const filteredShortcuts = useMemo(() =>
+    desktopShortcuts.filter(sc =>
+      (!sc.auth || (sc.auth && user?._id)) &&
+      (!sc.admin || (sc.admin && user?.role === "admin"))
+    ), [desktopShortcuts, user]
+  );
 
   return (
     <>
       <div
         {...swipeHandlers}
-        className="min-h-screen w-full relative pt-20 bg-gradient-to-br from-gray-900 via-blue-900 to-slate-900 z-0 overflow-x-hidden"
+        className="min-h-screen w-full relative bg-gradient-to-br from-gray-900 via-blue-900 to-slate-900 z-0 overflow-x-hidden"
       >
         <Helmet>
           <title>lastMinuteSCSIT - Home</title>
@@ -240,23 +274,23 @@ const HomePage = () => {
           />
         </Helmet>
 
-        <div className="fixed inset-0 -z-10 bg-gradient-to-br from-gray-900 via-blue-900 to-slate-900 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-slate-900" />
-          <div className="absolute inset-0">
+        <div className="fixed inset-0 -z-10 pointer-events-none">
+          <div className="absolute inset-0" />
+          {/* <div className="absolute inset-0">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-blue-900 to-emerald-900/30" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-cyan-500/15 via-transparent to-transparent" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-green-500/15 via-transparent to-transparent" />
-          </div>
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,black_40%,transparent)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-cyan-500/20 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-green-500/20 via-transparent to-transparent" />
+          </div> */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,black_40%,transparent)]" />
           <div className="absolute inset-0">{floatingParticles}</div>
         </div>
 
-        <div className="relative z-10 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 -mt-20">
+        <div className="relative z-10 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-1">
           <div className="w-full max-w-7xl mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 0.6 }}
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500/15 to-emerald-500/15 backdrop-filter backdrop-blur-xl border border-green-500/30 rounded-full mb-8 shadow-lg"
             >
               <Sparkles className="w-5 h-5 text-green-400" />
@@ -268,7 +302,7 @@ const HomePage = () => {
             <motion.h1
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
               className="relative"
             >
               <span className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight">
@@ -285,7 +319,7 @@ const HomePage = () => {
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
               className="mt-8 text-lg sm:text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed font-light"
             >
               Your comprehensive platform for accessing and sharing previous
@@ -296,26 +330,26 @@ const HomePage = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
               className="mt-12 flex flex-col sm:flex-row gap-6 justify-center"
             >
               <motion.button
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.03, y: -2 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => navigate("/scsit/courses")}
-                className="group relative px-10 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-2xl overflow-hidden shadow-2xl hover:shadow-green-500/30 transition-all duration-300"
+                className="group relative px-10 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-2xl overflow-hidden shadow-2xl hover:shadow-green-500/20 transition-all duration-200"
               >
                 <span className="relative z-10 flex items-center justify-center gap-3">
                   Explore Courses
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
                 </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
               </motion.button>
               <motion.button
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.03, y: -2 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => navigate("/upload")}
-                className="group px-10 py-4 bg-white/10 backdrop-filter backdrop-blur-xl text-white font-bold rounded-2xl border border-white/20 hover:border-green-500/50 hover:bg-white/15 transition-all duration-300 shadow-lg"
+                className="group px-10 py-4 bg-white/10 backdrop-filter backdrop-blur-xl text-white font-bold rounded-2xl border border-white/20 hover:border-green-500/50 hover:bg-white/15 transition-all duration-200 shadow-lg"
               >
                 <span className="flex items-center justify-center gap-3">
                   <Upload className="w-5 h-5" />
@@ -327,12 +361,12 @@ const HomePage = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 1 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
             className="absolute bottom-8 left-1/2 -translate-x-1/2"
           >
             <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center"
             >
               <div className="w-1 h-3 bg-green-400/60 rounded-full mt-2" />
@@ -345,8 +379,8 @@ const HomePage = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true, margin: "-100px" }}
               className="text-center mb-20"
             >
               <h2 className="text-4xl sm:text-5xl font-bold mb-6">
@@ -360,49 +394,13 @@ const HomePage = () => {
               </p>
             </motion.div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {features.map((feature) => {
-                const IconComponent = feature.icon;
-                return (
-                  <motion.div
-                    key={feature.id}
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: feature.delay }}
-                    viewport={{ once: true }}
-                    whileHover={{ y: -10, transition: { duration: 0.3 } }}
-                    className="group relative"
-                  >
-                    <div className="relative h-full bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden hover:border-white/20 transition-all duration-300">
-                      <div
-                        className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
-                      />
-                      <div className="relative p-8">
-                        <div
-                          className={`w-16 h-16 bg-gradient-to-r ${feature.gradient} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}
-                        >
-                          <IconComponent className="w-8 h-8 text-white" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-white mb-3">
-                          {feature.title}
-                        </h3>
-                        <p className="text-gray-400 mb-6 leading-relaxed">
-                          {feature.description}
-                        </p>
-                        <button
-                          onClick={() => navigate(feature.path)}
-                          className={`inline-flex items-center gap-2 text-white font-semibold bg-gradient-to-r ${feature.gradient} bg-clip-text text-transparent group-hover:gap-3 transition-all duration-300`}
-                        >
-                          {feature.linkText}
-                          <ArrowRight className="w-5 h-5" />
-                        </button>
-                      </div>
-                      <div
-                        className={`absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br ${feature.gradient} rounded-full opacity-10 group-hover:opacity-20 group-hover:scale-150 transition-all duration-500`}
-                      />
-                    </div>
-                  </motion.div>
-                );
-              })}
+              {features.map((feature) => (
+                <FeatureCard
+                  key={feature.id}
+                  feature={feature}
+                  onNavigate={handleNavigate}
+                />
+              ))}
             </div>
           </div>
         </div>
@@ -412,8 +410,8 @@ const HomePage = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true, margin: "-100px" }}
               className="text-center mb-20"
             >
               <h2 className="text-4xl sm:text-5xl font-bold mb-6">
@@ -429,9 +427,9 @@ const HomePage = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 50 }}
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              viewport={{ once: true }}
-              className="relative bg-gray-800/30 backdrop-filter backdrop-blur-xl rounded-3xl border border-gray-700/50 shadow-2xl shadow-green-500/10 overflow-hidden"
+              transition={{ duration: 0.6, delay: 0.1 }}
+              viewport={{ once: true, margin: "-100px" }}
+              className="relative bg-gray-800/30 backdrop-filter backdrop-blur-xl rounded-3xl border border-gray-700/50 shadow-2xl shadow-green-500/5 overflow-hidden"
             >
               <div
                 className="relative w-full overflow-hidden rounded-3xl"
@@ -447,8 +445,6 @@ const HomePage = () => {
                   loading="lazy"
                 ></iframe>
               </div>
-              <div className="absolute -top-20 -left-20 w-40 h-40 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full opacity-15 group-hover:opacity-25 group-hover:scale-150 transition-all duration-700" />
-              <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full opacity-15 group-hover:opacity-25 group-hover:scale-150 transition-all duration-700" />
             </motion.div>
           </div>
         </div>
@@ -460,8 +456,8 @@ const HomePage = () => {
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true, margin: "-100px" }}
               className="text-center mb-20"
             >
               <h2 className="text-4xl sm:text-5xl font-bold mb-6">
@@ -470,16 +466,15 @@ const HomePage = () => {
                 </span>
               </h2>
               <p className="text-gray-400 text-xl max-w-3xl mx-auto leading-relaxed">
-                Use these handy shortcuts and gestures to master the platform
-                and speed up your workflow.
+                Use these handy shortcuts and gestures to master the platform and speed up your workflow.
               </p>
             </motion.div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
               <motion.div
                 initial={{ opacity: 0, x: -50 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-                viewport={{ once: true, amount: 0.5 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                viewport={{ once: true, margin: "-100px" }}
                 className="h-full bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-8"
               >
                 <div className="flex items-center gap-4 mb-8">
@@ -488,62 +483,117 @@ const HomePage = () => {
                     Desktop Shortcuts
                   </h3>
                 </div>
-
-                <div className="relative p-6 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/20 mb-8">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
-                        <Settings className="w-6 h-6 text-green-400" />
+                <div className="space-y-8">
+                  <div className="relative p-6 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/20">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="flex-shrink-0">
+                        <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
+                          <Settings className="w-6 h-6 text-green-400" />
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-white text-lg flex items-center gap-2">
+                          Quick Dashboard
+                          <kbd className="px-2 py-1 text-xs font-sans font-semibold text-gray-300 bg-gray-500/20 border border-gray-500/30 rounded-md hover:bg-gray-500/40 transition-colors">
+                            Ctrl + D
+                          </kbd>
+                        </h4>
+                        <p className="text-gray-400 text-sm mt-1">
+                          Access Your current Course/semester
+                          {`${user?.course ? ", in your case " + user?.course + " - Sem " + user?.semester : ""}`}
+                          files directly.
+                        </p>
                       </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-white text-lg flex items-center gap-2">
-                        Quick Dashboard
-                        <kbd className="px-2 py-1 text-xs font-sans font-semibold text-gray-300 bg-gray-500/20 border border-gray-500/30 rounded-md">
-                          Ctrl + D
-                        </kbd>
+                    <button
+                      onClick={handleEditModalOpen}
+                      className="w-full px-4 py-2 bg-green-500 text-white font-semibold rounded-lg text-sm hover:bg-green-600 transition-colors duration-200"
+                    >
+                      Set Course/Semester
+                    </button>
+                  </div>
+
+                  <div className="relative p-6 bg-gradient-to-br from-blue-500/10 to-sky-500/10 rounded-xl border border-blue-500/20">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="flex-shrink-0">
+                        <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                          <FileText className="w-6 h-6 text-blue-400" />
+                        </div>
+                      </div>
+                      <h4 className="font-bold text-white text-lg">
+                        Files Page Navigation
                       </h4>
-                      <p className="text-gray-400 text-sm mt-1">
-                        Access Your current Course/semester
-                        {`${user?.course ? ", in your case " + user?.course + " - Sem " + user?.semester : ""}`}{" "}
-                        files directly from anywhere.
-                      </p>
+                    </div>
+                    <div className="space-y-4 text-sm">
+                      <div className="flex items-center justify-between">
+                        <p className="text-gray-300">Jump to subject by index</p>
+                        <div className="flex items-center gap-1.5">
+                          <kbd className="px-2 py-1 text-xs font-sans font-semibold text-gray-300 bg-gray-500/20 border border-gray-500/30 rounded-md hover:bg-gray-500/40 transition-colors">Shift</kbd>
+                          <span>+</span>
+                          <kbd className="px-2 py-1 text-xs font-sans font-semibold text-gray-300 bg-gray-500/20 border border-gray-500/30 rounded-md hover:bg-gray-500/40 transition-colors">1-9</kbd>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-gray-300">Cycle through subjects</p>
+                        <kbd className="px-2 py-1 text-xs font-sans font-semibold text-gray-300 bg-gray-500/20 border border-gray-500/30 rounded-md hover:bg-gray-500/40 transition-colors">a - z</kbd>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-gray-300">Go to Common Files</p>
+                        <kbd className="px-2 py-1 text-xs font-sans font-semibold text-gray-300 bg-gray-500/20 border border-gray-500/30 rounded-md hover:bg-gray-500/40 transition-colors">Ctrl + C</kbd>
+                      </div>
                     </div>
                   </div>
-                  <button
-                    onClick={() => {
-                      setEditModalOpen(true);
-                    }}
-                    className="w-full px-4 py-2 bg-green-500 text-white font-semibold rounded-lg text-sm hover:bg-green-600 transition-colors duration-300"
-                  >
-                    Set Course/Semester
-                  </button>
-                </div>
 
-                <div className="space-y-4">
-                  {desktopShortcuts.map(
-                    (sc) =>
-                      (!sc.auth || (sc.auth && user?._id)) &&
-                      (!sc.admin || (sc.admin && user?.role === "admin")) && (
-                        <div
-                          key={sc.action}
-                          className="flex justify-between items-center p-3 bg-gray-500/10 rounded-lg transition-colors hover:bg-gray-500/20"
-                        >
-                          <span className="text-gray-300">{sc.action}</span>
-                          <kbd className="px-2 py-1.5 text-xs font-sans font-semibold text-gray-300 bg-gray-500/20 border border-gray-500/30 rounded-md">
-                            {sc.keys}
-                          </kbd>
+                  <div className="relative p-6 bg-gradient-to-br from-orange-500/10 to-amber-500/10 rounded-xl border border-orange-500/20">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="flex-shrink-0">
+                        <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                          <Eye className="w-6 h-6 text-orange-400" />
                         </div>
-                      ),
-                  )}
+                      </div>
+                      <h4 className="font-bold text-white text-lg">
+                        File Viewer Controls
+                      </h4>
+                    </div>
+                    <div className="space-y-4 text-sm">
+                      <div className="flex items-center justify-between">
+                        <p className="text-gray-300">Open/Close the Hide UI button</p>
+                        <kbd className="px-2 py-1 text-xs font-sans font-semibold text-gray-300 bg-gray-500/20 border border-gray-500/30 rounded-md hover:bg-gray-500/40 transition-colors">Ctrl + V</kbd>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-gray-300">Clicking on Hide UI button will give seamless view experience</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="relative p-6 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-xl border border-purple-500/20">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="flex-shrink-0">
+                        <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                          <Home className="w-6 h-6 text-purple-400" />
+                        </div>
+                      </div>
+                      <h4 className="font-bold text-white text-lg">
+                        Homepage Shortcuts
+                      </h4>
+                    </div>
+                    <div className="space-y-4 text-sm">
+                      {filteredShortcuts.map((sc) => (
+                        <div key={sc.action} className="flex items-center justify-between">
+                          <p className="text-gray-300">{sc.action}</p>
+                          <kbd className="px-2 py-1 text-xs font-sans font-semibold text-gray-300 bg-gray-500/20 border border-gray-500/30 rounded-md hover:bg-gray-500/40 transition-colors">{sc.keys}</kbd>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </motion.div>
 
               <motion.div
                 initial={{ opacity: 0, x: 50 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.4 }}
-                viewport={{ once: true, amount: 0.5 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                viewport={{ once: true, margin: "-100px" }}
                 className="h-full bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-8"
               >
                 <div className="flex items-center gap-4 mb-8">
@@ -561,8 +611,7 @@ const HomePage = () => {
                       </h4>
                     </div>
                     <p className="text-gray-400 pl-11">
-                      From the homepage, swipe left to quickly open the
-                      navigation menu.
+                      From the homepage, swipe left to quickly open the navigation menu.
                     </p>
                   </div>
                   <div className="p-4">
@@ -576,13 +625,13 @@ const HomePage = () => {
                       <li>
                         <span className="font-semibold text-gray-300">
                           If sidebar is open:
-                        </span>{" "}
+                        </span>
                         closes the sidebar.
                       </li>
                       <li>
                         <span className="font-semibold text-gray-300">
                           If on homepage:
-                        </span>{" "}
+                        </span>
                         goes to your current semester papers.
                       </li>
                     </ul>
@@ -597,16 +646,16 @@ const HomePage = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true, margin: "-100px" }}
             className="max-w-5xl mx-auto text-center"
           >
             <div className="relative bg-gradient-to-r from-green-500/15 to-emerald-500/15 backdrop-filter backdrop-blur-xl rounded-3xl border border-green-500/30 p-10 md:p-16 overflow-hidden shadow-2xl">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10" />
+              <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 to-emerald-500/5" />
               <div className="relative z-10">
                 <motion.div
-                  whileHover={{ rotate: 360, scale: 1.2 }}
-                  transition={{ duration: 0.6 }}
+                  whileHover={{ rotate: 360, scale: 1.1 }}
+                  transition={{ duration: 0.4 }}
                   className="inline-block"
                 >
                   <Star className="w-16 h-16 text-green-400 mx-auto mb-8" />
@@ -620,16 +669,14 @@ const HomePage = () => {
                   tools.
                 </p>
                 <motion.button
-                  whileHover={{ scale: 1.05, y: -3 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => navigate("/scsit/courses")}
-                  className="px-10 py-5 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-2xl shadow-2xl hover:shadow-green-500/30 transition-all duration-300 text-lg"
+                  className="px-10 py-5 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-2xl shadow-2xl hover:shadow-green-500/20 transition-all duration-200 text-lg"
                 >
                   Get Started Now
                 </motion.button>
               </div>
-              <div className="absolute -top-32 -right-32 w-64 h-64 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-full blur-3xl" />
-              <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-full blur-3xl" />
             </div>
           </motion.div>
         </div>
@@ -637,7 +684,7 @@ const HomePage = () => {
       {editModalOpen && (
         <EditProfileModal
           isOpen={editModalOpen}
-          onClose={() => setEditModalOpen(false)}
+          onClose={handleEditModalClose}
         />
       )}
     </>

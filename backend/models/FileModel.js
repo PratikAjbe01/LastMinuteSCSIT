@@ -51,15 +51,23 @@ const fileSchema = new mongoose.Schema(
         },
         resourceType: {
             type: String,
-            enum: ['endsem', 'test1', 'test2', 'test3', 'practical', 'quiz', 'written', 'sourced', 'teacher'],
+            enum: ['endsem', 'test1', 'test2', 'test3', 'practical', 'quiz', 'written', 'sourced', 'teacher', 'mindmap', 'testanswers'],
         },
         views: {
             type: Number,
             default: 0,
         },
+        viewedBy: {
+            type: [String],
+            default: [],
+        },
         shares: {
             type: Number,
             default: 0,
+        },
+        sharedBy: {
+            type: [String],
+            default: [],
         },
         text: {
             type: String,

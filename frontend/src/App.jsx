@@ -36,38 +36,47 @@ import ManageTestimonials from "./pages/ManageTestimonials";
 import ProfilePage from "./pages/UserProfilePage";
 
 const ProtectedRoute = ({ children }) => {
-	const { user } = useAuthStore();
-	if (!user) {
-		const searchParams = new URLSearchParams(location.search);
-		const redirectPath = searchParams.get('redirect') || '/';
-		return <Navigate to={redirectPath} replace />;
-	};
-	return children;
+    const { user, isAuthenticated, isCheckingAuth } = useAuthStore();
+    const location = useLocation();
+
+    if (isCheckingAuth) {
+        return <LoadingSpinner />;
+    }
+
+    if (!isAuthenticated || !user) {
+        return <Navigate to={`/login?redirect=${location.pathname}`} replace />;
+    }
+
+    return children;
 };
 
 const RedirectAuthenticatedUser = ({ children }) => {
-	const { user } = useAuthStore();
-	const location = useLocation();
+    const { user, isAuthenticated, isCheckingAuth } = useAuthStore();
+    const location = useLocation();
 
-	if (user) {
-		const searchParams = new URLSearchParams(location.search);
-		const redirectPath = searchParams.get('redirect') || '/';
-		return <Navigate to={redirectPath} replace />;
-	}
+    if (isCheckingAuth) {
+        return <LoadingSpinner />;
+    }
 
-	return children;
+    if (isAuthenticated && user) {
+        const searchParams = new URLSearchParams(location.search);
+        const redirectPath = searchParams.get('redirect') || '/';
+        return <Navigate to={redirectPath} replace />;
+    }
+
+    return children;
 };
 
 function App() {
-	const { isCheckingAuth, checkAuth, user } = useAuthStore();
+	const { isCheckingAuth, initializeAuth, user } = useAuthStore();
 	const location = useLocation();
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 	const navigate = useNavigate();
 
 	useEffect(() => {
-		checkAuth();
-	}, [checkAuth]);
+		initializeAuth();
+	}, [initializeAuth]);
 
 	useEffect(() => {
 		const handleKeyDown = (e) => {
@@ -134,6 +143,8 @@ function App() {
 		"/verify-email",
 	];
 
+	console.log("user : ", user?.isAdmin);
+
 	const isFloatingPage = floatingRoutes.some(route => {
 		if (route.includes(":")) {
 			const base = route.split(":")[0];
@@ -141,6 +152,10 @@ function App() {
 		}
 		return location.pathname === route;
 	}) || location.pathname.startsWith("/reset-password");
+
+	if (isCheckingAuth) {
+		return <LoadingSpinner />;
+	}
 
 	return (
 		<>
@@ -275,7 +290,7 @@ function App() {
 						}
 					/>
 					<Route
-						path='/allusers'
+						path='/creators/allusers'
 						element={
 							<ProtectedRoute>
 								<UsersPage />

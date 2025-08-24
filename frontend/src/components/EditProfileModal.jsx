@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { User, Mail, ShieldCheck, BookOpen, GraduationCap, Save, X, RotateCw, User2Icon } from "lucide-react";
-import { useAuthStore } from "../store/authStore";
+import { api, useAuthStore } from "../store/authStore";
 import { API_URL } from "../utils/urls";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -104,13 +104,11 @@ export const EditProfileModal = ({ onClose, setIsUserEdited }) => {
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            const response = await fetch(`${API_URL}/api/auth/update-profile`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId: user._id, ...profileData }),
+            const response = await api.post(`${API_URL}/api/auth/update-profile`, {
+                userId: user._id,
+                ...profileData
             });
-
-            const data = await response.json();
+            const data = response;
             console.log("Response:", data.user);
 
             if (data.message === "Profile updated successfully.") {
@@ -176,8 +174,8 @@ export const EditProfileModal = ({ onClose, setIsUserEdited }) => {
     const handleProfileLoad = async () => {
         setLoadLoading(true);
           try {
-            const response = await fetch(`${API_URL}/api/auth/fetchuser/${user._id}`);
-            const data = await response.json();
+            const response = await api.get(`${API_URL}/api/auth/fetchuser/${user._id}`);
+            const data = response.data;
             console.log("Fetched user:", data.user);
             if (data?.user) {
                 setUser(data.user);

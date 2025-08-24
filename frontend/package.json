@@ -10,11 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^7.3.1",
     "@vercel/analytics": "^1.5.0",
     "axios": "^1.7.3",
     "canvas-confetti": "^1.9.3",
     "date-fns": "^4.1.0",
     "framer-motion": "^11.3.21",
+    "highlight.js": "^11.11.1",
     "lucide-react": "^0.424.0",
     "mathjs": "^14.6.0",
     "react": "^18.3.1",
@@ -30,6 +34,9 @@
     "react-swipeable": "^7.0.2",
     "react-syntax-highlighter": "^15.6.1",
     "react-web-share": "^2.0.2",
+    "rehype-highlight": "^7.0.2",
+    "rehype-raw": "^7.0.0",
+    "remark-deflist": "^1.0.0",
     "remark-gfm": "^4.0.1",
     "use-sound": "^5.0.0",
     "zustand": "^4.5.4"

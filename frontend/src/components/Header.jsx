@@ -3,8 +3,8 @@
 import { useState, useMemo, useContext, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { BookOpen, User, LogOut, Menu, X, Home, Upload, GraduationCap, File, Files, PanelTopClose, BookMarked, Workflow, Edit, FileChartPie, Users, Trophy, Edit2, User2 } from "lucide-react"
-import { useMatch, useNavigate, useLocation } from "react-router-dom" // Added useLocation
-import { useAuthStore } from "../store/authStore"
+import { useMatch, useNavigate, useLocation } from "react-router-dom"
+import { api, useAuthStore } from "../store/authStore"
 import { ValuesContext } from "../context/ValuesContext"
 import { useSwipeable } from "react-swipeable"
 import { EditProfileModal } from "./EditProfileModal"
@@ -33,13 +33,11 @@ const Header = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch(
+        const response = await api.get(
           `${API_URL}/api/auth/fetchuser/${user._id}`,
         );
-        if (!response.ok) throw new Error("Failed to fetch user data.");
-        const data = await response?.json();
-        if (data.success) setFetchedUser(data?.user);
-        else throw new Error(data.message || "Could not retrieve user.");
+        const data = response.data;
+        setFetchedUser(data?.user);
       } catch (error) {
         console.error(error.message);
       }
@@ -69,7 +67,6 @@ const Header = () => {
     const items = [
       { href: "/", label: "Home", icon: Home },
       { href: "/scsit/courses", label: "Courses", icon: GraduationCap },
-      // { href: "/upload", label: "Upload", icon: Upload },
       { href: "/allfiles", label: "All Files", icon: Files },
       { href: "/calculations/tools/cgpa", label: "Tools", icon: PanelTopClose },
       // { href: `/attendance/manager/user/${user?.id}`, label: "Attendance Manager", icon: BookMarked },
@@ -84,7 +81,12 @@ const Header = () => {
     if (user?.isAdmin === "admin") {
       items.push({ href: "/upload", label: "Upload", icon: Upload })
       items.push({ href: "/profile/files", label: "My Files", icon: File })
+    }
+
+    if (user?.email === "bdhakad886@gmail.com" || user?.email === "pratikajbe40@gmail.com") {
       items.push({ href: "/admin/allfiles", label: "Admin Uploads", icon: FileChartPie })
+      items.push({ href: "/creators/allusers", label: "Manage Users", icon: Users })
+      items.push({ href: "/admins/testimonials", label: "Manage Testimonials", icon: Edit2 })
     }
 
     return items
@@ -100,7 +102,6 @@ const Header = () => {
   const handleLogout = async () => {
     await logout()
     closeSidebar()
-    localStorage.removeItem("user");
     navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`);
   }
 
@@ -108,7 +109,7 @@ const Header = () => {
 
   const handleNavLinkClick = (href) => {
     const noToastPages = ['/', '/about', '/scsit/courses', '/allfiles',];
-    if (!localStorage.getItem("user") && !noToastPages.includes(href) && !isSemestersPage) {
+    if (!user && !noToastPages.includes(href) && !isSemestersPage) {
       toast.error('User Must Be Logged In.', {
         style: {
           border: '1px solid #713200',
@@ -124,6 +125,8 @@ const Header = () => {
     navigate(href);
     closeSidebar();
   }
+
+  console.log(fetchedUser);
 
   const isActiveLink = (href) => {
     if (href === "/" && location.pathname === "/") return true;

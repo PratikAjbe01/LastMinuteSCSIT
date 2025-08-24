@@ -138,4 +138,6 @@ export const NotesResourceTypes = {
     "written": { value: "written", label: "Hand Written" },
     "teacher": { value: "teacher", label: "Teacher Provided" },
     "sourced": { value: "sourced", label: "Internet Sourced" },
+    "mindmap": { value: "mindmap", label: "Mind Map" },
+    "testanswers": { value: "testanswers", label: "Test Answers" },
 }
