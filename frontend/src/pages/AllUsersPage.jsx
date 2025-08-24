@@ -47,6 +47,7 @@ const UsersPage = () => {
                     secondary: '#ffffff',
                 },
             });
+            console.log("User is not admin", user);
             navigate("/");
             return;
         }

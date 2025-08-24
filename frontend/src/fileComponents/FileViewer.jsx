@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   X,
   ZoomIn,
@@ -12,6 +12,7 @@ import {
   RefreshCcw,
   RefreshCcwDot,
   EyeIcon,
+  EyeOff,
   File,
 } from "lucide-react";
 import { Navigate } from "react-router-dom";
@@ -23,16 +24,18 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import MarkdownRenderer from "./MarkdownRenderer2";
+import { Helmet } from "react-helmet-async";
 
-const Watermark = ({ file}) => {
+const Watermark = ({ file }) => {
   const watermarkText = "© LastMinute SCSIT";
   return (
-    <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none select-none" style={{display: file.type === "text" ? "none" : "block"}}>
+    <div className="absolute hidden sm:hidden inset-0 z-10 overflow-hidden pointer-events-none select-none" style={{ display: file.type === "text" ? "none" : "block" }}>
       <div className="absolute -inset-1/4">
         {Array.from({ length: 150 }).map((_, i) => (
           <p
             key={i}
-            className="text-white/40 font-bold text-2xl whitespace-nowrap opacity-50"
+            className="bg-white/40 font-bold text-2xl whitespace-nowrap opacity-50"
             style={{
               position: "absolute",
               top: `${(i * 10) % 150}%`,
@@ -54,12 +57,26 @@ const FileViewer = ({ file, onClose }) => {
   const [rotation, setRotation] = useState(0);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [isUiVisible, setIsUiVisible] = useState(true);
+  const [showLoader, setShowLoader] = useState(true);
   const mainRef = useRef(null);
   const contentRef = useRef(null);
+  const [isToggleUiButtonVisible, setIsToggleUiButtonVisible] = useState(false);
 
-  if (!localStorage.getItem("user")) {
-    return <Navigate to={"/login"} replace />;
-  }
+  useEffect(() => {
+    const handleToggleUiButtonVisibility = (e) => {
+      if (e.ctrlKey && e.key === "v") {
+        e.preventDefault();
+        setIsToggleUiButtonVisible((prev) => !prev);
+      }
+    };
+
+    document.addEventListener("keydown", handleToggleUiButtonVisibility);
+
+    return () => {
+      document.removeEventListener("keydown", handleToggleUiButtonVisibility);
+    };
+  }, []);
 
   useEffect(() => {
     const increaseViews = async () => {
@@ -69,7 +86,7 @@ const FileViewer = ({ file, onClose }) => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: file._id }),
+          body: JSON.stringify({ id: file._id, userId: user?._id }),
         });
 
         if (!response.ok) {
@@ -119,7 +136,7 @@ const FileViewer = ({ file, onClose }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id: file._id }),
+        body: JSON.stringify({ id: file._id, userId: user?._id }),
       });
 
       if (!response.ok) {
@@ -140,6 +157,14 @@ const FileViewer = ({ file, onClose }) => {
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowLoader(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const [reloadKey, setReloadKey] = useState(0);
@@ -271,103 +296,115 @@ const FileViewer = ({ file, onClose }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-gray-900 z-50 grid grid-rows-[auto_1fr_auto] h-screen overflow-hidden"
+      className={`fixed inset-0 bg-gray-900 z-50 grid h-screen overflow-hidden ${isUiVisible ? "grid-rows-[auto_1fr_auto]" : "grid-rows-[1fr]"
+        }`}
     >
-      <header className="bg-gray-800 bg-opacity-90 backdrop-filter backdrop-blur-xl border-b border-gray-700 p-2 sm:p-4 flex items-center justify-between gap-2 z-30">
-        <div className="flex items-center space-x-3 min-w-0">
-          <File className="w-5 h-5 text-green-400 flex-shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="text-white font-semibold text-sm sm:text-base">
-              {file.name || file.title}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
-          <motion.div
-            whileHover={{ scale: 1.1, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-            title={`${file?.views || 0} Views`}
-            className="group flex cursor-pointer items-center justify-center gap-x-1.5 rounded-full border border-white/10 bg-black/20 backdrop-blur-sm px-3 py-2 text-sm font-medium shadow-lg shadow-black/20 transition-all duration-300 ease-out hover:border-green-400/40 hover:bg-green-500/15 hover:shadow-xl hover:shadow-green-500/20 active:shadow-md min-w-[70px]"
+      <Helmet>
+        <title>{"Viewing file: " + (file.name || file.title) + " | Last Minute SCSIT"}</title>
+        <meta name="description" content={`View ${file.name || file.title}`} />
+      </Helmet>
+      <AnimatePresence>
+        {isUiVisible && (
+          <motion.header
+            initial={{ y: "-100%" }}
+            animate={{ y: "0%" }}
+            exit={{ y: "-100%" }}
+            transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
+            className="bg-gray-800 bg-opacity-90 backdrop-filter backdrop-blur-xl border-b border-gray-700 p-2 sm:p-4 flex items-center justify-between gap-2 z-30"
           >
-            <Eye className="h-4 w-4 text-green-400 transition-all duration-300 group-hover:text-green-300 group-hover:drop-shadow-sm flex-shrink-0" />
-            <span className="font-semibold tracking-wider text-green-300 transition-all duration-300 group-hover:text-green-200 group-hover:drop-shadow-sm leading-none tabular-nums">
-              {file?.views || 0}
-            </span>
-          </motion.div>
-          <div className="hidden sm:flex items-center space-x-1 bg-gray-700 rounded-lg p-1">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleZoomOut}
-              className="p-2 text-gray-300 hover:text-white hover:bg-gray-600 rounded transition-colors"
-              disabled={zoom <= 0.5}
-            >
-              <ZoomOut className="w-4 h-4" />
-            </motion.button>
-            <span className="text-gray-300 text-sm px-2 min-w-[60px] text-center">
-              {Math.round(zoom * 100)}%
-            </span>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleZoomIn}
-              className="p-2 text-gray-300 hover:text-white hover:bg-gray-600 rounded transition-colors"
-              disabled={zoom >= 3}
-            >
-              <ZoomIn className="w-4 h-4" />
-            </motion.button>
-          </div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleRotate}
-            className="p-2 sm:p-3 bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600 rounded-lg transition-colors"
-          >
-            <RotateCw className="w-4 h-4" />
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleReset}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-green-600/80 text-white hover:bg-green-600 rounded-lg transition-colors text-sm font-medium"
-          >
-            <RefreshCcw className="w-4 h-4" />
-            Reset
-          </motion.button>
-          <motion.button onClick={() => increaseFileShares()}>
-            <RWebShare
-              data={{
-                text: `Check out this file from SCSIT: ${file?.name || file?.title}`,
-                url: `${CLIENT_URL}/share/file/${file?._id}`,
-                title: `LastMinute SCSIT Shared you a file - ${file?.name || file?.title}`,
-              }}
-            >
+            <div className="flex items-center space-x-3 min-w-0">
+              <File className="w-5 h-5 text-green-400 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-semibold text-sm sm:text-base">
+                  {file.name || file.title}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
+              <motion.div
+                whileHover={{ scale: 1.1, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                title={`${file?.views || 0} Views`}
+                className="group flex cursor-pointer items-center justify-center gap-x-1.5 rounded-full border border-white/10 bg-black/20 backdrop-blur-sm px-3 py-2 text-sm font-medium shadow-lg shadow-black/20 transition-all duration-300 ease-out hover:border-green-400/40 hover:bg-green-500/15 hover:shadow-xl hover:shadow-green-500/20 active:shadow-md min-w-[70px]"
+              >
+                <Eye className="h-4 w-4 text-green-400 transition-all duration-300 group-hover:text-green-300 group-hover:drop-shadow-sm flex-shrink-0" />
+                <span className="font-semibold tracking-wider text-green-300 transition-all duration-300 group-hover:text-green-200 group-hover:drop-shadow-sm leading-none tabular-nums">
+                  {file?.views || 0}
+                </span>
+              </motion.div>
+              <div className="hidden sm:flex items-center space-x-1 bg-gray-700 rounded-lg p-1">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleZoomOut}
+                  className="p-2 text-gray-300 hover:text-white hover:bg-gray-600 rounded transition-colors"
+                  disabled={zoom <= 0.5}
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </motion.button>
+                <span className="text-gray-300 text-sm px-2 min-w-[60px] text-center">
+                  {Math.round(zoom * 100)}%
+                </span>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleZoomIn}
+                  className="p-2 text-gray-300 hover:text-white hover:bg-gray-600 rounded transition-colors"
+                  disabled={zoom >= 3}
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </motion.button>
+              </div>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-x-1.5 sm:gap-x-2 px-2 py-1 sm:py-2 sm:px-2.5 md:px-3 text-gray-300 hover:text-white hover:bg-gray-600 transition-all duration-200 bg-gray-700 rounded-lg"
+                onClick={handleRotate}
+                className="p-2 sm:p-3 bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600 rounded-lg transition-colors"
               >
-                {file?.share && <span className="text-xs sm:text-base">
-                  {file?.shares || 0}
-                </span>}
-                <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                <RotateCw className="w-4 h-4" />
               </motion.button>
-            </RWebShare>
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onClose}
-            className="p-2 sm:p-3 bg-red-600 text-white hover:bg-red-700 rounded-lg transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </motion.button>
-        </div>
-      </header>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleReset}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-green-600/80 text-white hover:bg-green-600 rounded-lg transition-colors text-sm font-medium"
+              >
+                <RefreshCcw className="w-4 h-4" />
+                Reset
+              </motion.button>
+              <motion.button onClick={() => increaseFileShares()}>
+                <RWebShare
+                  data={{
+                    text: `Check out this file from SCSIT: ${file?.name || file?.title}`,
+                    url: `${CLIENT_URL}/share/file/${file?._id}`,
+                    title: `LastMinute SCSIT Shared you a file - ${file?.name || file?.title}`,
+                  }}
+                >
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex items-center p-2 sm:p-[10px] text-gray-300 hover:text-white hover:bg-gray-600 transition-all duration-200 bg-gray-700 rounded-lg"
+                  >
+                    <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </motion.button>
+                </RWebShare>
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={onClose}
+                className="p-2 sm:p-3 bg-red-600 text-white hover:bg-red-700 rounded-lg transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </motion.button>
+            </div>
+          </motion.header>
+        )}
+      </AnimatePresence>
 
       <main
         ref={mainRef}
-        className="relative overflow-auto grid place-items-center p-4 file-viewer-content"
+        className={`relative overflow-auto grid place-items-center file-viewer-content ${isUiVisible ? "p-2 sm:p-4" : "p-0"}`}
         onDoubleClick={(e) => e.preventDefault()}
       >
         <div
@@ -375,7 +412,7 @@ const FileViewer = ({ file, onClose }) => {
           style={contentStyle}
           className="relative flex items-center justify-center"
         >
-{/*           <Watermark file={file} /> */}
+          {/* <Watermark file={file} /> */}
           <div
             className="w-full h-full flex items-center justify-center"
             onContextMenu={(e) => e.preventDefault()}
@@ -397,30 +434,7 @@ const FileViewer = ({ file, onClose }) => {
               />
             ) : file?.type === "text" ? (
               <div className="prose prose-invert prose-lg max-w-none w-full h-full p-4 sm:p-6 overflow-auto rounded-lg bg-white text-left">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    code({ node, inline, className, children, ...props }) {
-                      const match = /language-(\w+)/.exec(className || "");
-                      return !inline && match ? (
-                        <SyntaxHighlighter
-                          style={atomDark}
-                          language={match[1]}
-                          PreTag="div"
-                          {...props}
-                        >
-                          {String(children).replace(/\n$/, "")}
-                        </SyntaxHighlighter>
-                      ) : (
-                        <code className={className} {...props}>
-                          {children}
-                        </code>
-                      );
-                    },
-                  }}
-                >
-                  {file.text || "No text available"}
-                </ReactMarkdown>
+                <MarkdownRenderer content={file?.text} />
               </div>
             ) : (
               <div className="text-white text-center">Loading preview...</div>
@@ -429,78 +443,138 @@ const FileViewer = ({ file, onClose }) => {
         </div>
       </main>
 
-      <footer className="z-30">
-        <div className="sm:hidden bg-gray-800 bg-opacity-90 backdrop-filter backdrop-blur-xl border-t border-gray-700 p-2 flex items-center justify-around">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleZoomOut}
-            className={`p-3 rounded-lg ${zoom <= 0.5 ? "bg-gray-600 text-gray-500 cursor-not-allowed" : "bg-gray-700 text-gray-300"}`}
-            disabled={zoom <= 0.5}
+      <AnimatePresence>
+        {isUiVisible && (
+          <motion.footer
+            initial={{ y: "100%" }}
+            animate={{ y: "0%" }}
+            exit={{ y: "100%" }}
+            transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
+            className="z-30"
           >
-            <ZoomOut className="w-5 h-5" />
-          </motion.button>
-          <span className="text-gray-200 text-base font-semibold px-4 py-2 bg-gray-700 rounded-lg min-w-[70px] text-center">
-            {Math.round(zoom * 100)}%
-          </span>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleZoomIn}
-            className={`p-3 rounded-lg ${zoom >= 3 ? "bg-gray-600 text-gray-500 cursor-not-allowed" : "bg-gray-700 text-gray-300"}`}
-            disabled={zoom >= 3}
-          >
-            <ZoomIn className="w-5 h-5" />
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleReset}
-            className="p-3 bg-green-600 text-white rounded-lg"
-          >
-            <RefreshCcw className="w-5 h-5" />
-          </motion.button>
-          {file?.type === "document" && (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleReloadPdf}
-              className="p-3 bg-blue-600 text-white rounded-lg"
-              title="Reload PDF"
-            >
-              <RefreshCcwDot className="w-5 h-5" />
-            </motion.button>
-          )}
-        </div>
-        <div className="hidden sm:block bg-gray-800 bg-opacity-90 backdrop-filter backdrop-blur-xl border-t border-gray-700 p-2">
-          <div
-            className="max-w-7xl mx-auto text-center text-gray-400 text-xs flex items-center"
-            style={{
-              justifyContent:
-                file.type === "document" ? "space-between" : "center",
-            }}
-          >
-            <p>
-              Use zoom and rotate controls to adjust the view. Right-click and
-              downloads are disabled for security.
-            </p>
-            {file?.type === "document" && (
-              <div className="flex items-center space-x-2">
-                <p>Reload PDF, if not loaded.</p>
+            <div className="sm:hidden bg-gray-800 bg-opacity-90 backdrop-filter backdrop-blur-xl border-t border-gray-700 p-2 flex items-center justify-around">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleZoomOut}
+                className={`p-3 rounded-lg ${zoom <= 0.5 ? "bg-gray-600 text-gray-500 cursor-not-allowed" : "bg-gray-700 text-gray-300"}`}
+                disabled={zoom <= 0.5}
+              >
+                <ZoomOut className="w-5 h-5" />
+              </motion.button>
+              <span className="text-gray-200 text-base font-semibold px-4 py-2 bg-gray-700 rounded-lg min-w-[70px] text-center">
+                {Math.round(zoom * 100)}%
+              </span>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleZoomIn}
+                className={`p-3 rounded-lg ${zoom >= 3 ? "bg-gray-600 text-gray-500 cursor-not-allowed" : "bg-gray-700 text-gray-300"}`}
+                disabled={zoom >= 3}
+              >
+                <ZoomIn className="w-5 h-5" />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleReset}
+                className="p-3 bg-green-600 text-white rounded-lg"
+              >
+                <RefreshCcw className="w-5 h-5" />
+              </motion.button>
+              {file?.type === "document" && (
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleReloadPdf}
-                  className="p-2 bg-blue-600 text-white rounded-lg"
+                  className="p-3 bg-blue-600 text-white rounded-lg"
                   title="Reload PDF"
                 >
-                  <RefreshCcwDot className="w-4 h-4" />
+                  <RefreshCcwDot className="w-5 h-5" />
                 </motion.button>
+              )}
+            </div>
+            <div className="hidden sm:block bg-gray-800 bg-opacity-90 backdrop-filter backdrop-blur-xl border-t border-gray-700 p-2">
+              <div
+                className="max-w-7xl mx-auto text-center text-gray-400 text-xs flex items-center"
+                style={{
+                  justifyContent:
+                    file.type === "document" ? "space-between" : "center",
+                }}
+              >
+                <p>
+                  Use zoom and rotate controls to adjust the view. Right-click and
+                  downloads are disabled for security.
+                </p>
+                {file?.type === "document" && (
+                  <div className="flex items-center space-x-2">
+                    <p>Reload PDF, if not loaded.</p>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleReloadPdf}
+                      className="p-2 bg-blue-600 text-white rounded-lg"
+                      title="Reload PDF"
+                    >
+                      <RefreshCcwDot className="w-4 h-4" />
+                    </motion.button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
-      </footer>
+            </div>
+          </motion.footer>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isToggleUiButtonVisible && (
+          <motion.button
+            onClick={() => setIsUiVisible(!isUiVisible)}
+            className="fixed bottom-12 right-5 z-40 bg-green-600 text-white rounded-full p-3 shadow-lg flex items-center justify-center"
+            whileHover={{ scale: 1.1, rotate: 15 }}
+            whileTap={{ scale: 0.9, rotate: -15 }}
+            title={isUiVisible ? "Hide UI" : "Show UI"}
+            aria-label={isUiVisible ? "Hide UI" : "Show UI"}
+          >
+            <AnimatePresence mode="wait">
+              {isUiVisible ? (
+                <motion.div
+                  key="eye-off"
+                  initial={{ opacity: 0, scale: 0.5, rotate: -45 }}
+                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  exit={{ opacity: 0, scale: 0.5, rotate: 45 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <EyeOff className="w-6 h-6" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="eye"
+                  initial={{ opacity: 0, scale: 0.5, rotate: 45 }}
+                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  exit={{ opacity: 0, scale: 0.5, rotate: -45 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Eye className="w-6 h-6" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showLoader && (
+          <motion.div
+            className="fixed bottom-12 left-5 z-40 flex items-center gap-3 rounded-full bg-gray-900/80 px-4 py-2 text-sm font-medium text-white shadow-lg backdrop-blur-md"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20, scale: 0.95 }}
+            transition={{ ease: "easeInOut", duration: 0.4 }}
+          >
+            <RefreshCcw className="h-4 w-4 animate-spin text-green-400" />
+            <span>Preparing Preview...</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

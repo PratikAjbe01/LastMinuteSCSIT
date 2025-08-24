@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.post('/upload', uploadFile);
 router.post('/fetchCourseAndSemester', fetchFilesCourseAndSemester);
-router.get('/proxy', proxyPdf);
+router.get('/lastminute', proxyPdf);
 router.get('/allfiles', fetchAllFiles);
 router.get('/allfilesbyviews', fetchAllFilesByViews);
 router.post('/adminfiles', fetchAdminFiles);

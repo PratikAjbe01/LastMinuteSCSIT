@@ -214,7 +214,7 @@ export const fetchFilesCourseAndSemester = async (req, res) => {
         if (file.contentType === 'application/pdf' || file.format === 'pdf') {
           return {
             ...file,
-            fileUrl: `${API_URL}/api/files/proxy?url=${encodeURIComponent(file.fileUrl)}`
+            fileUrl: `${API_URL}/api/files/lastminute?url=${encodeURIComponent(file.fileUrl)}`
           };
         }
       }
@@ -260,7 +260,7 @@ export const fetchAllFiles = async (req, res) => {
       if (file.type === "document") {
         return {
           ...file,
-          fileUrl: `${API_URL}/api/files/proxy?url=${encodeURIComponent(file.fileUrl)}`
+          fileUrl: `${API_URL}/api/files/lastminute?url=${encodeURIComponent(file.fileUrl)}`
         };
       }
       return file;
@@ -342,7 +342,7 @@ export const fetchAllFilesByViews = async (req, res) => {
       if (file.type === "document" && file.fileUrl) {
         return {
           ...file,
-          fileUrl: `${API_URL}/api/files/proxy?url=${encodeURIComponent(file.fileUrl)}`
+          fileUrl: `${API_URL}/api/files/lastminute?url=${encodeURIComponent(file.fileUrl)}`
         };
       }
       return file;
@@ -373,7 +373,7 @@ export const fetchAdminFiles = async (req, res) => {
       if (file.type === "document") {
         return {
           ...file,
-          fileUrl: `${API_URL}/api/files/proxy?url=${encodeURIComponent(file.fileUrl)}`
+          fileUrl: `${API_URL}/api/files/lastminute?url=${encodeURIComponent(file.fileUrl)}`
         };
       }
       return file;
@@ -405,7 +405,7 @@ export const fetchfileById = async (req, res) => {
     }
 
     if (file.type === "document") {
-      file.fileUrl = `${API_URL}/api/files/proxy?url=${encodeURIComponent(file.fileUrl)}`;
+      file.fileUrl = `${API_URL}/api/files/lastminute?url=${encodeURIComponent(file.fileUrl)}`;
     }
 
     res.status(200).json({
@@ -612,7 +612,7 @@ export const fetchAdminsFiles = async (req, res) => {
       if (file.type === "document") {
         return {
           ...file,
-          fileUrl: `${API_URL}/api/files/proxy?url=${encodeURIComponent(file.fileUrl)}`
+          fileUrl: `${API_URL}/api/files/lastminute?url=${encodeURIComponent(file.fileUrl)}`
         };
       }
       return file;
@@ -689,10 +689,14 @@ export const updateAdminFile = async (req, res) => {
 
 export const increaseFileViews = async (req, res) => {
   try {
-    const { id } = req.body;
+    const { id, userId } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ success: false, message: 'Invalid file ID' });
+    }
+    
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID is required." });
     }
 
     const file = await File.findById(id);
@@ -702,6 +706,7 @@ export const increaseFileViews = async (req, res) => {
     }
 
     file.views = (file.views || 0) + 1;
+    if (userId) file.viewedBy.push(userId);
 
     await file.save();
 
@@ -719,10 +724,14 @@ export const increaseFileViews = async (req, res) => {
 
 export const increaseFileShares = async (req, res) => {
   try {
-    const { id } = req.body;
+    const { id, userId } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ success: false, message: 'Invalid file ID' });
+    }
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID is required." });
     }
 
     const file = await File.findById(id);
@@ -732,6 +741,7 @@ export const increaseFileShares = async (req, res) => {
     }
 
     file.shares = (file.shares || 0) + 1;
+    if(userId) file.sharedBy.push(userId);
 
     await file.save();
 
@@ -920,3 +930,4 @@ export const getLeaderboardUserStats = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error while fetching user stats." });
   }
 };
+

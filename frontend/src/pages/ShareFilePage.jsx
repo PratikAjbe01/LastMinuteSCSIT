@@ -7,6 +7,7 @@ import { useNavigate, useParams } from "react-router-dom"
 import { RWebShare } from "react-web-share"
 import { API_URL, CLIENT_URL } from "../utils/urls"
 import Img from "../components/lazyLoadImage/Img"
+import { Helmet } from "react-helmet-async"
 
 const Watermark = () => {
   const watermarkText = "© LastMinute SCSIT";
@@ -16,7 +17,7 @@ const Watermark = () => {
         {Array.from({ length: 150 }).map((_, i) => (
           <p
             key={i}
-            className="text-white/40 font-bold text-2xl whitespace-nowrap opacity-50"
+            className="text-white/10 font-bold text-2xl whitespace-nowrap opacity-50"
             style={{
               position: 'absolute',
               top: `${(i * 10) % 150}%`,
@@ -197,6 +198,10 @@ const ShareFilePage = () => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-gray-900 z-50 grid grid-rows-[auto_1fr_auto] h-screen overflow-hidden">
+      <Helmet>
+        <title>{"Viewing file: " + (file.name || file.title) + " | Last Minute SCSIT"}</title>
+        <meta name="description" content={`View ${file.name || file.title}`} />
+      </Helmet>
       <header className="bg-gray-800 bg-opacity-90 backdrop-filter backdrop-blur-xl border-b border-gray-700 p-2 sm:p-4 flex items-center justify-between gap-2 z-30">
         <div className="flex items-center space-x-3 min-w-0">
           <File className="w-5 h-5 text-green-400 flex-shrink-0" />
@@ -253,7 +258,7 @@ const ShareFilePage = () => {
           style={contentStyle}
           className="relative flex items-center justify-center"
         >
-{/*           <Watermark /> */}
+          <Watermark />
           <div
             className="w-full h-full flex items-center justify-center"
             onContextMenu={(e) => e.preventDefault()}
