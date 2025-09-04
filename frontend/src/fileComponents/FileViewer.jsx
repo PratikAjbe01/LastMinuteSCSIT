@@ -15,14 +15,17 @@ import {
   EyeOff,
   File,
 } from "lucide-react";
+import { Navigate } from "react-router-dom";
 import { RWebShare } from "react-web-share";
 import Img from "../components/lazyLoadImage/Img";
 import { API_URL, CLIENT_URL } from "../utils/urls";
 import { useAuthStore } from "./../store/authStore";
-import MarkdownRenderer, { CopyButton } from "./MarkdownRenderer2";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import MarkdownRenderer from "./MarkdownRenderer2";
 import { Helmet } from "react-helmet-async";
-import { useSwipeable } from "react-swipeable";
-import { format, parseISO } from "date-fns";
 
 const Watermark = ({ file }) => {
   const watermarkText = "© LastMinute SCSIT";
@@ -156,10 +159,17 @@ const FileViewer = ({ file, onClose }) => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowLoader(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const [reloadKey, setReloadKey] = useState(0);
 
   const handleReloadPdf = () => {
-    setShowLoader(true);
     setReloadKey((prevKey) => prevKey + 1);
   };
 
@@ -269,14 +279,7 @@ const FileViewer = ({ file, onClose }) => {
     }
   };
 
-  const swipeHandlers = useSwipeable({
-    onSwipedRight: () => {
-      setIsToggleUiButtonVisible(!isToggleUiButtonVisible);
-    },
-    preventDefaultTouchmoveEvent: true,
-    trackMouse: true,
-    delta: 60,
-  });
+  console.log(file);
 
   const contentStyle = {
     transform: `scale(${zoom}) rotate(${rotation}deg)`,
@@ -288,17 +291,8 @@ const FileViewer = ({ file, onClose }) => {
     height: file?.type === "document" ? "100%" : "auto",
   };
 
-    useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowLoader(false);
-    }, 4000);
-
-    return () => clearTimeout(timer);
-  }, [reloadKey]);
-
   return (
     <motion.div
-      {...swipeHandlers}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -439,21 +433,11 @@ const FileViewer = ({ file, onClose }) => {
                 onDragStart={(e) => e.preventDefault()}
               />
             ) : file?.type === "text" ? (
-              <div className="flex flex-col gap-1 leading-[1.75] p-5">
-                <MarkdownRenderer content={file?.text} className="text-base sm:text-[20px] text-white w-full !overflow-hidden" />
-                <div className="mt-5 flex flex-col sm:flex-row gap-2 px-5 items-center justify-between bg-[#181717] p-3 w-full rounded-2xl">
-                  <div className='flex gap-3 pt-1'>
-                    <CopyButton text={file?.text} />
-                  </div>
-                </div>
+              <div className="prose prose-invert prose-lg max-w-none w-full h-full p-4 sm:p-6 overflow-auto rounded-lg bg-white text-left">
+                <MarkdownRenderer content={file?.text} />
               </div>
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-900 rounded-lg">
-                <div className="text-center">
-                  <div className="text-gray-400 text-lg mb-2">Unsupported file type</div>
-                  <div className="text-gray-500 text-sm">Cannot preview this file format</div>
-                </div>
-              </div>
+              <div className="text-white text-center">Loading preview...</div>
             )}
           </div>
         </div>
@@ -545,7 +529,7 @@ const FileViewer = ({ file, onClose }) => {
         {isToggleUiButtonVisible && (
           <motion.button
             onClick={() => setIsUiVisible(!isUiVisible)}
-            className="fixed sm:bottom-12 sm:right-5 bottom-[70px] right-5 z-40 bg-green-600 text-white rounded-full p-3 shadow-lg flex items-center justify-center"
+            className="fixed bottom-12 right-5 z-40 bg-green-600 text-white rounded-full p-3 shadow-lg flex items-center justify-center"
             whileHover={{ scale: 1.1, rotate: 15 }}
             whileTap={{ scale: 0.9, rotate: -15 }}
             title={isUiVisible ? "Hide UI" : "Show UI"}
