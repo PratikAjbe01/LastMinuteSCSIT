@@ -238,7 +238,9 @@ function App() {
 					<Route
 						path='/allfiles'
 						element={
+							<ProtectedRoute>
 							<AllFilesPage />
+								</ProtectedRoute>
 						}
 					/>
 					<Route
